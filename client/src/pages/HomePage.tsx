@@ -93,7 +93,7 @@ function HomePage() {
               <a href="/markets" className="font-medium text-white transition hover:text-yellow-400">
                 Markets
               </a>
-              <a href="#" className="font-medium text-white transition hover:text-yellow-400">
+                            <a href="/leaderboard" className="font-medium text-yellow-400">
                 Leaderboard
               </a>
             </nav>
