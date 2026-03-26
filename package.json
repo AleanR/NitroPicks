@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "nodemon",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,8 +21,26 @@
   "homepage": "https://github.com/AleanR/Team-24-Large-Project#readme",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "body-parser": "^2.2.2",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "lodash": "^4.17.23",
     "mongodb": "^7.1.0",
-    "mongoose": "^9.3.0"
+    "mongoose": "^9.3.3"
+  },
+  "devDependencies": {
+    "@types/body-parser": "^1.19.6",
+    "@types/compression": "^1.8.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/lodash": "^4.17.24",
+    "@types/mongoose": "^5.11.96",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2"
   }
 }
