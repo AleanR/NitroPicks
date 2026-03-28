@@ -1,4 +1,5 @@
 import { statCards, upcomingGames, winners } from '../data/mockHomeData'
+import Navigation from '../components/Navigation'
 
 function HomePage() {
   const renderStatIcon = (icon: 'leagues' | 'points' | 'wins') => {
@@ -86,49 +87,23 @@ function HomePage() {
               </div>
             </div>
 
-            <nav className="hidden items-center gap-8 md:flex">
-              <a href="/home" className="font-medium text-yellow-400">
-                Home
-              </a>
-              <a href="/markets" className="font-medium text-white transition hover:text-yellow-400">
-                Markets
-              </a>
-                            <a href="/leaderboard" className="font-medium text-yellow-400">
-                Leaderboard
-              </a>
-            </nav>
+            <Navigation />
           </div>
 
-          <div className="flex items-center gap-6">
-            <button className="flex items-center gap-2 rounded-xl border border-yellow-500/40 bg-[#0d0d0f] px-5 py-3 font-semibold">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                className="h-4 w-4 text-yellow-400"
-              >
-                <path d="M13 2L3 14h7v8l10-12h-7z" />
-              </svg>
-              <span className="text-xl font-bold">4,860</span>
-              <span className="text-sm text-zinc-300">KP</span>
-            </button>
+          <div className="flex items-center gap-4">
+            <a
+              href="/login"
+              className="rounded-xl border border-zinc-700 px-5 py-2 font-semibold text-white hover:border-yellow-400"
+            >
+              Sign In
+            </a>
 
-            <button className="text-white">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.8"
-                stroke="currentColor"
-                className="h-6 w-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15.75 6.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.118a7.5 7.5 0 0115 0"
-                />
-              </svg>
-            </button>
+            <a
+              href="/register"
+              className="rounded-xl bg-yellow-400 px-5 py-2 font-semibold text-black"
+            >
+              Sign Up
+            </a>
           </div>
         </div>
       </header>

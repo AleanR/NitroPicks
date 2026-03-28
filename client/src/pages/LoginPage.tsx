@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom"
+
 function App() {
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
@@ -49,9 +51,9 @@ function App() {
           </form>
 
           <div className="mt-8 text-center">
-            <button className="text-yellow-400 font-semibold hover:underline">
+            <Link to="/register" className="text-yellow-400 font-semibold hover:underline">
               Need an account? Sign up
-            </button>
+            </Link>
           </div>
 
           <div className="mt-8 border-t border-zinc-800 pt-6">
