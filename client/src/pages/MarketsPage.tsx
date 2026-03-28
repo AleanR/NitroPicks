@@ -220,12 +220,14 @@ function MarketsPage() {
                     <button
                       type="button"
                       onClick={() =>
-                        handleAddToSlip(
-                          event,
-                          'spread',
-                          event.spread.label,
-                          event.spread.odds
-                        )
+                        isBetAdded(event.id, 'spread')
+                          ? handleRemoveFromSlip(`${event.id}-spread`)
+                          : handleAddToSlip(
+                              event,
+                              'spread',
+                              event.spread.label,
+                              event.spread.odds
+                            )
                       }
                       className={`w-full rounded-xl border bg-[#181b22] px-4 py-3 text-left transition ${
                         isBetAdded(event.id, 'spread')
@@ -241,12 +243,14 @@ function MarketsPage() {
                     <button
                       type="button"
                       onClick={() =>
-                        handleAddToSlip(
-                          event,
-                          'moneyline',
-                          event.moneyline.label,
-                          event.moneyline.odds
-                        )
+                        isBetAdded(event.id, 'moneyline')
+                          ? handleRemoveFromSlip(`${event.id}-moneyline`)
+                          : handleAddToSlip(
+                              event,
+                              'moneyline',
+                              event.moneyline.label,
+                              event.moneyline.odds
+                            )
                       }
                       className={`w-full rounded-xl border bg-[#181b22] px-4 py-3 text-left transition ${
                         isBetAdded(event.id, 'moneyline')
@@ -262,12 +266,14 @@ function MarketsPage() {
                     <button
                       type="button"
                       onClick={() =>
-                        handleAddToSlip(
-                          event,
-                          'total',
-                          event.total.label,
-                          event.total.odds
-                        )
+                        isBetAdded(event.id, 'total')
+                          ? handleRemoveFromSlip(`${event.id}-total`)
+                          : handleAddToSlip(
+                              event,
+                              'total',
+                              event.total.label,
+                              event.total.odds
+                            )
                       }
                       className={`w-full rounded-xl border bg-[#181b22] px-4 py-3 text-left transition ${
                         isBetAdded(event.id, 'total')
