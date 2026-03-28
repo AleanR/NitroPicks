@@ -15,13 +15,13 @@ export const login = async (req: Request, res: Response) => {
         const user = await getUserByEmail(email).select('+authentication.password');
 
         if (!user) {
-            return res.sendStatus(400).json({ message: "Invalid credentials!"});
+            return res.status(401).json({ message: "Invalid credentials!"});
         }
 
         const isMatch = await comparePassword(password, user.authentication!.password);
 
         if (!isMatch)
-            return res.status(400).json({ message: "Invalid credentials!"});
+            return res.status(401).json({ message: "Invalid credentials!"});
 
         const token = await createToken(user._id.toString(), user.email);
 
@@ -34,7 +34,7 @@ export const login = async (req: Request, res: Response) => {
         return res.status(200).json(user);
     } catch (error) {
         console.log(error);
-        return res.sendStatus(400).json({ message: "Server error"});
+        return res.status(500).json({ message: "Server error"});
     }
 }
 
@@ -43,7 +43,7 @@ export const register = async (req: Request, res: Response) => {
         const { firstname, lastname, ucfID, major, email, password, username } = req.body;
 
         if (!firstname || !lastname || !ucfID || !major || !email || !password || !username) {
-            return res.sendStatus(400).json({ message: "Missing required field(s)"});
+            return res.status(400).json({ message: "Missing required field(s)"});
         }
 
         const existingUser = await UserModel.findOne({
@@ -51,7 +51,7 @@ export const register = async (req: Request, res: Response) => {
         });
 
         if (existingUser) {
-            return res.sendStatus(400).json({ message: "User with provided email, username or UCF ID already exists"});
+            return res.status(409).json({ message: "User with provided email, username or UCF ID already exists"});
         }
 
         const hashedPass = await hashPassword(password);
@@ -62,8 +62,6 @@ export const register = async (req: Request, res: Response) => {
             ucfID,
             major,
             pointBalance: 0,
-            createdAt: new Date(Date.now()),
-            updatedAt: new Date(Date.now()),
             email,
             username,
             authentication: {
@@ -74,7 +72,7 @@ export const register = async (req: Request, res: Response) => {
         const token = await createToken(user._id.toString(), user.email);
 
 
-        return res.status(200).json({
+        return res.status(201).json({
             message: "User created successfully!",
             user,
             token,
@@ -82,6 +80,6 @@ export const register = async (req: Request, res: Response) => {
             
     } catch (error) {
         console.log(error);
-        return res.sendStatus(400).json({ message: "Internal server error"});
+        return res.status(500).json({ message: "Internal server error"});
     }
 }
