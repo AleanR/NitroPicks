@@ -75,7 +75,6 @@ export const updateUser = async (req: AuthenticatedRequest, res: Response) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        updatedUser.updatedAt = new Date(Date.now());
         return res.status(200).json({ message: "User updated successfully", user: updatedUser });
     } catch (error) {
         console.log(error);
