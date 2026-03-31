@@ -1,5 +1,5 @@
 import { AuthenticatedRequest } from '../helpers/auth';
-import { deleteUserById, getUsers, updateUserById, UserModel } from '../db/users';
+import { deleteUserById, getUsers, UserModel } from '../db/users';
 import { Request, Response } from 'express';
 
 
@@ -11,9 +11,66 @@ export const getAllUsers = async (req: Request, res: Response) => {
         return res.status(200).json(users);
     } catch (error) {
         console.log(error);
-        return res.status(500).json({ message: "Internal server error"});
+        return res.status(500).json({ message: "Internal server error" });
     }
 }
+
+
+
+
+export const searchUsers = async (req: Request, res: Response) => {
+    try {
+        const { query } = req.query;
+        const { page } = req.query;     // PAGINATION
+
+        if (!query || typeof query !== 'string') {
+            return res.status(400).json({
+                message: "Search query is required",
+                success: false,
+            })
+        }
+
+        if (!page || typeof page !== 'string') {
+            return res.status(400).json({
+                message: "Missing page number",
+                success: false,
+            })
+        }
+
+        const skip = (parseInt(page) - 1) * 5;      // PAGINATION
+        
+        const searchTerms = query.split(' ').filter(term => term.length > 0);   // Break the search query into terms if there's a spacebar
+
+        // Search the database through each term
+        const filter = {
+            $or: searchTerms.flatMap(term => [
+                { firstname: { $regex: term, $options: 'i'} },
+                { lastname: { $regex: term, $options: 'i'} },
+                { username: { $regex: term, $options: 'i'} },
+                { major: { $regex: term, $options: 'i'} },
+            ]),
+        };
+
+
+        const total = await UserModel.countDocuments(filter);
+
+        // Limit searches by 5 results per page
+        const users = await UserModel.find(filter)
+                    .select('firstname lastname username major').limit(5).skip(skip);     // Don't return password, ucfID, pointBalance or authentication fields and apply pagination
+
+        return res.status(200).json({
+            page,
+            total,
+            totalPages: Math.ceil(total / 5),
+            results: users
+        });
+        
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error" })
+    }
+}
+
 
 export const deleteUser = async (req: AuthenticatedRequest, res: Response) => {
     try {

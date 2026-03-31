@@ -1,4 +1,4 @@
-import { deleteUser, getAllUsers, updateUser } from '../controllers/users';
+import { deleteUser, getAllUsers, searchUsers, updateUser } from '../controllers/users';
 import { Router } from 'express';
 import { isAuthenticated } from '../middlewares';
 import { forgotPass } from '../controllers/forget';
@@ -10,4 +10,5 @@ export default (router: Router) => {
     router.patch('/users/:id', isAuthenticated, updateUser);
     router.post('/forgot-password', isAuthenticated, forgotPass);
     router.patch('/reset-password/:token', isAuthenticated, resetPass);
+    router.get('/users/search', searchUsers);
 }
