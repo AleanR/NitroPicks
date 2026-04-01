@@ -14,6 +14,11 @@ export const getAllGames = async (req: Request, res: Response) => {
 export const getGame = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+
+        if (!id || typeof id !== 'string') {
+            return res.status(400).json({ message: "Game ID is required" });
+        }
+
         const game = await getGameById(id);
         if (!game) return res.status(404).json({ message: "Game not found" });
         return res.status(200).json(game);
@@ -37,6 +42,11 @@ export const addGame = async (req: Request, res: Response) => {
 export const updateGame = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+
+        if (!id || typeof id !== 'string') {
+            return res.status(400).json({ message: "Game ID is required" });
+        }
+
         const updated = await updateGameById(id, req.body);
         if (!updated) return res.status(404).json({ message: "Game not found" });
         return res.status(200).json(updated);
@@ -49,6 +59,11 @@ export const updateGame = async (req: Request, res: Response) => {
 export const removeGame = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+
+        if (!id || typeof id !== 'string') {
+            return res.status(400).json({ message: "Game ID is required" });
+        }
+        
         await deleteGameById(id);
         return res.status(200).json({ message: "Game deleted" });
     } catch (error) {

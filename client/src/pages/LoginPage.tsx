@@ -26,7 +26,7 @@ function LoginPage() {
     
 
     try {
-    const response = await fetch('/api/auth/login', {
+    const response = await fetch('http://localhost:8080/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ function LoginPage() {
       }
 
       await response.json()
-      navigate('/home')
+      navigate('/')
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message)
