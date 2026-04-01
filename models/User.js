@@ -73,7 +73,7 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Index for the search feature (rubric requires partial match)
+
 userSchema.index({ firstName: 'text', lastName: 'text', email: 'text' });
 
 module.exports = mongoose.model('User', userSchema);
