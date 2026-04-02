@@ -31,7 +31,10 @@
     "jsonwebtoken": "^9.0.3",
     "lodash": "^4.17.23",
     "mongodb": "^7.1.0",
-    "mongoose": "^9.3.3"
+    "mongoose": "^9.3.3",
+    "nodemailer": "^8.0.4",
+    "react": "^19.2.4",
+    "react-router-dom": "^7.13.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -39,10 +42,14 @@
     "@types/compression": "^1.8.1",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
+    "@types/dotenv": "^6.1.1",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/lodash": "^4.17.24",
     "@types/mongoose": "^5.11.96",
+    "@types/nodemailer": "^7.0.11",
+    "@types/react": "^19.2.14",
+    "@types/react-router-dom": "^5.3.3",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.2"

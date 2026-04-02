@@ -3,6 +3,7 @@ import { createUser, getUserByEmail } from '../db/users';
 import { comparePassword, hashPassword } from '../helpers';
 import { createToken } from '../helpers/jwt';
 import { UserModel } from '../db/users';
+import { sendEmailVerifOTP } from '../services/email';
 
 export const login = async (req: Request, res: Response) => {
     try {
@@ -15,26 +16,31 @@ export const login = async (req: Request, res: Response) => {
         const user = await getUserByEmail(email).select('+authentication.password');
 
         if (!user) {
-            return res.sendStatus(400).json({ message: "Invalid credentials!"});
+            return res.status(401).json({ message: "Invalid credentials!"});
         }
 
         const isMatch = await comparePassword(password, user.authentication!.password);
 
         if (!isMatch)
-            return res.status(400).json({ message: "Invalid credentials!"});
+            return res.status(401).json({ message: "Invalid credentials!"});
 
+        if (user.isVerified === false) {
+            return res.status(423).json({ message: "Account not verified or locked!"});
+        }
+        
         const token = await createToken(user._id.toString(), user.email);
 
         res.cookie("token", token, {
             httpOnly: true,
             secure: false,
-            sameSite: "lax",
+            sameSite: "strict",
+            maxAge: 3600000,
         });
 
         return res.status(200).json(user);
     } catch (error) {
         console.log(error);
-        return res.sendStatus(400).json({ message: "Server error"});
+        return res.status(500).json({ message: "Server error"});
     }
 }
 
@@ -43,7 +49,7 @@ export const register = async (req: Request, res: Response) => {
         const { firstname, lastname, ucfID, major, email, password, username } = req.body;
 
         if (!firstname || !lastname || !ucfID || !major || !email || !password || !username) {
-            return res.sendStatus(400).json({ message: "Missing required field(s)"});
+            return res.status(400).json({ message: "Missing required field(s)"});
         }
 
         const existingUser = await UserModel.findOne({
@@ -51,7 +57,7 @@ export const register = async (req: Request, res: Response) => {
         });
 
         if (existingUser) {
-            return res.sendStatus(400).json({ message: "User with provided email, username or UCF ID already exists"});
+            return res.status(409).json({ message: "User with provided email, username or UCF ID already exists"});
         }
 
         const hashedPass = await hashPassword(password);
@@ -62,9 +68,8 @@ export const register = async (req: Request, res: Response) => {
             ucfID,
             major,
             pointBalance: 0,
-            createdAt: new Date(Date.now()),
-            updatedAt: new Date(Date.now()),
             email,
+            isVerified: false,
             username,
             authentication: {
                 password: hashedPass,
@@ -73,15 +78,29 @@ export const register = async (req: Request, res: Response) => {
 
         const token = await createToken(user._id.toString(), user.email);
 
+        const otpUrl = `http://localhost:8080/verify-email?token=${token}`;
 
-        return res.status(200).json({
-            message: "User created successfully!",
-            user,
-            token,
+        await sendEmailVerifOTP(user.email, otpUrl);
+
+
+        return res.status(201).json({
+            message: "Email Verification OTP Sent!",
+            otpUrl,
+            token,  // COMMENT OUT DURING DEPLOYMENT
         });
             
     } catch (error) {
         console.log(error);
-        return res.sendStatus(400).json({ message: "Internal server error"});
+        return res.status(500).json({ message: "Internal server error"});
     }
+}
+
+export const logout = async (req: Request, res: Response) => {
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+    });
+
+    res.status(200).json({ message: "User logged out successfully" });
 }

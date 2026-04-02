@@ -4,12 +4,11 @@ const UserSchema = new mongoose.Schema({
     firstname: { type: String, required: true },
     lastname: { type: String, required: true },
     ucfID: { type: String, required: true },
-    pointBalance: { type: Number, required: false },
+    pointBalance: { type: Number, default: 0 },
     major: { type: String, required: true },
     username: { type: String, required: true },
     email: { type: String, required: true },
-    createdAt: { type: Date, required: true },
-    updatedAt: { type: Date, required: true },
+    isVerified: { type: Boolean, required: true, default: false },
     authentication: {
         type: {
             password: { type: String, required: true, select: false },
@@ -18,7 +17,7 @@ const UserSchema = new mongoose.Schema({
         },
         required: true,
     },
-});
+}, { timestamps: true });
 
 export const UserModel = mongoose.model('User', UserSchema);
 
@@ -26,9 +25,9 @@ export const getUsers = () => UserModel.find();
 export const getUserByEmail = (email: string) => UserModel.findOne({ email });
 
 export const getUserById = (id: string) => UserModel.findById(id);
-export const createUser = (values: Record<string, any>) => UserModel.create(values);
+export const createUser = async (values: Record<string, any>) => UserModel.create(values);
 
 export const deleteUserById = (id: string) => UserModel.deleteOne({ _id: id });
-export const updateUserById = (id: string, values: Record<string, any>) => UserModel.findByIdAndUpdate(id, values, { new: true, runValidator: true });
+export const updateUserById = (id: string, values: Record<string, any>) => UserModel.findByIdAndUpdate(id, values, { new: true, runValidators: true });
 
 export const getUserbyToken = (token: Record<string, any>) => UserModel.findOne(token);

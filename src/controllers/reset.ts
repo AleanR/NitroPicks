@@ -23,7 +23,7 @@ export const resetPass = async (req: Request, res: Response) => {
         });
 
         if (!user) {
-            return res.status(400).json({ message: "Invalid or expired token" });
+            return res.status(401).json({ message: "Invalid or expired token" });
         }
 
         const hashedPass = await hashPassword(password);
@@ -38,6 +38,6 @@ export const resetPass = async (req: Request, res: Response) => {
         return res.json({ message: "Password updated successfully!" });
     } catch (error) {
         console.log(error);
-        return res.status(400).json({ message: "Internal server error"});
+        return res.status(500).json({ message: "Internal server error"});
     }
 }

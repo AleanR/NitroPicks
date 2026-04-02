@@ -13,7 +13,7 @@ export const comparePassword = async (password: string, hashed: string) => {
 }
 
 
-export const genResetToken = () => {
+export const genResetToken = async () => {
     const resetToken = crypto.randomBytes(128).toString('hex');
 
     const hashed = crypto.createHash('sha256').update(resetToken).digest('hex');
