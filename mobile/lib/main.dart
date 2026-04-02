@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 ////////////////////////////////////////////////////////////
 /// APP ENTRY POINT
@@ -119,8 +121,8 @@ class LoginPage extends StatelessWidget {
               buildCard(
                 child: Column(
                   children: [
-                    buildField("UCF Email", hint: "knights@ucf.edu"),
-                    buildField("Password", obscure: true),
+                    buildField("UCF Email", controller: email, hint: "knights@ucf.edu"),
+                    buildField("Password", controller: password, obscure: true),
 
                     SizedBox(height: 20),
 
@@ -130,12 +132,50 @@ class LoginPage extends StatelessWidget {
                         backgroundColor: Colors.amber,
                         minimumSize: Size(double.infinity, 45),
                       ),
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => MainAppPage()),
-                        );
-                      },
+                        onPressed: () async {
+                          final emailText = email.text;
+                          final passwordText = password.text;
+
+                          // 🔥 DEBUG INPUT
+                          print("EMAIL: $emailText");
+                          print("PASSWORD: $passwordText");
+
+                          try {
+                            final response = await http.post(
+                              Uri.parse("http://134.209.173.117:8080/auth/login"),
+                              headers: {"Content-Type": "application/json"},
+                              body: jsonEncode({
+                                "email": emailText,
+                                "password": passwordText,
+                              }),
+                            );
+
+                            // 🔥 DEBUG RESPONSE
+                            print("STATUS: ${response.statusCode}");
+                            print("BODY: ${response.body}");
+
+                            if (response.statusCode == 200) {
+                              print("LOGIN SUCCESS");
+
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => MainAppPage()),
+                              );
+                            } else {
+                              print("LOGIN FAILED");
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text("Login failed")),
+                              );
+                            }
+                          } catch (e) {
+                            print("ERROR: $e");
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Server error")),
+                            );
+                          }
+                        },
                       child: Text("Sign In", style: TextStyle(color: Colors.black)),
                     ),
 
@@ -182,6 +222,14 @@ class LoginPage extends StatelessWidget {
 ////////////////////////////////////////////////////////////
 
 class RegisterPage extends StatelessWidget {
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController ucfIDController = TextEditingController();
+  final TextEditingController majorController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -192,19 +240,18 @@ class RegisterPage extends StatelessWidget {
           child: Column(
             children: [
               buildHeader(),
-
               SizedBox(height: 25),
 
               buildCard(
                 child: Column(
                   children: [
-                    buildField("First Name"),
-                    buildField("Last Name"),
-                    buildField("Username"),
-                    buildField("UCF ID"),
-                    buildField("Major"),
-                    buildField("UCF Email", hint: "knights@ucf.edu"),
-                    buildField("Password", obscure: true),
+                    buildField("First Name", controller: firstNameController),
+                    buildField("Last Name", controller: lastNameController),
+                    buildField("Username", controller: usernameController),
+                    buildField("UCF ID", controller: ucfIDController),
+                    buildField("Major", controller: majorController),
+                    buildField("UCF Email", controller: emailController),
+                    buildField("Password", controller: passwordController, obscure: true),
 
                     SizedBox(height: 20),
 
@@ -213,7 +260,47 @@ class RegisterPage extends StatelessWidget {
                         backgroundColor: Colors.amber,
                         minimumSize: Size(double.infinity, 45),
                       ),
-                      onPressed: () {},
+                      onPressed: () async {
+                        try {
+                          final response = await http.post(
+                            Uri.parse("http://134.209.173.117:8080/auth/register"),
+                            headers: {"Content-Type": "application/json"},
+                            body: jsonEncode({
+                              "firstname": firstNameController.text,
+                              "lastname": lastNameController.text,
+                              "ucfID": ucfIDController.text,
+                              "major": majorController.text,
+                              "email": emailController.text,
+                              "password": passwordController.text,
+                              "username": usernameController.text,
+                            }),
+                          );
+
+                          print("STATUS: ${response.statusCode}");
+                          print("BODY: ${response.body}");
+
+                          if (response.statusCode == 201) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Account created!")),
+                            );
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => LoginPage()),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Signup failed")),
+                            );
+                          }
+                        } catch (e) {
+                          print("ERROR: $e");
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Server error")),
+                          );
+                        }
+                      },
                       child: Text("Sign Up", style: TextStyle(color: Colors.black)),
                     ),
                   ],
@@ -354,7 +441,12 @@ Widget buildCard({required Widget child}) {
   );
 }
 
-Widget buildField(String label, {String hint = "", bool obscure = false}) {
+Widget buildField(
+    String label, {
+      String hint = "",
+      bool obscure = false,
+      TextEditingController? controller,
+    }) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -362,6 +454,7 @@ Widget buildField(String label, {String hint = "", bool obscure = false}) {
       Text(label, style: TextStyle(color: Colors.white, fontSize: 13)),
       SizedBox(height: 5),
       TextField(
+        controller: controller, // 🔥 FIXED
         obscureText: obscure,
         style: TextStyle(fontSize: 14),
         decoration: InputDecoration(
