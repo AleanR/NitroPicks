@@ -1,17 +1,6 @@
-# mobile
+Required: Flutter
+Optional (To view): Android Studio
 
-A new Flutter project.
+To test/look at the mobile app, clone the repository and inside the mobile directory, go into powershell and run the command "flutter run". This requires that you have flutter.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The user starts at landing page. To go into the home page, go to sign in, then sign in. There are no auth. at the moment since we are dev/testing right now.
