@@ -1,5 +1,5 @@
 import { AuthenticatedRequest } from '../helpers/auth';
-import { deleteUserById, getUsers, UserModel } from '../db/users';
+import { deleteUserById, getUsers, updateUserById, UserModel } from '../db/users';
 import { Request, Response } from 'express';
 
 
@@ -122,10 +122,9 @@ export const updateUser = async (req: AuthenticatedRequest, res: Response) => {
             return res.status(403).json({ message: "Can only update own account" });
         }
 
-        const updatedUser = await UserModel.findByIdAndUpdate(
+        const updatedUser = await updateUserById(
             id,
             { $set: updates },
-            { new: true, runValidators: true }
         ).select('-authentication.password');
 
         if (!updatedUser) {

@@ -35,6 +35,7 @@ const GameSchema = new mongoose.Schema({
     bettingOpensAt:  { type: Date, required: true },
     bettingClosesAt: { type: Date, required: true },
 
+    winner: { type: String, default: "" },
     // Game lifecycle
     status: {
         type: String,
