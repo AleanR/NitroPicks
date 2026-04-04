@@ -1,8 +1,41 @@
+import { useEffect, useState } from 'react'
 import { topUsers } from '../data/mockLeaderboardData'
 import Navigation from '../components/Navigation'
 
+type TopUser = {
+  id: number
+  name: string
+  initials: string
+  rank: number
+  points: string
+  winRate: number
+  bets: number
+  medal: 'gold' | 'silver' | 'bronze' | 'none'
+}
+
 function LeaderboardPage() {
-  const topThree = topUsers.slice(0, 3)
+  const [leaderboardData, setLeaderboardData] = useState<TopUser[]>(topUsers) // fallback to mock data
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const res = await fetch('http://localhost:8080/leaderboard')
+        if (res.ok) {
+          const data = await res.json()
+          setLeaderboardData(data)
+        }
+      } catch (error) {
+        console.error('Error fetching leaderboard:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchLeaderboard()
+  }, [])
+
+  const topThree = leaderboardData.slice(0, 3)
 
   const getMedalIcon = (medal: 'gold' | 'silver' | 'bronze' | 'none') => {
     if (medal === 'gold') {
@@ -20,55 +53,29 @@ function LeaderboardPage() {
     return null
   }
 
-  const getRankDisplay = (user: (typeof topUsers)[number]) => {
+  const getRankDisplay = (user: TopUser) => {
     if (user.medal === 'gold') return <span className="text-yellow-400">🏆</span>
     if (user.medal === 'silver') return <span className="text-zinc-300">🏅</span>
     if (user.medal === 'bronze') return <span className="text-amber-500">🏅</span>
     return <span className="text-3xl font-bold text-slate-300">{user.rank}</span>
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white">
+        <Navigation />
+        <main className="mx-auto max-w-7xl px-6 py-8">
+          <div className="flex items-center justify-center py-20">
+            <div className="text-zinc-400">Loading leaderboard...</div>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-black text-white">
-      <header className="sticky top-0 z-50 border-b border-zinc-800 bg-[#111216]/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-10">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-yellow-400">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="black"
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5"
-                >
-                  <path d="M13 2L3 14h7v8l10-12h-7z" />
-                </svg>
-              </div>
-
-              <div className="flex items-end gap-2">
-                <span className="text-3xl font-extrabold tracking-tight">NitroPicks</span>
-              </div>
-            </div>
-
-            <Navigation />
-          </div>
-
-          <div className="flex items-center gap-4">
-            <a
-              href="/login"
-              className="rounded-xl border border-zinc-700 px-5 py-2 font-semibold text-white hover:border-yellow-400"
-            >
-              Sign In
-            </a>
-
-            <a
-              href="/register"
-              className="rounded-xl bg-yellow-400 px-5 py-2 font-semibold text-black"
-            >
-              Sign Up
-            </a>
-          </div>
-        </div>
-      </header>
+      <Navigation />
 
       <main className="mx-auto max-w-7xl px-6 py-8">
         <div className="mb-8 flex items-start justify-between gap-4">
@@ -77,9 +84,6 @@ function LeaderboardPage() {
             <p className="mt-2 text-xl text-zinc-400">Top performers and leagues</p>
           </div>
 
-          <button className="rounded-xl bg-yellow-400 px-6 py-4 text-lg font-bold text-black">
-            Create League
-          </button>
         </div>
 
         <section className="grid gap-5 lg:grid-cols-3">
@@ -124,9 +128,6 @@ function LeaderboardPage() {
             <button className="rounded-xl bg-[#1c2029] px-4 py-2 font-semibold text-white">
               Top Users
             </button>
-            <button className="rounded-xl px-4 py-2 font-semibold text-zinc-400">
-              Top Leagues
-            </button>
           </div>
         </section>
 
@@ -140,7 +141,7 @@ function LeaderboardPage() {
             <div>Action</div>
           </div>
 
-          {topUsers.map((user) => (
+          {leaderboardData.map((user) => (
             <div
               key={user.id}
               className="grid grid-cols-[125px_1.6fr_1fr_1fr_1fr_1fr] items-center border-b border-zinc-800 px-6 py-5 last:border-b-0"

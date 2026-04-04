@@ -7,17 +7,15 @@ export type MarketEvent = {
   status: string
   homeEmoji: string
   awayEmoji: string
-  spread: {
-    label: string
-    odds: string
-  }
   moneyline: {
-    label: string
-    odds: string
-  }
-  total: {
-    label: string
-    odds: string
+    home: {
+      label: string
+      odds: string
+    }
+    away: {
+      label: string
+      odds: string
+    }
   }
 }
 
@@ -31,17 +29,15 @@ export const marketEvents: MarketEvent[] = [
     status: 'Open',
     homeEmoji: '🏀',
     awayEmoji: '🐂',
-    spread: {
-      label: 'UCF -3.5',
-      odds: '-150',
-    },
     moneyline: {
-      label: 'UCF Win',
-      odds: '-150',
-    },
-    total: {
-      label: 'O/U 48.5',
-      odds: '-110',
+      home: {
+        label: 'UCF Win',
+        odds: '1.67',
+      },
+      away: {
+        label: 'South Florida Win',
+        odds: '2.25',
+      },
     },
   },
   {
@@ -53,17 +49,15 @@ export const marketEvents: MarketEvent[] = [
     status: 'Open',
     homeEmoji: '🏀',
     awayEmoji: '🐱',
-    spread: {
-      label: 'UCF -1.5',
-      odds: '-110',
-    },
     moneyline: {
-      label: 'UCF Win',
-      odds: '-110',
-    },
-    total: {
-      label: 'O/U 49',
-      odds: '-110',
+      home: {
+        label: 'UCF Win',
+        odds: '1.91',
+      },
+      away: {
+        label: 'Cincinnati Win',
+        odds: '1.91',
+      },
     },
   },
   {
@@ -75,17 +69,15 @@ export const marketEvents: MarketEvent[] = [
     status: 'Open',
     homeEmoji: '🏀',
     awayEmoji: '🐾',
-    spread: {
-      label: 'UCF +2.0',
-      odds: '+100',
-    },
     moneyline: {
-      label: 'UCF Win',
-      odds: '+120',
-    },
-    total: {
-      label: 'O/U 51.5',
-      odds: '-105',
+      home: {
+        label: 'UCF Win',
+        odds: '2.20',
+      },
+      away: {
+        label: 'Houston Win',
+        odds: '1.67',
+      },
     },
   },
 ]

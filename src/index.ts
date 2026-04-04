@@ -6,10 +6,14 @@ import compression from 'compression';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import router from './router';
+import 'dotenv/config';
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  credentials: true,
+}));
 
 app.use(compression());
 app.use(cookieParser());
@@ -21,7 +25,7 @@ server.listen(8080, () => {
     console.log("Server running on http://localhost:8080/")
 });
 
-const MONGO_URL = "mongodb+srv://bennguyen:bennguyen@mymongodb.ya2w7wu.mongodb.net/?appName=MyMongoDB";
+const MONGO_URL = process.env.MONGO_DB_URL as string;
 
 mongoose.Promise = Promise;
 mongoose.connect(MONGO_URL);

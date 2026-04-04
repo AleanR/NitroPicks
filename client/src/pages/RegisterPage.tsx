@@ -39,11 +39,12 @@ function RegisterPage() {
         body: JSON.stringify(formData),
       })
 
+      const data = await response.json().catch(() => null)
+
       if (!response.ok) {
-        throw new Error('Registration failed.')
+        throw new Error(data?.message || `Registration failed (${response.status})`)
       }
 
-      await response.json()
       navigate('/')
     } catch (err) {
       if (err instanceof Error) {

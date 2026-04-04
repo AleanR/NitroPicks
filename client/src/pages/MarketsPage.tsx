@@ -1,24 +1,90 @@
-import { marketEvents } from '../data/mockMarketsData'
+import { useState, useEffect } from 'react'
 import Navigation from '../components/Navigation'
 import StakeHandler from '../components/StakeHandler'
-import { useState } from 'react'
 
 interface Bet {
   id: string
-  eventId: number
+  eventId: string
   matchup: string
   marketType: string
   selection: string
   odds: string
 }
 
+interface MarketEvent {
+  _id: string
+  homeTeam: string
+  awayTeam: string
+  date: string
+  time: string
+  status: string
+  homeEmoji: string
+  awayEmoji: string
+  moneyline: {
+    home: { label: string; odds: string }
+    away: { label: string; odds: string }
+  }
+}
+
 function MarketsPage() {
   const [activeBets, setActiveBets] = useState<Bet[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedDateRange, setSelectedDateRange] = useState('')
+  const [customDate, setCustomDate] = useState('')
+  const [events, setEvents] = useState<MarketEvent[]>([])
+  const [loadingEvents, setLoadingEvents] = useState(true)
 
-  const handleAddToSlip = (event: any, marketType: string, selection: string, odds: string) => {
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch('http://localhost:8080/events')
+        if (res.ok) setEvents(await res.json())
+      } catch {
+        // silently fall back to empty
+      } finally {
+        setLoadingEvents(false)
+      }
+    }
+    fetchEvents()
+  }, [])
+
+  const todayISO = (() => {
+    const d = new Date()
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+  })()
+
+  const filteredEvents = events.filter((event) => {
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      const matchesSearch =
+        event.homeTeam.toLowerCase().includes(query) ||
+        event.awayTeam.toLowerCase().includes(query) ||
+        `${event.homeTeam} vs ${event.awayTeam}`.toLowerCase().includes(query)
+      if (!matchesSearch) return false
+    }
+
+    if (selectedDateRange === 'custom' && customDate) {
+      const [y, m, day] = customDate.split('-')
+      const converted = `${m}-${day}-${y.slice(2)}`
+      if (event.date !== converted) return false
+    }
+
+    return true
+  })
+
+  const clearFilters = () => {
+    setSearchQuery('')
+    setSelectedDateRange('')
+    setCustomDate('')
+  }
+
+  const handleAddToSlip = (event: MarketEvent, marketType: string, selection: string, odds: string) => {
     const newBet: Bet = {
-      id: `${event.id}-${marketType}`,
-      eventId: event.id,
+      id: `${event._id}-${marketType}-${selection}`,
+      eventId: event._id,
       matchup: `${event.homeTeam} vs ${event.awayTeam}`,
       marketType,
       selection,
@@ -26,19 +92,17 @@ function MarketsPage() {
     }
 
     setActiveBets((prev) => {
-      const exists = prev.find(
-        bet => bet.eventId === event.id && bet.marketType === marketType
-      )
+      const exactExists = prev.find((bet) => bet.id === newBet.id)
 
-      if (exists) {
-        return prev.map(bet =>
-          bet.eventId === event.id && bet.marketType === marketType
-            ? newBet
-            : bet
-        )
+      if (exactExists) {
+        return prev.filter((bet) => bet.id !== newBet.id)
       }
 
-      return [...prev, newBet]
+      const filteredPrev = prev.filter(
+        (bet) => !(bet.eventId === event._id && bet.marketType === marketType)
+      )
+
+      return [...filteredPrev, newBet]
     })
   }
 
@@ -46,52 +110,18 @@ function MarketsPage() {
     setActiveBets((prev) => prev.filter((bet) => bet.id !== betId))
   }
 
-  const isBetAdded = (eventId: number, marketType: string) => {
-    return activeBets.some(bet => bet.eventId === eventId && bet.marketType === marketType)
+  const isBetAdded = (eventId: string, marketType: string, selection: string) => {
+    return activeBets.some(
+      (bet) =>
+        bet.eventId === eventId &&
+        bet.marketType === marketType &&
+        bet.selection === selection
+    )
   }
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <header className="sticky top-0 z-50 border-b border-zinc-800 bg-[#111216]/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-10">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-yellow-400">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="black"
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5"
-                >
-                  <path d="M13 2L3 14h7v8l10-12h-7z" />
-                </svg>
-              </div>
-
-              <div className="flex items-end gap-2">
-                <span className="text-3xl font-extrabold tracking-tight">NitroPicks</span>
-              </div>
-            </div>
-
-            <Navigation />
-          </div>
-
-          <div className="flex items-center gap-4">
-            <a
-              href="/login"
-              className="rounded-xl border border-zinc-700 px-5 py-2 font-semibold text-white hover:border-yellow-400"
-            >
-              Sign In
-            </a>
-
-            <a
-              href="/register"
-              className="rounded-xl bg-yellow-400 px-5 py-2 font-semibold text-black"
-            >
-              Sign Up
-            </a>
-          </div>
-        </div>
-      </header>
+      <Navigation />
 
       <main className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[290px_minmax(0,1fr)_295px]">
         <aside className="h-fit rounded-3xl border border-zinc-800 bg-[#14161d] p-4">
@@ -101,53 +131,48 @@ function MarketsPage() {
             <div>
               <h3 className="mb-2 text-lg font-bold">Date Range</h3>
               <div className="space-y-2">
-                <button className="w-full rounded-xl border border-zinc-700 bg-[#181b22] px-3 py-2 text-left text-sm">
-                  Today (Mar 23rd)
+                <button
+                  onClick={() => setSelectedDateRange('')}
+                  className={`w-full rounded-xl border px-3 py-2 text-left text-sm transition ${
+                    selectedDateRange === ''
+                      ? 'border-yellow-400 bg-yellow-400/10 text-yellow-400'
+                      : 'border-zinc-700 bg-[#181b22] text-white hover:border-zinc-600'
+                  }`}
+                >
+                  All Games
                 </button>
-                <button className="w-full rounded-xl border border-zinc-800 bg-[#14161d] px-3 py-2 text-left text-sm text-zinc-400">
-                  By Date(s)
-                </button>
-                <button className="w-full rounded-xl border border-zinc-800 bg-[#14161d] px-3 py-2 text-left text-sm text-zinc-400">
-                  By Week(s)
-                </button>
-              </div>
-            </div>
 
-            <div>
-              <h3 className="mb-2 text-lg font-bold">Market Type</h3>
-              <div className="space-y-2 text-sm">
-                <label className="flex items-center gap-3 text-zinc-400">
-                  <input type="radio" name="marketType" className="accent-yellow-400" />
-                  Spread
-                </label>
-                <label className="flex items-center gap-3 text-zinc-400">
-                  <input type="radio" name="marketType" className="accent-yellow-400" />
-                  Money Line
-                </label>
-                <label className="flex items-center gap-3 text-zinc-400">
-                  <input type="radio" name="marketType" className="accent-yellow-400" />
-                  Total (O/U)
-                </label>
-              </div>
-            </div>
+                <button
+                  onClick={() => {
+                    setSelectedDateRange('custom')
+                    if (!customDate) setCustomDate(todayISO)
+                  }}
+                  className={`w-full rounded-xl border px-3 py-2 text-left text-sm transition ${
+                    selectedDateRange === 'custom'
+                      ? 'border-yellow-400 bg-yellow-400/10 text-yellow-400'
+                      : 'border-zinc-700 bg-[#181b22] text-white hover:border-zinc-600'
+                  }`}
+                >
+                  By Date
+                </button>
 
-            <div>
-              <h3 className="mb-2 text-lg font-bold">Status</h3>
-              <div className="space-y-2 text-sm">
-                <label className="flex items-center gap-3">
-                  <input type="checkbox" defaultChecked className="accent-yellow-400" />
-                  Open
-                </label>
-                <label className="flex items-center gap-3 text-zinc-400">
-                  <input type="checkbox" className="accent-yellow-400" />
-                  Closed
-                </label>
+                {selectedDateRange === 'custom' && (
+                  <input
+                    type="date"
+                    value={customDate}
+                    onChange={(e) => setCustomDate(e.target.value)}
+                    className="w-full rounded-xl border border-zinc-700 bg-[#181b22] px-3 py-2 text-sm text-white focus:border-yellow-400 focus:outline-none [color-scheme:dark]"
+                  />
+                )}
               </div>
             </div>
           </div>
 
-          <button className="mt-6 w-full rounded-xl bg-yellow-400 px-4 py-3 font-bold text-black">
-            Apply Filters
+          <button
+            onClick={clearFilters}
+            className="mt-6 w-full rounded-xl bg-yellow-400 px-4 py-3 font-bold text-black transition hover:bg-yellow-500"
+          >
+            Clear Filters
           </button>
         </aside>
 
@@ -155,12 +180,10 @@ function MarketsPage() {
           <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
               <h1 className="text-5xl font-extrabold">Markets</h1>
-              <p className="mt-2 text-lg text-zinc-400">Showing 1-5 of 32 events</p>
+              <p className="mt-2 text-lg text-zinc-400">
+                Showing 1-{Math.min(5, filteredEvents.length)} of {filteredEvents.length} events
+              </p>
             </div>
-
-            <button className="rounded-xl border border-zinc-700 bg-[#101216] px-6 py-3 text-lg font-semibold">
-              Load More Events
-            </button>
           </div>
 
           <div className="mb-5 flex items-center rounded-xl border border-zinc-800 bg-[#0f1014] px-4 py-3">
@@ -182,20 +205,25 @@ function MarketsPage() {
             <input
               type="text"
               placeholder="Search teams, events, matchups..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-transparent text-lg text-white outline-none placeholder:text-zinc-500"
             />
           </div>
 
           <div className="space-y-5">
-            {marketEvents.map((event) => (
+            {loadingEvents ? (
+              <p className="text-zinc-400">Loading events...</p>
+            ) : filteredEvents.length === 0 ? (
+              <p className="text-zinc-400">No events found.</p>
+            ) : filteredEvents.map((event) => (
               <div
-                key={event.id}
+                key={event._id}
                 className="rounded-3xl border border-zinc-800 bg-[#14161d] p-6"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-5">
                     <div className="flex items-center gap-4">
-                      <span className="text-3xl">{event.homeEmoji}</span>
                       <div>
                         <h2 className="text-2xl font-bold">{event.homeTeam}</h2>
                         <p className="text-base text-zinc-400">
@@ -205,7 +233,6 @@ function MarketsPage() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                      <span className="text-3xl">{event.awayEmoji}</span>
                       <h3 className="text-2xl font-bold">{event.awayTeam}</h3>
                     </div>
                   </div>
@@ -216,80 +243,83 @@ function MarketsPage() {
                 </div>
 
                 <div className="mt-6 border-t border-zinc-800 pt-5">
-                  <div className="grid gap-4 md:grid-cols-3">
+                  <div className="grid gap-4 md:grid-cols-2">
                     <button
                       type="button"
                       onClick={() =>
-                        isBetAdded(event.id, 'spread')
-                          ? handleRemoveFromSlip(`${event.id}-spread`)
-                          : handleAddToSlip(
-                              event,
-                              'spread',
-                              event.spread.label,
-                              event.spread.odds
-                            )
+                        handleAddToSlip(
+                          event,
+                          'moneyline',
+                          event.moneyline.home.label,
+                          event.moneyline.home.odds
+                        )
                       }
                       className={`w-full rounded-xl border bg-[#181b22] px-4 py-3 text-left transition ${
-                        isBetAdded(event.id, 'spread')
-                          ? 'border-yellow-400'
+                        isBetAdded(event._id, 'moneyline', event.moneyline.home.label)
+                          ? 'border-yellow-400 bg-yellow-400/10 text-yellow-400'
                           : 'border-zinc-800 hover:border-yellow-400'
                       }`}
                     >
-                      <p className="mb-2 text-sm text-zinc-400">Spread</p>
-                      <p className="font-semibold">{event.spread.label}</p>
-                      <p className="text-zinc-400">{event.spread.odds}</p>
+                      <p
+                        className={`mb-2 text-sm ${
+                          isBetAdded(event._id, 'moneyline', event.moneyline.home.label)
+                            ? 'text-yellow-300'
+                            : 'text-zinc-400'
+                        }`}
+                      >
+                        Moneyline
+                      </p>
+                      <p className="font-semibold">{event.moneyline.home.label}</p>
+                      <p
+                        className={
+                          isBetAdded(event._id, 'moneyline', event.moneyline.home.label)
+                            ? 'text-yellow-300'
+                            : 'text-zinc-400'
+                        }
+                      >
+                        {event.moneyline.home.odds}
+                      </p>
                     </button>
 
                     <button
                       type="button"
                       onClick={() =>
-                        isBetAdded(event.id, 'moneyline')
-                          ? handleRemoveFromSlip(`${event.id}-moneyline`)
-                          : handleAddToSlip(
-                              event,
-                              'moneyline',
-                              event.moneyline.label,
-                              event.moneyline.odds
-                            )
+                        handleAddToSlip(
+                          event,
+                          'moneyline',
+                          event.moneyline.away.label,
+                          event.moneyline.away.odds
+                        )
                       }
                       className={`w-full rounded-xl border bg-[#181b22] px-4 py-3 text-left transition ${
-                        isBetAdded(event.id, 'moneyline')
-                          ? 'border-yellow-400'
+                        isBetAdded(event._id, 'moneyline', event.moneyline.away.label)
+                          ? 'border-yellow-400 bg-yellow-400/10 text-yellow-400'
                           : 'border-zinc-800 hover:border-yellow-400'
                       }`}
                     >
-                      <p className="mb-2 text-sm text-zinc-400">Moneyline</p>
-                      <p className="font-semibold">{event.moneyline.label}</p>
-                      <p className="text-zinc-400">{event.moneyline.odds}</p>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        isBetAdded(event.id, 'total')
-                          ? handleRemoveFromSlip(`${event.id}-total`)
-                          : handleAddToSlip(
-                              event,
-                              'total',
-                              event.total.label,
-                              event.total.odds
-                            )
-                      }
-                      className={`w-full rounded-xl border bg-[#181b22] px-4 py-3 text-left transition ${
-                        isBetAdded(event.id, 'total')
-                          ? 'border-yellow-400'
-                          : 'border-zinc-800 hover:border-yellow-400'
-                      }`}
-                    >
-                      <p className="mb-2 text-sm text-zinc-400">Total</p>
-                      <p className="font-semibold">{event.total.label}</p>
-                      <p className="text-zinc-400">{event.total.odds}</p>
+                      <p
+                        className={`mb-2 text-sm ${
+                          isBetAdded(event._id, 'moneyline', event.moneyline.away.label)
+                            ? 'text-yellow-300'
+                            : 'text-zinc-400'
+                        }`}
+                      >
+                        Moneyline
+                      </p>
+                      <p className="font-semibold">{event.moneyline.away.label}</p>
+                      <p
+                        className={
+                          isBetAdded(event._id, 'moneyline', event.moneyline.away.label)
+                            ? 'text-yellow-300'
+                            : 'text-zinc-400'
+                        }
+                      >
+                        {event.moneyline.away.odds}
+                      </p>
                     </button>
                   </div>
 
                   <div className="mt-5 flex items-center gap-5 text-base">
-                    <button className="font-semibold text-yellow-400">↗ See Stats</button>
-                    <button className="text-zinc-400">○ Details</button>
                   </div>
                 </div>
               </div>
@@ -322,6 +352,7 @@ function MarketsPage() {
                       </p>
                       <p className="text-sm text-yellow-400">{bet.odds}</p>
                     </div>
+
                     <button
                       type="button"
                       onClick={() => handleRemoveFromSlip(bet.id)}
@@ -335,7 +366,11 @@ function MarketsPage() {
                         stroke="currentColor"
                         className="h-5 w-5"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 L18 6 M6 6 l12 12" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6 18 L18 6 M6 6 l12 12"
+                        />
                       </svg>
                     </button>
                   </div>

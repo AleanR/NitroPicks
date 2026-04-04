@@ -23,10 +23,9 @@ function LoginPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('http://localhost:8080/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,12 +34,13 @@ function LoginPage() {
         body: JSON.stringify(formData),
       })
 
+      const data = await response.json().catch(() => null)
+
       if (!response.ok) {
-        throw new Error('Login failed. Check your credentials.')
+        throw new Error(data?.message || `Login failed (${response.status})`)
       }
 
-      await response.json()
-      navigate('/home')
+      navigate('/')
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message)

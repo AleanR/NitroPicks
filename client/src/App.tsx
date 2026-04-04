@@ -5,6 +5,9 @@ import MarketsPage from './pages/MarketsPage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import ProfilePage from './pages/ProfilePage'
 import RegisterPage from './pages/RegisterPage'
+import AdminPage from './pages/AdminPage'
+import EarnPointsPage from './pages/EarnPointsPage'
+import RedeemPointsPage from './pages/RedeemPointsPage'
 
 function App() {
   return (
@@ -16,6 +19,9 @@ function App() {
         <Route path="/markets" element={<MarketsPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/earn-points" element={<EarnPointsPage />} />
+        <Route path="/redeem-points" element={<RedeemPointsPage />} />
       </Routes>
     </BrowserRouter>
   )
