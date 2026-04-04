@@ -20,7 +20,7 @@ function ProfilePage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch('http://localhost:8080/auth/me', {
+        const response = await fetch('/api/auth/me', {
           credentials: 'include',
         })
 

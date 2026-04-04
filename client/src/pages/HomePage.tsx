@@ -12,7 +12,7 @@ function HomePage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch('http://localhost:8080/auth/me', {
+        const res = await fetch('/api/auth/me', {
           credentials: 'include',
         })
 
@@ -33,7 +33,7 @@ function HomePage() {
   }, [])
 
   useEffect(() => {
-    fetch('http://localhost:8080/events')
+    fetch('/api/events')
       .then((r) => r.json())
       .then((data) => setEvents(Array.isArray(data) ? data : []))
       .catch(() => {})

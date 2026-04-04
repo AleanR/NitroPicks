@@ -36,7 +36,7 @@ function AdminPage() {
   useEffect(() => {
     const check = async () => {
       try {
-        const res = await fetch('http://localhost:8080/auth/me', { credentials: 'include' })
+        const res = await fetch('/api/auth/me', { credentials: 'include' })
         if (!res.ok) { navigate('/login'); return; }
         const data = await res.json()
         if (!data.isAdmin) { navigate('/'); return; }
@@ -49,7 +49,7 @@ function AdminPage() {
 
   const fetchEvents = async () => {
     try {
-      const res = await fetch('http://localhost:8080/admin/events', { credentials: 'include' })
+      const res = await fetch('/api/admin/events', { credentials: 'include' })
       if (res.ok) setEvents(await res.json())
     } catch {
       setError('Failed to load events')
@@ -82,8 +82,8 @@ function AdminPage() {
     setError(null)
     try {
       const url = editingId
-        ? `http://localhost:8080/admin/events/${editingId}`
-        : 'http://localhost:8080/admin/events'
+        ? `/api/admin/events/${editingId}`
+        : '/api/admin/events'
       const method = editingId ? 'PATCH' : 'POST'
       const res = await fetch(url, {
         method,
@@ -119,7 +119,7 @@ function AdminPage() {
   const handleDelete = async (id: string) => {
     if (!window.confirm('Delete this event?')) return
     try {
-      await fetch(`http://localhost:8080/admin/events/${id}`, {
+      await fetch(`/api/admin/events/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       })
@@ -132,7 +132,7 @@ function AdminPage() {
   const handleStatusToggle = async (event: any) => {
     const nextStatus = event.status === 'Open' ? 'Closed' : 'Open'
     try {
-      await fetch(`http://localhost:8080/admin/events/${event._id}`, {
+      await fetch(`/api/admin/events/${event._id}`, {
         method: 'PATCH',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

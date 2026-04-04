@@ -17,7 +17,7 @@ export default function EarnPointsPage() {
     setMessage('')
 
     try {
-      const res = await fetch('http://localhost:8080/earn-points', {
+      const res = await fetch('/api/earn-points', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

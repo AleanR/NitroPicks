@@ -40,8 +40,7 @@ function LoginPage() {
         throw new Error(data?.message || `Login failed (${response.status})`)
       }
 
-      await response.json()
-      navigate('/home')
+      navigate('/')
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message)

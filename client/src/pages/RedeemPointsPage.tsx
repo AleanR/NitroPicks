@@ -58,7 +58,7 @@ export default function RedeemPointsPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    fetch('http://localhost:8080/auth/me', { credentials: 'include' })
+    fetch('/api/auth/me', { credentials: 'include' })
       .then((r) => r.json())
       .then((data) => setBalance(data.pointBalance ?? 0))
       .catch(() => {})
@@ -69,7 +69,7 @@ export default function RedeemPointsPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('http://localhost:8080/redeem-perk', {
+      const res = await fetch('/api/redeem-perk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

@@ -25,7 +25,7 @@ function Navigation() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch('http://localhost:8080/auth/me', {
+        const res = await fetch('/api/auth/me', {
           credentials: 'include',
         })
 
@@ -47,7 +47,7 @@ function Navigation() {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:8080/auth/logout', {
+      await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include',
       })
