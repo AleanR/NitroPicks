@@ -40,9 +40,11 @@ mongoose.connection.on('error', (error: Error) => console.log(error));
 
 app.use('/api', router());
 
-// Serve the built React client in production
-const clientDist = path.join(__dirname, '../../client/dist');
-app.use(express.static(clientDist));
-app.get('*', (_req, res) => {
-  res.sendFile(path.join(clientDist, 'index.html'));
-});
+// Serve the built React client in production only
+if (process.env.NODE_ENV === 'production') {
+  const clientDist = path.join(__dirname, '../../client/dist');
+  app.use(express.static(clientDist));
+  app.get('/{*path}', (_req, res) => {
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
