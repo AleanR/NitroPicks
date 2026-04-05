@@ -108,10 +108,12 @@ export default function RedeemPointsPage() {
           </div>
           <h1 className="text-3xl font-bold text-white">KP Store</h1>
           <p className="mt-2 text-zinc-400">Spend your Knights Points on exclusive UCF campus perks.</p>
-          {balance !== null && (
+          {balance !== null ? (
             <p className="mt-3 text-sm font-semibold text-yellow-400">
               Your balance: {balance.toLocaleString()} KP
             </p>
+          ) : (
+            <div className="mx-auto mt-3 h-5 w-40 animate-pulse rounded-lg bg-zinc-800" />
           )}
         </div>
 
@@ -129,7 +131,7 @@ export default function RedeemPointsPage() {
                 }`}
               >
                 <div className="mb-3 text-3xl">{perk.icon}</div>
-                <h3 className="font-semibold text-white">{perk.name}</h3>
+                <h2 className="font-semibold text-white">{perk.name}</h2>
                 <p className="mt-1 text-sm text-zinc-400">{perk.description}</p>
 
                 <div className="mt-4 flex items-center justify-between">

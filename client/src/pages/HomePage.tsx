@@ -8,6 +8,7 @@ function HomePage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [events, setEvents] = useState<any[]>([])
+  const [loadingEvents, setLoadingEvents] = useState(true)
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -37,6 +38,7 @@ function HomePage() {
       .then((r) => r.json())
       .then((data) => setEvents(Array.isArray(data) ? data : []))
       .catch(() => {})
+      .finally(() => setLoadingEvents(false))
   }, [])
 
   const handleGetStarted = () => {
@@ -182,7 +184,14 @@ function HomePage() {
             </div>
 
             <div className="space-y-5">
-              {events.map((event) => (
+              {loadingEvents ? (
+                [1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-[104px] rounded-3xl border border-zinc-800 bg-[#14161d] animate-pulse"
+                  />
+                ))
+              ) : events.map((event) => (
                 <div
                   key={event._id}
                   className="flex items-center justify-between rounded-3xl border border-zinc-800 bg-[#14161d] px-6 py-6"

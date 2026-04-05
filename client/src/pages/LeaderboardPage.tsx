@@ -65,9 +65,25 @@ function LeaderboardPage() {
       <div className="min-h-screen bg-black text-white">
         <Navigation />
         <main className="mx-auto max-w-7xl px-6 py-8">
-          <div className="flex items-center justify-center py-20">
-            <div className="text-zinc-400">Loading leaderboard...</div>
+          <div className="mb-8">
+            <div className="h-12 w-64 animate-pulse rounded-xl bg-zinc-800" />
+            <div className="mt-2 h-6 w-48 animate-pulse rounded-xl bg-zinc-800" />
           </div>
+
+          <section className="grid gap-5 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-[300px] animate-pulse rounded-3xl border border-zinc-800 bg-[#14161d]" />
+            ))}
+          </section>
+
+          <section className="mt-8 overflow-hidden rounded-3xl border border-zinc-800 bg-[#14161d]">
+            <div className="border-b border-zinc-800 px-6 py-5">
+              <div className="h-5 w-full animate-pulse rounded-lg bg-zinc-800" />
+            </div>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-[72px] animate-pulse border-b border-zinc-800 px-6 last:border-b-0" />
+            ))}
+          </section>
         </main>
       </div>
     )

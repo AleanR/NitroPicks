@@ -123,7 +123,7 @@ function MarketsPage() {
     <div className="min-h-screen bg-black text-white">
       <Navigation />
 
-      <main className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[290px_minmax(0,1fr)_295px]">
+      <main className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[290px_minmax(0,1fr)_295px] min-h-screen">
         <aside className="h-fit rounded-3xl border border-zinc-800 bg-[#14161d] p-4">
           <h2 className="text-3xl font-extrabold">Filters</h2>
 
@@ -213,7 +213,14 @@ function MarketsPage() {
 
           <div className="space-y-5">
             {loadingEvents ? (
-              <p className="text-zinc-400">Loading events...</p>
+              <div className="space-y-5">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-[220px] rounded-3xl border border-zinc-800 bg-[#14161d] animate-pulse"
+                  />
+                ))}
+              </div>
             ) : filteredEvents.length === 0 ? (
               <p className="text-zinc-400">No events found.</p>
             ) : filteredEvents.map((event) => (
@@ -327,7 +334,7 @@ function MarketsPage() {
           </div>
         </section>
 
-        <aside className="space-y-5">
+        <aside className="space-y-5 min-h-[500px]">
           <div className="rounded-3xl border border-zinc-800 bg-[#14161d] p-6">
             <div className="mb-6 flex items-start justify-between gap-4">
               <h2 className="text-2xl font-extrabold leading-tight">Active Mini Bet Slip</h2>
@@ -336,7 +343,7 @@ function MarketsPage() {
             {activeBets.length === 0 ? (
               <div className="py-10 text-center">
                 <p className="text-xl text-zinc-300">No active bets</p>
-                <p className="mt-2 text-sm text-zinc-500">Select markets to get started</p>
+                <p className="mt-2 text-sm text-zinc-400">Select markets to get started</p>
               </div>
             ) : (
               <div className="space-y-4">

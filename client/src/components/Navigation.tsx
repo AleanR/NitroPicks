@@ -160,7 +160,11 @@ function Navigation() {
         {/* RIGHT SIDE */}
         <div className="flex items-center gap-6">
           {loading ? (
-            <span className="text-zinc-400">...</span>
+            <div className="flex items-center gap-6">
+              <div className="h-[46px] w-[110px] animate-pulse rounded-xl bg-zinc-800" />
+              <div className="h-6 w-6 animate-pulse rounded-full bg-zinc-800" />
+              <div className="h-[38px] w-[90px] animate-pulse rounded-xl bg-zinc-800" />
+            </div>
           ) : user ? (
             <>
               {/* KP DISPLAY */}
@@ -184,6 +188,7 @@ function Navigation() {
               {/* PROFILE ICON */}
               <Link
                 to="/profile"
+                aria-label="View profile"
                 className="text-white hover:text-yellow-400 transition"
               >
                 <svg

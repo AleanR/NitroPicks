@@ -59,9 +59,17 @@ function ProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white">
-        <div className="mx-auto flex h-screen max-w-7xl items-center justify-center px-6">
-          <p className="text-2xl font-bold">Loading your profile...</p>
-        </div>
+        <Navigation />
+        <main className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[400px_minmax(0,1fr)]">
+          <div className="space-y-6">
+            <div className="h-[420px] animate-pulse rounded-3xl border border-zinc-800 bg-[#14161d]" />
+            <div className="h-[360px] animate-pulse rounded-3xl border border-zinc-800 bg-[#14161d]" />
+          </div>
+          <div className="space-y-6">
+            <div className="h-[48px] w-[380px] animate-pulse rounded-2xl border border-zinc-800 bg-[#14161d]" />
+            <div className="h-[500px] animate-pulse rounded-3xl border border-zinc-800 bg-[#14161d]" />
+          </div>
+        </main>
       </div>
     )
   }
@@ -109,7 +117,7 @@ function ProfilePage() {
 
               <h1 className="mt-5 text-5xl font-extrabold">{fullName}</h1>
               <p className="mt-2 text-xl text-sky-200">{school}</p>
-              <p className="mt-3 text-base text-zinc-500">Member since {memberSince}</p>
+              <p className="mt-3 text-base text-zinc-400">Member since {memberSince}</p>
             </div>
 
             <div className="my-8 border-t border-zinc-800" />
@@ -231,8 +239,9 @@ function ProfilePage() {
 
                 <div className="grid gap-6 md:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-lg font-semibold">Full Name</label>
+                    <label htmlFor="profile-fullname" className="mb-2 block text-lg font-semibold">Full Name</label>
                     <input
+                      id="profile-fullname"
                       value={fullName}
                       readOnly
                       className="w-full rounded-xl border border-zinc-700 bg-[#181b22] px-4 py-3 text-lg text-zinc-300 outline-none"
@@ -240,8 +249,9 @@ function ProfilePage() {
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-lg font-semibold">Username</label>
+                    <label htmlFor="profile-username" className="mb-2 block text-lg font-semibold">Username</label>
                     <input
+                      id="profile-username"
                       value={user?.username ?? ''}
                       readOnly
                       className="w-full rounded-xl border border-zinc-700 bg-[#181b22] px-4 py-3 text-lg text-zinc-300 outline-none"
@@ -250,8 +260,9 @@ function ProfilePage() {
                 </div>
 
                 <div className="mt-6">
-                  <label className="mb-2 block text-lg font-semibold">UCF Email</label>
+                  <label htmlFor="profile-email" className="mb-2 block text-lg font-semibold">UCF Email</label>
                   <input
+                    id="profile-email"
                     value={user?.email ?? ''}
                     readOnly
                     className="w-full rounded-xl border border-zinc-700 bg-[#181b22] px-4 py-3 text-lg text-zinc-300 outline-none"
@@ -259,8 +270,9 @@ function ProfilePage() {
                 </div>
 
                 <div className="mt-6">
-                  <label className="mb-2 block text-lg font-semibold">Major</label>
+                  <label htmlFor="profile-major" className="mb-2 block text-lg font-semibold">Major</label>
                   <input
+                    id="profile-major"
                     value={school}
                     readOnly
                     className="w-full rounded-xl border border-zinc-700 bg-[#181b22] px-4 py-3 text-lg text-zinc-300 outline-none"
