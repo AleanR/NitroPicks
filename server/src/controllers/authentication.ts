@@ -67,7 +67,7 @@ export const register = async (req: Request, res: Response) => {
             lastname,
             ucfID,
             major,
-            pointBalance: 0,
+            pointBalance: 2000,
             email,
             isVerified: false,
             username,
