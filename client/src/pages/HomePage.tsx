@@ -147,9 +147,11 @@ function HomePage() {
           </div>
 
           <div className="flex items-center justify-center">
-            <div className="flex h-[320px] w-full items-center justify-center rounded-2xl bg-zinc-200 text-center text-xl font-semibold text-zinc-500 shadow-xl md:h-[360px]">
-              Placeholder Hero Image
-            </div>
+            <img
+              src="/nitropicks.png"
+              alt="UCF Knights basketball game"
+              className="h-[320px] w-full rounded-2xl object-cover shadow-[0_0_40px_8px_rgba(250,204,21,0.35)] ring-2 ring-yellow-400/40 md:h-[360px]"
+            />
           </div>
         </section>
 

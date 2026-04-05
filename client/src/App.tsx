@@ -10,6 +10,9 @@ const RegisterPage = lazy(() => import('./pages/RegisterPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
 const EarnPointsPage = lazy(() => import('./pages/EarnPointsPage'))
 const RedeemPointsPage = lazy(() => import('./pages/RedeemPointsPage'))
+const UserProfilePage = lazy(() => import('./pages/UserProfilePage'))
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
 
 function App() {
   return (
@@ -25,6 +28,9 @@ function App() {
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/earn-points" element={<EarnPointsPage />} />
           <Route path="/redeem-points" element={<RedeemPointsPage />} />
+          <Route path="/profile/:id" element={<UserProfilePage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

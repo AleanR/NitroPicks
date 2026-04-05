@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { topUsers } from '../data/mockLeaderboardData'
 import Navigation from '../components/Navigation'
 
@@ -14,6 +15,7 @@ type TopUser = {
 }
 
 function LeaderboardPage() {
+  const navigate = useNavigate()
   const [leaderboardData, setLeaderboardData] = useState<TopUser[]>(topUsers) // fallback to mock data
   const [loading, setLoading] = useState(true)
 
@@ -186,7 +188,10 @@ function LeaderboardPage() {
               <div className="text-2xl">{user.bets}</div>
 
               <div>
-                <button className="rounded-xl border border-zinc-700 bg-[#181b22] px-4 py-2 text-lg font-semibold text-white">
+                <button
+                  onClick={() => navigate(`/profile/${user.id}`)}
+                  className="rounded-xl border border-zinc-700 bg-[#181b22] px-4 py-2 text-lg font-semibold text-white hover:border-yellow-400 transition"
+                >
                   View Profile
                 </button>
               </div>

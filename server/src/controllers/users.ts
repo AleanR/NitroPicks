@@ -33,6 +33,25 @@ const isAdminUser = async (req: AuthenticatedRequest): Promise<boolean> => {
 
 
 
+export const getPublicUser = async (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string;
+        const user = await getUserById(id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        return res.status(200).json({
+            _id: user._id,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            username: user.username,
+            major: user.major,
+            pointBalance: user.pointBalance,
+            createdAt: (user as any).createdAt,
+        });
+    } catch (error) {
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
 export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) => {
     try {
         if (!req.user) {

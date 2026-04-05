@@ -4,10 +4,9 @@ import Navigation from '../components/Navigation'
 import {
   weeklyProgress,
   recentTransactions,
-  activeBets,
 } from '../data/mockProfileData'
 
-type ProfileTab = 'profile' | 'security' | 'preferences'
+type ProfileTab = 'profile' | 'security'
 
 function ProfilePage() {
   const [activeTab, setActiveTab] = useState<ProfileTab>('profile')
@@ -172,7 +171,10 @@ function ProfilePage() {
               </div>
             </div>
 
-            <button className="mt-3 w-full rounded-xl border border-zinc-800 bg-[#181b22] px-6 py-4 text-lg font-bold text-yellow-400">
+            <button
+              onClick={() => navigate('/redeem-points')}
+              className="mt-3 w-full rounded-xl border border-zinc-800 bg-[#181b22] px-6 py-4 text-lg font-bold text-yellow-400 hover:border-yellow-400 transition"
+            >
               Redeem Rewards
             </button>
 
@@ -222,19 +224,13 @@ function ProfilePage() {
             <button className={tabClass('security')} onClick={() => setActiveTab('security')}>
               Security
             </button>
-            <button className={tabClass('preferences')} onClick={() => setActiveTab('preferences')}>
-              Preferences
-            </button>
           </div>
 
           {activeTab === 'profile' && (
             <>
               <section className="rounded-3xl border border-zinc-800 bg-[#14161d] p-6">
-                <div className="mb-8 flex items-center justify-between">
+                <div className="mb-8">
                   <h2 className="text-4xl font-extrabold">Profile Information</h2>
-                  <button className="rounded-xl border border-zinc-700 bg-[#181b22] px-4 py-2 font-semibold text-yellow-400">
-                    Edit
-                  </button>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
@@ -316,124 +312,27 @@ function ProfilePage() {
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <h3 className="text-2xl font-bold">Password</h3>
-                      <p className="mt-1 text-lg text-sky-200">Last change: Mar 14, 2026</p>
+                      <p className="mt-1 text-lg text-zinc-400">Send a reset link to your email</p>
                     </div>
 
-                    <button className="rounded-xl border border-zinc-700 bg-[#181b22] px-5 py-3 font-semibold text-white">
-                      Change password
+                    <button
+                      onClick={() => navigate('/forgot-password')}
+                      className="rounded-xl border border-zinc-700 bg-[#181b22] px-5 py-3 font-semibold text-white hover:border-yellow-400 transition"
+                    >
+                      Reset password
                     </button>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl bg-black px-5 py-5">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <h3 className="text-2xl font-bold">Two-Factor Authentication (2FA)</h3>
-                      <p className="mt-1 text-lg text-sky-200">
-                        Authenticator app required for sign-in
-                      </p>
-                    </div>
-
-                    <button className="rounded-xl border border-zinc-700 bg-[#181b22] px-5 py-3 font-semibold text-white">
-                      Manage 2FA
-                    </button>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl bg-black px-5 py-5">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <h3 className="text-2xl font-bold">Session & Responsible Play</h3>
-                      <p className="mt-1 text-lg text-sky-200">
-                        Win sessions and automatically close when the protection responsible play
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="text-lg text-white">Win session</p>
-                        <p className="text-sm text-zinc-400">30 min</p>
-                      </div>
-
-                      <button className="relative h-7 w-14 rounded-full bg-zinc-700">
-                        <span className="absolute right-1 top-1 h-5 w-5 rounded-full bg-white" />
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
             </section>
           )}
 
-          {activeTab === 'preferences' && (
-            <>
-              <section className="rounded-3xl border border-zinc-800 bg-[#14161d] p-6">
-                <h2 className="mb-8 text-4xl font-extrabold">Preferences</h2>
-
-                <div className="space-y-6">
-                  <div className="rounded-2xl bg-black px-5 py-5">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <h3 className="text-2xl font-bold">Email Notifications</h3>
-                        <p className="mt-1 text-lg text-sky-200">
-                          Receive news, promos, and contest alerts
-                        </p>
-                      </div>
-
-                      <button className="relative h-7 w-14 rounded-full bg-zinc-700">
-                        <span className="absolute right-1 top-1 h-5 w-5 rounded-full bg-white" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl bg-black px-5 py-5">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <h3 className="text-2xl font-bold">Dark Mode</h3>
-                        <p className="mt-1 text-lg text-sky-200">
-                          Regularly match and contest alerts
-                        </p>
-                      </div>
-
-                      <button className="relative h-7 w-14 rounded-full bg-zinc-700">
-                        <span className="absolute right-1 top-1 h-5 w-5 rounded-full bg-white" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-lg font-semibold">
-                      Timezone: America/New_York
-                    </label>
-                    <input
-                      value="America/New_York"
-                      readOnly
-                      className="w-full rounded-xl border border-zinc-700 bg-[#181b22] px-4 py-3 text-lg text-white outline-none"
-                    />
-                  </div>
-                </div>
-              </section>
-
-              <section className="rounded-3xl border border-zinc-800 bg-[#14161d] p-6">
-                <h2 className="mb-8 text-4xl font-extrabold">Help & Support</h2>
-                <p className="mb-6 text-lg text-sky-200">
-                  Available for in-app questions and external updates
-                </p>
-
-                <div className="space-y-3">
-                  <button className="w-full rounded-xl border border-zinc-800 bg-[#181b22] px-4 py-4 text-left text-lg font-semibold text-white">
-                    Help Center
-                  </button>
-                  <button className="w-full rounded-xl border border-zinc-800 bg-[#181b22] px-4 py-4 text-left text-lg font-semibold text-white">
-                    Report Issue
-                  </button>
-                  <button className="w-full rounded-xl border border-zinc-800 bg-[#181b22] px-4 py-4 text-left text-lg font-semibold text-white">
-                    Contact Support
-                  </button>
-                </div>
-              </section>
-            </>
-          )}
+          <section className="rounded-3xl border border-zinc-800 bg-[#14161d] p-6">
+            <h2 className="mb-6 text-4xl font-extrabold">Help & Support</h2>
+            <button className="w-full rounded-xl border border-zinc-800 bg-[#181b22] px-4 py-4 text-left text-lg font-semibold text-white hover:border-yellow-400 transition">
+              Contact Support
+            </button>
+          </section>
         </div>
       </main>
     </div>

@@ -5,6 +5,7 @@ import {
   searchUsers, 
   updateUser, 
   getCurrentUser, 
+  getPublicUser,
   adminGetEvents, 
   adminCreateEvent, 
   adminUpdateEvent, 
@@ -28,9 +29,10 @@ export default (router: Router) => {
   router.delete('/users/:id', isAuthenticated, deleteUser);
   router.patch('/users/:id', isAuthenticated, updateUser);
 
-  router.post('/users/forgot-password', isAuthenticated, forgotPass);
-  router.patch('/users/reset-password/:token', isAuthenticated, resetPass);
+  router.post('/users/forgot-password', forgotPass);
+  router.patch('/users/reset-password/:token', resetPass);
   router.get('/users/search', isAuthenticated, searchUsers);
+  router.get('/users/:id', getPublicUser);
 
   // Admin-only event management routes
   router.get('/admin/events', isAuthenticated, adminGetEvents);

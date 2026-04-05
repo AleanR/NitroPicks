@@ -100,7 +100,7 @@ export default function RedeemPointsPage() {
     <div className="min-h-screen bg-[#0a0b0f] text-white">
       <Navigation />
 
-      <div className="mx-auto max-w-4xl px-4 pt-24 pb-12">
+      <div className="mx-auto max-w-4xl px-4 pt-6 pb-12">
         {/* Header */}
         <div className="mb-10 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-400/10 text-4xl">
