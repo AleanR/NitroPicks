@@ -25,7 +25,8 @@ export const forgotPass = async (req: AuthenticatedRequest, res: Response) => {
 
         await user.save();
 
-        const resetURL = `http://localhost:8080/reset-password/${resetToken}`;
+        const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+        const resetURL = `${clientUrl}/reset-password/${resetToken}`;
 
         await sendPassResetToken(user.email, resetURL);
 

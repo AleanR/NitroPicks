@@ -1,7 +1,53 @@
-import { statCards, upcomingGames, winners } from '../data/mockHomeData'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { statCards, winners } from '../data/mockHomeData'
 import Navigation from '../components/Navigation'
 
 function HomePage() {
+  const navigate = useNavigate()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [events, setEvents] = useState<any[]>([])
+  const [loadingEvents, setLoadingEvents] = useState(true)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('/api/auth/me', {
+          credentials: 'include',
+        })
+
+        if (res.ok) {
+          const data = await res.json()
+          setUser(data)
+        } else {
+          setUser(null)
+        }
+      } catch {
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUser()
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/events')
+      .then((r) => r.json())
+      .then((data) => setEvents(Array.isArray(data) ? data : []))
+      .catch(() => {})
+      .finally(() => setLoadingEvents(false))
+  }, [])
+
+  const handleGetStarted = () => {
+    if (user) {
+      navigate('/markets')
+    } else {
+      navigate('/register')
+    }
+  }
   const renderStatIcon = (icon: 'leagues' | 'points' | 'wins') => {
     if (icon === 'leagues') {
       return (
@@ -67,46 +113,7 @@ function HomePage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <header className="sticky top-0 z-50 border-b border-zinc-800 bg-[#111216]/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-10">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-yellow-400">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="black"
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5"
-                >
-                  <path d="M13 2L3 14h7v8l10-12h-7z" />
-                </svg>
-              </div>
-
-              <div className="flex items-end gap-2">
-                <span className="text-3xl font-extrabold tracking-tight">NitroPicks</span>
-              </div>
-            </div>
-
-            <Navigation />
-          </div>
-
-          <div className="flex items-center gap-4">
-            <a
-              href="/login"
-              className="rounded-xl border border-zinc-700 px-5 py-2 font-semibold text-white hover:border-yellow-400"
-            >
-              Sign In
-            </a>
-
-            <a
-              href="/register"
-              className="rounded-xl bg-yellow-400 px-5 py-2 font-semibold text-black"
-            >
-              Sign Up
-            </a>
-          </div>
-        </div>
-      </header>
+      <Navigation />
 
       <main className="mx-auto max-w-7xl px-6 py-6">
         <section className="grid gap-8 rounded-3xl border border-zinc-800 bg-gradient-to-r from-[#0f1117] to-black px-8 py-8 md:grid-cols-2 md:px-10 md:py-10">
@@ -121,22 +128,30 @@ function HomePage() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
-              <button className="rounded-xl bg-yellow-400 px-6 py-3 font-semibold text-black">
-                Get Started
-              </button>
-              <button className="rounded-xl border border-zinc-700 bg-[#111216] px-6 py-3 font-semibold text-yellow-400">
+              {!user && (
+                <button 
+                  onClick={handleGetStarted}
+                  className="rounded-xl bg-yellow-400 px-6 py-3 font-semibold text-black hover:bg-yellow-500 transition disabled:opacity-50"
+                  disabled={loading}
+                >
+                  {loading ? 'Loading...' : 'Get Started'}
+                </button>
+              )}
+              <button 
+                onClick={() => navigate('/markets')}
+                className="rounded-xl border border-zinc-700 bg-[#111216] px-6 py-3 font-semibold text-yellow-400 hover:border-yellow-400 transition"
+              >
                 Browse Events
-              </button>
-              <button className="rounded-xl border border-zinc-700 bg-[#111216] px-6 py-3 font-semibold text-white">
-                Create a League
               </button>
             </div>
           </div>
 
           <div className="flex items-center justify-center">
-            <div className="flex h-[320px] w-full items-center justify-center rounded-2xl bg-zinc-200 text-center text-xl font-semibold text-zinc-500 shadow-xl md:h-[360px]">
-              Placeholder Hero Image
-            </div>
+            <img
+              src="/nitropicks.png"
+              alt="UCF Knights basketball game"
+              className="h-[320px] w-full rounded-2xl object-cover shadow-[0_0_40px_8px_rgba(250,204,21,0.35)] ring-2 ring-yellow-400/40 md:h-[360px]"
+            />
           </div>
         </section>
 
@@ -161,38 +176,53 @@ function HomePage() {
           <div>
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-5xl font-extrabold">Upcoming Marquee Games</h2>
-              <button className="flex items-center gap-2 text-xl font-semibold text-yellow-400">
+              <button 
+                onClick={() => navigate('/markets')}
+                className="flex items-center gap-2 text-xl font-semibold text-yellow-400 hover:text-yellow-500 transition"
+              >
                 View All
                 <span>→</span>
               </button>
             </div>
 
             <div className="space-y-5">
-              {upcomingGames.map((game) => (
+              {loadingEvents ? (
+                [1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-[104px] rounded-3xl border border-zinc-800 bg-[#14161d] animate-pulse"
+                  />
+                ))
+              ) : events.map((event) => (
                 <div
-                  key={game.id}
+                  key={event._id}
                   className="flex items-center justify-between rounded-3xl border border-zinc-800 bg-[#14161d] px-6 py-6"
                 >
                   <div className="flex items-center gap-5">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-yellow-400 text-2xl font-extrabold text-black">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-yellow-400 text-xl font-extrabold text-black">
                       UCF
                     </div>
 
                     <div>
-                      <h3 className="text-2xl font-bold">{game.title}</h3>
+                      <h3 className="text-2xl font-bold">
+                        {event.homeTeam} vs {event.awayTeam}
+                      </h3>
                       <p className="mt-1 text-xl text-zinc-400">
-                        {game.date} • {game.time}
+                        {event.date} • {event.time}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-4">
-                    {game.status === 'open' ? (
+                    {event.status.toLowerCase() === 'open' ? (
                       <>
                         <span className="rounded-full border border-green-500/40 bg-green-500/10 px-4 py-2 text-lg font-semibold text-green-400">
                           Market Open
                         </span>
-                        <button className="rounded-xl bg-yellow-400 px-5 py-3 text-lg font-bold text-black">
+                        <button 
+                          onClick={() => navigate('/markets')}
+                          className="rounded-xl bg-yellow-400 px-5 py-3 text-lg font-bold text-black hover:bg-yellow-500 transition"
+                        >
                           View Market
                         </button>
                       </>
@@ -201,7 +231,10 @@ function HomePage() {
                         <span className="rounded-full border border-zinc-600 bg-zinc-700/20 px-4 py-2 text-lg font-semibold text-zinc-400">
                           Market Closed
                         </span>
-                        <button className="rounded-xl bg-zinc-700 px-5 py-3 text-lg font-bold text-zinc-400">
+                        <button 
+                          onClick={() => navigate('/markets')}
+                          className="rounded-xl bg-zinc-700 px-5 py-3 text-lg font-bold text-zinc-400 hover:bg-zinc-600 transition"
+                        >
                           View Market
                         </button>
                       </>
@@ -267,7 +300,10 @@ function HomePage() {
                 </p>
               </div>
 
-              <button className="mt-8 w-full rounded-xl bg-yellow-400 px-6 py-4 text-lg font-bold text-black">
+              <button 
+                onClick={() => navigate('/markets')}
+                className="mt-8 w-full rounded-xl bg-yellow-400 px-6 py-4 text-lg font-bold text-black hover:bg-yellow-500 transition"
+              >
                 Learn More
               </button>
             </div>

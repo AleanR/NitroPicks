@@ -23,10 +23,9 @@ function LoginPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    
 
     try {
-    const response = await fetch('http://localhost:8080/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,11 +34,12 @@ function LoginPage() {
         body: JSON.stringify(formData),
       })
 
+      const data = await response.json().catch(() => null)
+
       if (!response.ok) {
-        throw new Error('Login failed. Check your credentials.')
+        throw new Error(data?.message || `Login failed (${response.status})`)
       }
 
-      await response.json()
       navigate('/')
     } catch (err) {
       if (err instanceof Error) {
@@ -97,6 +97,12 @@ function LoginPage() {
                 onChange={handleChange}
                 className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-yellow-400"
               />
+            </div>
+
+            <div className="text-right -mt-2">
+              <Link to="/forgot-password" className="text-xs text-yellow-400 hover:underline">
+                Forgot password?
+              </Link>
             </div>
 
             {error && <p className="text-sm text-red-400">{error}</p>}

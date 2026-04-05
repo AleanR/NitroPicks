@@ -1,0 +1,9 @@
+{
+  "name": "team-24-large-project-root",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "cd server && npm start",
+    "dev:client": "cd client && npm run dev",
+    "install:all": "cd server && npm install && cd ../client && npm install"
+  }
+}

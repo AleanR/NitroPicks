@@ -7,15 +7,19 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import router from './router';
 import dotenv from 'dotenv';
-
+import path from 'path';
 
 dotenv.config();
 
 const app = express();
 
+const allowedOrigins = process.env.CLIENT_URL
+  ? [process.env.CLIENT_URL, 'http://localhost:5173', 'http://localhost:5174']
+  : ['http://localhost:5173', 'http://localhost:5174'];
+
 app.use(cors({
-    origin: "http://localhost:5173",
-    credentials: true
+  origin: allowedOrigins,
+  credentials: true,
 }));
 
 app.use(compression());
@@ -24,13 +28,21 @@ app.use(bodyParser.json());
 
 const server = http.createServer(app);
 
-server.listen(8080, () => {
-    console.log("Server running on http://localhost:8080/")
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 mongoose.Promise = Promise;
-mongoose.connect(process.env.MONGO_DB_URI!);
+mongoose.connect(process.env.MONGO_DB_URL!);
 
 mongoose.connection.on('error', (error: Error) => console.log(error));
 
-app.use('/', router());
+app.use('/api', router());
+
+// Serve the built React client in production
+const clientDist = path.join(__dirname, '../../client/dist');
+app.use(express.static(clientDist));
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(clientDist, 'index.html'));
+});

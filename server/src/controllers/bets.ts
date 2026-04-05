@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { BetModel, createBet, deleteBetById, getBetById } from '../db/bets';
 import { AuthenticatedRequest } from '../helpers/auth';
-import { getUserById, updatePointBalanceById, updateUserById } from '../db/users';
+import { getUserById, updateUserById } from '../db/users';
 import { getGameById, updateGameById } from '../db/games';
 
 export const addBet = async (req: AuthenticatedRequest, res: Response) => {

@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface Bet {
   id: string
-  eventId: number
+  eventId: string
   matchup: string
   marketType: string
   selection: string
@@ -14,34 +14,44 @@ interface StakeHandlerProps {
 }
 
 function StakeHandler({ activeBets }: StakeHandlerProps) {
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const [stake, setStake] = useState('')
 
-  const handleStakeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('/api/auth/me', {
+          credentials: 'include',
+        })
+
+        if (res.ok) {
+          const data = await res.json()
+          setUser(data)
+        } else {
+          setUser(null)
+        }
+      } catch {
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUser()
+  }, [])
+
+    const handleStakeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
       setStake(value)
     }
   }
 
-  const americanToDecimal = (odds: number) => {
-    if (odds > 0) {
-      return 1 + odds / 100
-    }
-    return 1 + 100 / Math.abs(odds)
-  }
-
-  const decimalToAmerican = (decimalOdds: number) => {
-    if (decimalOdds >= 2) {
-      return Math.round((decimalOdds - 1) * 100)
-    } else {
-      return Math.round(-100 / (decimalOdds - 1))
-    }
-  }
-
   const totalDecimalOdds = activeBets.reduce((total, bet) => {
     const numericOdds = Number(bet.odds)
     if (isNaN(numericOdds)) return total
-    return total * americanToDecimal(numericOdds)
+    return total * numericOdds
   }, 1)
 
   const stakeAmount = Number(stake)
@@ -52,7 +62,7 @@ function StakeHandler({ activeBets }: StakeHandlerProps) {
     <div className="mt-4 space-y-2 border-t border-zinc-800 pt-3">
       <div className="flex justify-center">
         <span className="text-2xl font-bold text-yellow-400">
-          {decimalToAmerican(totalDecimalOdds) > 0 ? '+' : ''}{decimalToAmerican(totalDecimalOdds)}
+          {totalDecimalOdds.toFixed(2)}
         </span>
       </div>
 
@@ -70,9 +80,17 @@ function StakeHandler({ activeBets }: StakeHandlerProps) {
         </div>
       </div>
 
-      <button className="w-full rounded-lg bg-yellow-400 px-3 py-2 text-sm font-semibold text-black transition hover:brightness-95">
-        Place Bet
-      </button>
+      {loading ? (
+        <div className="text-center text-zinc-400">Checking auth...</div>
+      ) : user ? (
+        <button className="w-full rounded-lg bg-yellow-400 px-3 py-2 text-sm font-semibold text-black transition hover:brightness-95">
+          Place Bet
+        </button>
+      ) : (
+        <p className="text-center text-sm text-zinc-300">
+          Please <a href="/login" className="text-yellow-400 underline">sign in</a> or <a href="/register" className="text-yellow-400 underline">sign up</a> to place a bet.
+        </p>
+      )}
     </div>
   )
 }
