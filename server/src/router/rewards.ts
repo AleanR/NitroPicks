@@ -3,5 +3,5 @@ import { redeemReward } from '../controllers/rewards';
 import { isAuthenticated } from '../middlewares';
 
 export default (router: Router) => {
-    router.post('users/:id/redeem', isAuthenticated, redeemReward);
+    router.post('/users/:id/redeem', isAuthenticated, redeemReward);
 };
