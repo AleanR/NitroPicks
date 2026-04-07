@@ -78,7 +78,7 @@ export const register = async (req: Request, res: Response) => {
 
         const token = await createToken(user._id.toString(), user.email);
 
-        const otpUrl = `http://localhost:8080/verify-email?token=${token}`;
+        const otpUrl = `http://localhost:8080/users/auth/verify-email?token=${token}`;
 
         await sendEmailVerifOTP(user.email, otpUrl);
 

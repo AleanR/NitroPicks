@@ -1,7 +1,8 @@
+import { ReturnDocument } from "mongodb";
 import mongoose from "mongoose";
 
 const GameSchema = new mongoose.Schema({
-    sport: { type: String, required: true },        
+    // sport: { type: String, required: true },        
     homeTeam: { type: String, required: true },     
     awayTeam: { type: String, required: true },     
 
@@ -10,36 +11,43 @@ const GameSchema = new mongoose.Schema({
     numBettorsAway: { type: Number, default: 0 },
 
     // Total KP wagered per side
-    totalBetAmountHome: { type: Number, default: 0 },
-    totalBetAmountAway: { type: Number, default: 0 },
+    totalBetAmountHome: { type: Number, default: 100 },
+    totalBetAmountAway: { type: Number, default: 100 },
 
-    // Odds — three standard bet types matching the frontend MarketEvent shape
-    spread: {
-        label: { type: String, default: '' },       // e.g. "UCF -3.5"
-        odds:  { type: String, default: '' },       // e.g. "-150"
+    // Total bet pool
+    betPool: { type: Number, default: 200, required: true },
+
+    // Moneyline - percentage odds for each team win
+    homeWin: {
+        type: {
+            label: { type: String, default: '' },       // e.g. "UCF Win"
+            odds:  { type: Number, default: 0, required: true },       // e.g. 50% per team
+        },
+        required: true,
     },
-    moneyline: {
-        label: { type: String, default: '' },       // e.g. "UCF Win"
-        odds:  { type: String, default: '' },       // e.g. "-150"
-    },
-    total: {
-        label: { type: String, default: '' },       // e.g. "O/U 48.5"
-        odds:  { type: String, default: '' },       // e.g. "-110"
+    awayWin: {
+        type: {
+            label: { type: String, default: '' },
+            odds: { type: Number, default: 0, required: true },
+        },
+        required: true,
     },
 
     // Scores
-    scoreHome: { type: Number, default: 0 },
-    scoreAway: { type: Number, default: 0 },
+    scoreHome: { type: Number, default: 0, required: true },
+    scoreAway: { type: Number, default: 0, required: true },
 
     // Betting window timer
     bettingOpensAt:  { type: Date, required: true },
     bettingClosesAt: { type: Date, required: true },
 
+    // Winner
     winner: { type: String, default: "" },
+
     // Game lifecycle
     status: {
         type: String,
-        enum: ['upcoming', 'open', 'closed', 'finished'],
+        enum: ['upcoming', 'open', 'closed', 'finished', 'cancelled'],
         default: 'upcoming',
     },
 }, { timestamps: true });
@@ -49,5 +57,55 @@ export const GameModel = mongoose.model('Game', GameSchema);
 export const getGames = () => GameModel.find();
 export const getGameById = (id: string) => GameModel.findById(id);
 export const createGame = (values: Record<string, any>) => GameModel.create(values);
-export const updateGameById = (id: string, values: Record<string, any>) => GameModel.findByIdAndUpdate(id, values, { new: true, runValidators: true });
+export const updateGameById = (id: string, values: Record<string, any>) => GameModel.findByIdAndUpdate(id, values, { new: true, updatePipeline: true, runValidators: true });
 export const deleteGameById = (id: string) => GameModel.deleteOne({ _id: id });
+
+export const updateGameBetsById = async (id: string, team: string, teamBetPool: string, amount: number) => {
+
+    const game = await getGameById(id);
+    if (!game) {
+        return null;
+    }
+
+    const margin = 0.9;
+
+    const updatedGame = await updateGameById(
+        game._id.toString(),
+        [
+            { 
+                $set: {
+                    [team]: { 
+                        $add: [`$${team}`, 1] 
+                    },
+                    [teamBetPool]: { 
+                        $add: [`$${teamBetPool}`, amount] 
+                    },
+                    betPool: {
+                         $add: ["$betPool", amount] 
+                    }
+                }
+            },
+            {
+                $set: {
+
+                    // Calculating odds for each team after placing bet
+                    // newOdd = ( updatedBetPool / updatedPoolForTeamA ) * 0.9 -> Fixed 10% house margin
+                    "homeWin.odds": { 
+                        $multiply: [
+                            { $divide: ["$betPool", "$totalBetAmountHome"] },
+                            0.9 
+                        ]
+                    },
+                    "awayWin.odds": { 
+                        $multiply: [
+                             { $divide: ["$betPool", "$totalBetAmountAway"] },
+                            0.9 
+                        ]
+                    }
+                }
+            }
+        ]
+    )
+
+    return updatedGame;
+}

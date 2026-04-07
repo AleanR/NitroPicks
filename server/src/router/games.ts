@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { getAllGames, getGame, addGame, updateGame, removeGame } from '../controllers/games';
-import { isAuthenticated } from '../middlewares';
+import { getAllGames, addGame, updateGame, cancelGame, searchGames } from '../controllers/games';
+import { isAdmin, isAuthenticated } from '../middlewares';
 
 export default (router: Router) => {
-    router.get('/games', isAuthenticated, getAllGames);           // list all games
-    router.get('/games/:id', isAuthenticated, getGame);          // get one game by id
-    router.post('/games', isAuthenticated, addGame);             // create a game
-    router.patch('/games/:id', isAuthenticated, updateGame);     // update scores/status/odds
-    router.delete('/games/:id', isAuthenticated, removeGame);    // delete a game
+    router.get('/games/search', isAuthenticated, searchGames);          // search games by query - for users & admin
+    router.get('/games', isAuthenticated, isAdmin, getAllGames);           // list all games - for admin
+    router.post('/games', isAuthenticated, isAdmin, addGame);             // create a game - for admin
+    router.patch('/games/:id', isAuthenticated, isAdmin, updateGame);     // update scores/status/odds - for admin
+    router.delete('/games/:id', isAuthenticated, isAdmin, cancelGame);    // delete a game - for admin
 };

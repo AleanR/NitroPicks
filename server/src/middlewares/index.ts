@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { verifyToken } from '../helpers/jwt';
 import { AuthenticatedRequest } from '../helpers/auth';
+import { getUserById } from '../db/users';
 
 
 export const isAuthenticated = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -19,5 +20,26 @@ export const isAuthenticated = async (req: AuthenticatedRequest, res: Response, 
     } catch (error) {
         console.log(error);
         return res.sendStatus(401).json({ message: "Invalid or expired token!"});
+    }
+}
+
+export const isAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        const user = await getUserById(req.user.id);
+
+        if (user!.role !== "admin") {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+
+        next();
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(401).json({ message: "Invalid role" });
     }
 }
