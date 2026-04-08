@@ -1,4 +1,3 @@
-// lib/widgets/np_button.dart
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
@@ -26,46 +25,55 @@ class NpButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPrimary = variant == NpButtonVariant.primary;
     final isSecondary = variant == NpButtonVariant.secondary;
-    final isGhost = variant == NpButtonVariant.ghost;
+    final isDisabled = onPressed == null && !loading;
 
     Color bg;
     Color fg;
     Color borderColor;
+    List<BoxShadow>? shadow;
 
     if (isPrimary) {
-      bg = AppColors.gold;
-      fg = AppColors.textInverse;
-      borderColor = AppColors.gold;
+      if (isDisabled) {
+        bg = const Color(0xFFBDBDBD);
+        fg = Colors.white;
+        borderColor = const Color(0xFFBDBDBD);
+        shadow = null;
+      } else {
+        bg = AppColors.gold;
+        fg = AppColors.textInverse;
+        borderColor = AppColors.gold;
+        shadow = [
+          BoxShadow(
+            color: AppColors.gold.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ];
+      }
     } else if (isSecondary) {
       bg = Colors.transparent;
       fg = AppColors.textPrimary;
-      borderColor = AppColors.borderLight;
+      borderColor = AppColors.textPrimary;
+      shadow = null;
     } else {
       bg = Colors.transparent;
       fg = AppColors.gold;
       borderColor = Colors.transparent;
+      shadow = null;
     }
 
     return SizedBox(
       width: width ?? double.infinity,
       height: 56,
       child: GestureDetector(
-        onTap: loading ? null : onPressed,
+        onTap: (loading || onPressed == null) ? null : onPressed,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           decoration: BoxDecoration(
             color: bg,
             borderRadius: BorderRadius.circular(28),
             border: Border.all(color: borderColor, width: 1.5),
-            boxShadow: isPrimary
-                ? [
-                    BoxShadow(
-                      color: AppColors.gold.withOpacity(0.25),
-                      blurRadius: 16,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
+            boxShadow: shadow,
           ),
           child: Center(
             child: loading
@@ -94,7 +102,6 @@ class NpButton extends StatelessWidget {
   }
 }
 
-/// Small inline text link button
 class NpTextButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;

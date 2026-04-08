@@ -12,6 +12,7 @@ class AppColors {
   static const bgDark = Color(0xFF080C10);       // near-black base
   static const bgBlue = Color(0xFF0D1B2A);       // deep navy
   static const bgGold = Color(0xFF2A1F00);       // dark gold tint
+  static const accentBlue = Color(0xFF3AB5FF);
 
   // Surfaces
   static const surface = Color(0xFF111111);
@@ -77,7 +78,7 @@ class AppTextStyles {
         letterSpacing: 0.8,
       );
 
-  static TextStyle button({double size = 16, Color? color}) => GoogleFonts.dmSans(
+  static TextStyle button({double size = 30, Color? color}) => GoogleFonts.dmSans(
         fontSize: size,
         fontWeight: FontWeight.w700,
         color: color ?? AppColors.textInverse,

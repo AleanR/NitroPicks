@@ -168,7 +168,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                     ),
                     // Title — static, never rebuilds
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                      padding: const EdgeInsets.fromLTRB(24, 50, 24, 80),
                       child: Text('Create Your\nAccount', style: _titleStyle),
                     ),
                     // Scrollable form area

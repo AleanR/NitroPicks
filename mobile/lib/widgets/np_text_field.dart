@@ -67,8 +67,8 @@ class _NpTextFieldState extends State<NpTextField> {
   bool _focused = false;
   final _focusNode = FocusNode();
 
-  static const _fillColor = Color(0xFF1C2333);
-  static const _radius = BorderRadius.all(Radius.circular(10));
+  static const _fillColor = Color(0xFF1A2233);
+  static const _radius = BorderRadius.all(Radius.circular(8));
 
   @override
   void initState() {
@@ -78,7 +78,6 @@ class _NpTextFieldState extends State<NpTextField> {
   }
 
   void _onFocusChange() {
-    // setState only on THIS widget — never triggers parent rebuild
     if (mounted) setState(() => _focused = _focusNode.hasFocus);
   }
 
@@ -93,31 +92,28 @@ class _NpTextFieldState extends State<NpTextField> {
     if (widget.errorText != null && widget.errorText!.isNotEmpty) {
       return const Color(0xFFEF4444);
     }
-    if (widget.successText != null && widget.successText!.isNotEmpty) {
-      return AppColors.open;
-    }
-    if (_focused) return AppColors.gold;
+    if (_focused) return AppColors.gold.withValues(alpha: 0.6);
     return Colors.transparent;
   }
 
   @override
   Widget build(BuildContext context) {
     final hasError = widget.errorText != null && widget.errorText!.isNotEmpty;
-    final hasSuccess =
-        widget.successText != null && widget.successText!.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(widget.label, style: _labelStyle),
-        const SizedBox(height: 8),
-        // Plain Container — zero animation overhead
+        Text(
+          widget.label,
+          style: _labelStyle.copyWith(fontSize: 13), // 👈 smaller label
+        ),
+        const SizedBox(height: 6),
+
         Container(
           decoration: BoxDecoration(
             color: _fillColor,
             borderRadius: _radius,
-            border: Border.all(color: _borderColor, width: 1.5),
+            border: Border.all(color: _borderColor, width: 1.2),
           ),
           child: TextField(
             controller: widget.controller,
@@ -129,36 +125,39 @@ class _NpTextFieldState extends State<NpTextField> {
             readOnly: widget.readOnly,
             onTap: widget.onTap,
             textCapitalization: widget.textCapitalization,
-            style: _inputStyle,
+            style: _inputStyle.copyWith(fontSize: 14), // 👈 smaller input
             decoration: InputDecoration(
               hintText: widget.hint,
-              hintStyle: _hintStyle,
+              hintStyle: _hintStyle.copyWith(fontSize: 14),
               border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 12, // 👈 reduced height
+              ),
+
+              // 👇 make eye icon less dominant
               suffixIcon: widget.obscureText
-                  ? GestureDetector(
-                      onTap: () => setState(() => _obscure = !_obscure),
-                      child: Icon(
-                        _obscure
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: AppColors.textMuted,
-                        size: 20,
+                  ? Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: GestureDetector(
+                        onTap: () => setState(() => _obscure = !_obscure),
+                        child: Icon(
+                          _obscure
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          color: AppColors.textMuted.withValues(alpha: 0.6),
+                          size: 18,
+                        ),
                       ),
                     )
                   : null,
             ),
           ),
         ),
+
         if (hasError) ...[
           const SizedBox(height: 6),
           Text(widget.errorText!, style: _errorStyle),
-        ] else if (hasSuccess) ...[
-          const SizedBox(height: 6),
-          Text(widget.successText!, style: _successStyle),
         ],
       ],
     );
@@ -218,138 +217,35 @@ class NpDropdownField extends StatelessWidget {
   void _showPicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _MajorPickerSheet(
-        items: items,
-        selected: value,
-        onSelect: (v) {
-          onChanged(v);
-          Navigator.pop(context);
-        },
-      ),
-    );
-  }
-}
-
-class _MajorPickerSheet extends StatefulWidget {
-  final List<String> items;
-  final String? selected;
-  final ValueChanged<String> onSelect;
-
-  const _MajorPickerSheet({
-    required this.items,
-    required this.selected,
-    required this.onSelect,
-  });
-
-  @override
-  State<_MajorPickerSheet> createState() => _MajorPickerSheetState();
-}
-
-class _MajorPickerSheetState extends State<_MajorPickerSheet> {
-  late List<String> _filtered;
-  final _search = TextEditingController();
-
-  static final _majorStyle = GoogleFonts.dmSans(
-      fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87);
-  static final _majorSelectedStyle = GoogleFonts.dmSans(
-      fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.gold);
-  static final _headerStyle = GoogleFonts.dmSans(
-      fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white);
-
-  @override
-  void initState() {
-    super.initState();
-    _filtered = widget.items;
-    _search.addListener(_onSearch);
-  }
-
-  void _onSearch() {
-    final q = _search.text.toLowerCase();
-    setState(() {
-      _filtered = q.isEmpty
-          ? widget.items
-          : widget.items.where((m) => m.toLowerCase().contains(q)).toList();
-    });
-  }
-
-  @override
-  void dispose() {
-    _search.removeListener(_onSearch);
-    _search.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 8),
-          Container(
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-            color: Colors.grey[400],
-            child: Text('Select your major', style: _headerStyle),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: TextField(
-              controller: _search,
-              decoration: InputDecoration(
-                hintText: 'Search majors...',
-                prefixIcon: const Icon(Icons.search, size: 20),
-                filled: true,
-                fillColor: Colors.grey[100],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      builder: (context) => Container(
+        height: 300,
+        color: AppColors.surface,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Select $label',
+                style: _labelStyle,
               ),
             ),
-          ),
-          Expanded(
-            child: ListView.separated(
-              cacheExtent: 500,
-              padding: const EdgeInsets.only(bottom: 24),
-              itemCount: _filtered.length,
-              separatorBuilder: (_, __) =>
-                  const Divider(height: 1, indent: 20, endIndent: 20),
-              itemBuilder: (context, i) {
-                final major = _filtered[i];
-                final isSelected = major == widget.selected;
-                return ListTile(
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
-                  title: Text(major,
-                      style:
-                          isSelected ? _majorSelectedStyle : _majorStyle),
-                  trailing: isSelected
-                      ? const Icon(Icons.check_circle,
-                          color: AppColors.gold, size: 20)
-                      : null,
-                  onTap: () => widget.onSelect(major),
-                );
-              },
+            Expanded(
+              child: ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return ListTile(
+                    title: Text(item, style: _inputStyle),
+                    onTap: () {
+                      onChanged(item);
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

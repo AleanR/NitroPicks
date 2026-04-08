@@ -106,18 +106,18 @@ class _LandingScreenState extends State<LandingScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Spacer(flex: 2),
+                      const Spacer(flex: 1),
                       // Logo
                       Center(
                         child: FadeTransition(
                           opacity: _logoFade,
                           child: SlideTransition(
                             position: _logoSlide,
-                            child: const NitroPicksLogo(size: 130),
+                            child: const NitroPicksLogo(size: 200),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 18),
                       // Wordmark + tagline
                       FadeTransition(
                         opacity: _textFade,
@@ -126,7 +126,7 @@ class _LandingScreenState extends State<LandingScreen>
                           child: const _LandingWordmark(),
                         ),
                       ),
-                      const Spacer(flex: 3),
+                      const Spacer(flex: 1),
                       // Buttons
                       FadeTransition(
                         opacity: _btnFade,
@@ -173,25 +173,24 @@ class _LandingBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // From Figma SVG: base is #12100A with blurred ellipses:
-    // - top-left: #003087 (UCF blue) at cx=23, cy=21
-    // - top-right: #BA9B37 (gold) at cx=382, cy=-66
-    // - left-center: #BA9B37 at cx=-46, cy=488
-    // - bottom-right: #003087 at cx=498, cy=724
-    return const SizedBox.expand(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF0D1520), // top-left: dark navy (blue ellipse)
-              Color(0xFF12100A), // center: exact Figma base color
-              Color(0xFF1A1200), // bottom: dark gold tint
-            ],
-            stops: [0.0, 0.45, 1.0],
+    return SizedBox.expand(
+      child: Stack(
+        children: [
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF061327),
+                  Color(0xFF050A14),
+                  Color(0xFF040608),
+                ],
+                stops: [0.0, 0.45, 1.0],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -202,13 +201,14 @@ class _LandingWordmark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Center(
+        child: Text(
           'NitroPicks',
           style: GoogleFonts.dmSans(
-            fontSize: 48,
+            fontSize: 60,
             fontWeight: FontWeight.w900,
             fontStyle: FontStyle.italic,
             color: AppColors.textPrimary,
@@ -216,26 +216,27 @@ class _LandingWordmark extends StatelessWidget {
             height: 1.0,
           ),
         ),
-        const SizedBox(height: 16),
-        Text(
-          'Charge on.',
-          style: GoogleFonts.dmSans(
-            fontSize: 28,
-            fontWeight: FontWeight.w400,
-            color: AppColors.textSecondary,
-            height: 1.3,
-          ),
+      ),
+      const SizedBox(height: 36),
+      Text(
+        'Charge on.',
+        style: GoogleFonts.dmSans(
+          fontSize: 36,
+          fontWeight: FontWeight.w400,
+          color: AppColors.textSecondary,
+          height: 1.3,
         ),
-        Text(
-          'Cash in.',
-          style: GoogleFonts.dmSans(
-            fontSize: 28,
-            fontWeight: FontWeight.w400,
-            color: const Color(0xFF888888),
-            height: 1.3,
-          ),
+      ),
+      Text(
+        'Cash in.',
+        style: GoogleFonts.dmSans(
+          fontSize: 36,
+          fontWeight: FontWeight.w400,
+          color: const Color(0xFF888888),
+          height: 1.3,
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 }

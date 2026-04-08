@@ -13,20 +13,38 @@ class NitroPicksLogo extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: AppColors.gold,
         shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.gold.withOpacity(0.4),
-            blurRadius: 32,
-            spreadRadius: 4,
-          ),
-        ],
+        gradient: RadialGradient(
+          colors: [
+            AppColors.accentBlue.withValues(alpha: 0.18),
+            Colors.transparent,
+          ],
+          stops: const [0.0, 1.0],
+          radius: 0.72,
+        ),
       ),
       child: Center(
-        child: CustomPaint(
-          size: Size(size * 0.38, size * 0.38 * 82 / 70),
-          painter: _BoltPainter(),
+        child: Container(
+          width: size * 0.82,
+          height: size * 0.82,
+          decoration: BoxDecoration(
+            color: AppColors.gold,
+            shape: BoxShape.circle,
+            //border: Border.all(color: AppColors.accentBlue, width: 3.5),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.gold.withValues(alpha: 0.32),
+                blurRadius: 28,
+                spreadRadius: 4,
+              ),
+            ],
+          ),
+          child: Center(
+            child: CustomPaint(
+              size: Size(size * 0.34, size * 0.34 * 82 / 70),
+              painter: _BoltPainter(),
+            ),
+          ),
         ),
       ),
     );

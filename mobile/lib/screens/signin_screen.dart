@@ -18,6 +18,7 @@ class _SignInScreenState extends State<SignInScreen> {
   final _passwordController = TextEditingController();
   final _errorMessage = ValueNotifier<String?>('');
   final _authService = AuthApiService();
+
   bool _isLoading = false;
 
   static final _titleStyle = GoogleFonts.dmSans(
@@ -28,21 +29,45 @@ class _SignInScreenState extends State<SignInScreen> {
     letterSpacing: -1.5,
   );
 
-  static final _subtitleStyle = GoogleFonts.dmSans(
-    fontSize: 16,
-    fontWeight: FontWeight.w400,
-    color: AppColors.textSecondary,
+  static final _forgotStyle = GoogleFonts.dmSans(
+    fontSize: 13,
+    color: const Color(0xFF2F80ED),
+    fontWeight: FontWeight.w500,
+  );
+
+  static final _errorStyle = GoogleFonts.dmSans(
+    fontSize: 13,
+    color: const Color(0xFFFF4D4F),
+    fontWeight: FontWeight.w500,
     height: 1.5,
   );
 
-  static final _linkStyle = GoogleFonts.dmSans(
+  static final _bottomLinkStyle = GoogleFonts.dmSans(
     fontSize: 15,
-    color: AppColors.gold,
-    fontWeight: FontWeight.w600,
+    color: const Color(0xFF2F80ED),
+    fontWeight: FontWeight.w500,
   );
 
   @override
+  void initState() {
+    super.initState();
+    _emailController.addListener(_refresh);
+    _passwordController.addListener(_refresh);
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
+
+  bool get _isComplete {
+    return _emailController.text.trim().isNotEmpty &&
+        _passwordController.text.isNotEmpty;
+  }
+
+  @override
   void dispose() {
+    _emailController.removeListener(_refresh);
+    _passwordController.removeListener(_refresh);
     _emailController.dispose();
     _passwordController.dispose();
     _errorMessage.dispose();
@@ -54,12 +79,14 @@ class _SignInScreenState extends State<SignInScreen> {
     final password = _passwordController.text;
 
     if (email.isEmpty || !email.contains('@')) {
-      _errorMessage.value = 'Enter a valid email address';
+      _errorMessage.value =
+          'Invalid email address or password.\nPlease try again.';
       return;
     }
 
     if (password.isEmpty) {
-      _errorMessage.value = 'Enter your password';
+      _errorMessage.value =
+          'Invalid email address or password.\nPlease try again.';
       return;
     }
 
@@ -67,22 +94,29 @@ class _SignInScreenState extends State<SignInScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final response = await _authService.login(email: email, password: password);
+      final response =
+          await _authService.login(email: email, password: password);
+
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      final username = (response['firstname'] as String?)?.trim() ??
-          email.split('@').first;
-      Navigator.pushReplacementNamed(context, '/welcome',
-          arguments: username);
-    } on AuthException catch (error) {
+      final username =
+          (response['firstname'] as String?)?.trim() ?? email.split('@').first;
+
+      Navigator.pushReplacementNamed(
+        context,
+        '/welcome',
+        arguments: username,
+      );
+    } on AuthException catch (_) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      _errorMessage.value = error.message;
-    } catch (error) {
+      _errorMessage.value =
+          'Invalid email address or password.\nPlease try again.';
+    } catch (_) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      _errorMessage.value = 'Unable to sign in. Try again later.';
+      _errorMessage.value = 'Unable to sign in. Please try again.';
     }
   }
 
@@ -103,105 +137,102 @@ class _SignInScreenState extends State<SignInScreen> {
             SafeArea(
               child: GestureDetector(
                 onTap: () => FocusScope.of(context).unfocus(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new,
-                            color: AppColors.textPrimary, size: 20),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new,
+                          color: AppColors.textPrimary,
+                          size: 18,
+                        ),
                         onPressed: () => Navigator.pop(context),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-                      child: Text('Welcome Back', style: _titleStyle),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                      child: Text(
-                        'Sign in to continue charging your picks.',
-                        style: _subtitleStyle,
-                      ),
-                    ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                      const SizedBox(height: 50),
+                      Text('Hello', style: _titleStyle),
+                      const SizedBox(height: 10),
+                      Text('Sign in!', style: _titleStyle),
+                      const SizedBox(height: 80),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF111827),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF111827),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  NpTextField(
-                                    label: 'UCF Email',
-                                    hint: 'you@ucf.edu',
-                                    controller: _emailController,
-                                    keyboardType: TextInputType.emailAddress,
-                                  ),
-                                  const SizedBox(height: 20),
-                                  NpTextField(
-                                    label: 'Password',
-                                    hint: 'Enter your password',
-                                    controller: _passwordController,
-                                    obscureText: true,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: GestureDetector(
-                                      onTap: () {},
-                                      child: Text(
-                                        'Forgot password?',
-                                        style: _linkStyle,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ValueListenableBuilder<String?>(
-                                    valueListenable: _errorMessage,
-                                    builder: (context, error, child) {
-                                      if (error == null || error.isEmpty) {
-                                        return const SizedBox.shrink();
-                                      }
-                                      return Text(
-                                        error,
-                                        style: GoogleFonts.dmSans(
-                                          fontSize: 13,
-                                          color: const Color(0xFFEF4444),
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            NpButton(
-                              label: 'Sign In',
-                              variant: NpButtonVariant.primary,
-                              loading: _isLoading,
-                              onPressed: _isLoading ? null : _submit,
+                            NpTextField(
+                              label: 'UCF Email',
+                              hint: '',
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
                             ),
                             const SizedBox(height: 16),
-                            NpButton(
-                              label: 'Create Account',
-                              variant: NpButtonVariant.secondary,
-                              onPressed: _goToSignUp,
+                            NpTextField(
+                              label: 'Password',
+                              hint: '',
+                              controller: _passwordController,
+                              obscureText: true,
+                            ),
+                            const SizedBox(height: 10),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: GestureDetector(
+                                onTap: () {},
+                                child: Text(
+                                  'Forgot password?',
+                                  style: _forgotStyle,
+                                ),
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      ValueListenableBuilder<String?>(
+                        valueListenable: _errorMessage,
+                        builder: (context, error, child) {
+                          if (error == null || error.isEmpty) {
+                            return const SizedBox(height: 34);
+                          }
+
+                          return SizedBox(
+                            height: 34,
+                            child: Center(
+                              child: Text(
+                                error,
+                                textAlign: TextAlign.center,
+                                style: _errorStyle,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      NpButton(
+                        label: 'Sign in',
+                        variant: NpButtonVariant.primary,
+                        loading: _isLoading,
+                        onPressed: (_isLoading || !_isComplete) ? null : _submit,
+                      ),
+                      const SizedBox(height: 14),
+                      Center(
+                        child: GestureDetector(
+                          onTap: _goToSignUp,
+                          child: Text(
+                            "Don't have an account?",
+                            style: _bottomLinkStyle,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -221,13 +252,14 @@ class _SignInBackground extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
             colors: [
-              Color(0xFF081018),
-              Color(0xFF0E161F),
-              Color(0xFF0F1217),
+              Color(0xFF0D1520),
+              Color(0xFF12100A),
+              Color(0xFF1A1200),
             ],
+            stops: [0.0, 0.45, 1.0],
           ),
         ),
       ),
