@@ -159,6 +159,10 @@ class _NpTextFieldState extends State<NpTextField> {
           const SizedBox(height: 6),
           Text(widget.errorText!, style: _errorStyle),
         ],
+        if (!hasError && widget.successText != null && widget.successText!.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(widget.successText!, style: _successStyle),
+        ],
       ],
     );
   }
@@ -185,8 +189,8 @@ class NpDropdownField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label, style: _labelStyle),
-        const SizedBox(height: 8),
+        Text(label, style: _labelStyle.copyWith(fontSize: 13)),
+        const SizedBox(height: 6),
         GestureDetector(
           onTap: () => _showPicker(context),
           child: Container(

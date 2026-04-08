@@ -115,16 +115,17 @@ class _SignUpScreenState extends State<SignUpScreen>
 
     if (_step < 2) {
       await _cardCtrl.reverse();
-      setState(() => _step++); // only setState needed: changes which step shows
+      setState(() => _step++);
       _cardCtrl.forward();
     } else {
       setState(() => _isLoading = true);
       await Future.delayed(const Duration(milliseconds: 800));
       if (mounted) {
+        // Account created — go to "check your email" screen
         Navigator.pushReplacementNamed(
           context,
-          '/welcome',
-          arguments: _firstName.text.trim(),
+          '/verify-email-pending',
+          arguments: _email.text.trim(),
         );
       }
     }
