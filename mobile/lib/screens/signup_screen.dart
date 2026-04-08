@@ -1,9 +1,10 @@
-// lib/screens/signup_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../theme/app_theme.dart';
 import '../utils/ucf_majors.dart';
+import '../widgets/auth_shell.dart';
 import '../widgets/np_button.dart';
 import '../widgets/np_text_field.dart';
 import '../widgets/step_indicator.dart';
@@ -19,7 +20,6 @@ class _SignUpScreenState extends State<SignUpScreen>
     with SingleTickerProviderStateMixin {
   int _step = 0;
 
-  // Controllers
   final _firstName = TextEditingController();
   final _lastName = TextEditingController();
   final _email = TextEditingController();
@@ -27,7 +27,6 @@ class _SignUpScreenState extends State<SignUpScreen>
   final _confirmPassword = TextEditingController();
   final _ucfId = TextEditingController();
 
-  // Only these trigger targeted rebuilds (not full-screen setState)
   final _passwordError = ValueNotifier<String?>('');
   final _passwordSuccess = ValueNotifier<String?>('');
   final _emailError = ValueNotifier<String?>('');
@@ -39,19 +38,17 @@ class _SignUpScreenState extends State<SignUpScreen>
   late Animation<double> _cardFade;
   late Animation<Offset> _cardSlide;
 
-  // Pre-baked title style
-  static final _titleStyle = GoogleFonts.dmSans(
-    fontSize: 40,
-    fontWeight: FontWeight.w800,
-    color: AppColors.textPrimary,
-    height: 1.1,
-    letterSpacing: -1.5,
-  );
-  static final _linkStyle = GoogleFonts.dmSans(
-    fontSize: 15,
-    color: const Color(0xFF4A9EFF),
-    fontWeight: FontWeight.w500,
-  );
+  static const _stepEyebrows = ['Profile', 'Security', 'Academics'];
+  static const _stepTitles = [
+    'Let’s build your account',
+    'Lock in your login',
+    'Finish your student profile',
+  ];
+  static const _stepSubtitles = [
+    'Tell us who you are so we can personalize your NitroPicks experience.',
+    'Choose a password you will use every time you come back.',
+    'A few last details and you are ready to start making picks.',
+  ];
 
   @override
   void initState() {
@@ -59,16 +56,15 @@ class _SignUpScreenState extends State<SignUpScreen>
 
     _cardCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 280),
     );
     _cardFade = CurvedAnimation(parent: _cardCtrl, curve: Curves.easeOut);
     _cardSlide = Tween<Offset>(
-      begin: const Offset(0.06, 0),
+      begin: const Offset(0.04, 0.02),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _cardCtrl, curve: Curves.easeOutCubic));
     _cardCtrl.forward();
 
-    // Password validation — only touches ValueNotifiers, no setState
     _confirmPassword.addListener(_validatePasswords);
     _password.addListener(_validatePasswords);
   }
@@ -83,9 +79,9 @@ class _SignUpScreenState extends State<SignUpScreen>
     }
     if (p == c) {
       _passwordError.value = null;
-      _passwordSuccess.value = 'Passwords match!';
+      _passwordSuccess.value = 'Passwords match.';
     } else {
-      _passwordError.value = 'Password must be same.';
+      _passwordError.value = 'Passwords must match.';
       _passwordSuccess.value = null;
     }
   }
@@ -106,9 +102,9 @@ class _SignUpScreenState extends State<SignUpScreen>
     super.dispose();
   }
 
-  void _nextStep() async {
+  Future<void> _nextStep() async {
     if (_step == 0 && !_email.text.contains('@ucf.edu')) {
-      _emailError.value = 'Must be a valid UCF email address';
+      _emailError.value = 'Must be a valid UCF email address.';
       return;
     }
     _emailError.value = null;
@@ -149,92 +145,82 @@ class _SignUpScreenState extends State<SignUpScreen>
       child: Scaffold(
         backgroundColor: AppColors.bgDark,
         resizeToAvoidBottomInset: true,
-        body: Stack(
-          children: [
-            const _SignupBackground(),
-            SafeArea(
-              child: GestureDetector(
-                onTap: () => FocusScope.of(context).unfocus(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Back button
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new,
-                            color: AppColors.textPrimary, size: 20),
-                        onPressed: _prevStep,
-                      ),
-                    ),
-                    // Title — static, never rebuilds
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 50, 24, 80),
-                      child: Text('Create Your\nAccount', style: _titleStyle),
-                    ),
-                    // Scrollable form area
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                        child: Column(
-                          children: [
-                            // Card with step indicator + fields
-                            FadeTransition(
-                              opacity: _cardFade,
-                              child: SlideTransition(
-                                position: _cardSlide,
-                                child: _buildCard(),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            // Button — reacts to field changes without rebuilding screen
-                            _StepButton(
-                              step: _step,
-                              isLoading: _isLoading,
-                              firstName: _firstName,
-                              lastName: _lastName,
-                              email: _email,
-                              password: _password,
-                              confirmPassword: _confirmPassword,
-                              ucfId: _ucfId,
-                              majorNotifier: _majorNotifier,
-                              onPressed: _nextStep,
-                            ),
-                            const SizedBox(height: 16),
-                            GestureDetector(
-                              onTap: () => Navigator.pushReplacementNamed(
-                                  context, '/signin'),
-                              child: Text('Already have an account?',
-                                  style: _linkStyle),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+        body: AuthScaffold(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AuthBackButton(onPressed: _prevStep),
+              const SizedBox(height: 28),
+              AuthHeader(
+                eyebrow: _stepEyebrows[_step],
+                title: _stepTitles[_step],
+                subtitle: _stepSubtitles[_step],
+              ),
+              const SizedBox(height: 24),
+              FadeTransition(
+                opacity: _cardFade,
+                child: SlideTransition(
+                  position: _cardSlide,
+                  child: _buildCard(),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 18),
+              _StepButton(
+                step: _step,
+                isLoading: _isLoading,
+                firstName: _firstName,
+                lastName: _lastName,
+                email: _email,
+                password: _password,
+                confirmPassword: _confirmPassword,
+                ucfId: _ucfId,
+                majorNotifier: _majorNotifier,
+                onPressed: _nextStep,
+              ),
+              const SizedBox(height: 18),
+              AuthFooterLink(
+                prompt: 'Already have an account?',
+                action: 'Sign in',
+                onTap: () =>
+                    Navigator.pushReplacementNamed(context, '/signin'),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111827),
-        borderRadius: BorderRadius.circular(20),
-      ),
+    return AuthCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              Text(
+                'Step ${_step + 1} of 3',
+                style: GoogleFonts.dmSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                _stepEyebrows[_step],
+                style: GoogleFonts.dmSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.goldLight,
+                  letterSpacing: 0.7,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
           StepIndicator(currentStep: _step, totalSteps: 3),
-          const SizedBox(height: 28),
-          // Step content — keyed so Flutter knows to swap, not morph
+          const SizedBox(height: 26),
           KeyedSubtree(
             key: ValueKey(_step),
             child: _buildStepContent(),
@@ -271,8 +257,6 @@ class _SignUpScreenState extends State<SignUpScreen>
   }
 }
 
-// ── Isolated step widgets — each manages only its own state ─────────────────
-
 class _Step1 extends StatelessWidget {
   final TextEditingController firstName;
   final TextEditingController lastName;
@@ -293,21 +277,23 @@ class _Step1 extends StatelessWidget {
       children: [
         NpTextField(
           label: 'First Name',
+          hint: 'Reggie',
           controller: firstName,
           textCapitalization: TextCapitalization.words,
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 18),
         NpTextField(
           label: 'Last Name',
+          hint: 'Gaines',
           controller: lastName,
           textCapitalization: TextCapitalization.words,
         ),
-        const SizedBox(height: 20),
-        // Only this rebuilds when email error changes
+        const SizedBox(height: 18),
         ValueListenableBuilder<String?>(
           valueListenable: emailError,
           builder: (_, err, __) => NpTextField(
             label: 'UCF Email',
+            hint: 'knight@ucf.edu',
             controller: email,
             keyboardType: TextInputType.emailAddress,
             errorText: err,
@@ -338,17 +324,18 @@ class _Step2 extends StatelessWidget {
       children: [
         NpTextField(
           label: 'Password',
+          hint: 'At least 6 characters',
           controller: password,
           obscureText: true,
         ),
-        const SizedBox(height: 20),
-        // Only this rebuilds when password validation changes
+        const SizedBox(height: 18),
         ValueListenableBuilder<String?>(
           valueListenable: passwordError,
           builder: (_, err, __) => ValueListenableBuilder<String?>(
             valueListenable: passwordSuccess,
             builder: (_, success, __) => NpTextField(
               label: 'Confirm Password',
+              hint: 'Re-enter your password',
               controller: confirmPassword,
               obscureText: true,
               errorText: err,
@@ -374,11 +361,12 @@ class _Step3 extends StatelessWidget {
       children: [
         NpTextField(
           label: 'UCF ID',
+          hint: '1234567',
           controller: ucfId,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 18),
         ValueListenableBuilder<String?>(
           valueListenable: majorNotifier,
           builder: (_, major, __) => NpDropdownField(
@@ -388,14 +376,11 @@ class _Step3 extends StatelessWidget {
             onChanged: (v) => majorNotifier.value = v,
           ),
         ),
-        const SizedBox(height: 8),
       ],
     );
   }
 }
 
-/// Button that reactively enables/disables based on field content
-/// without triggering a full screen rebuild
 class _StepButton extends StatelessWidget {
   final int step;
   final bool isLoading;
@@ -439,7 +424,6 @@ class _StepButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Listen to all relevant controllers for THIS step only
     final listenables = <Listenable>[majorNotifier];
     if (step == 0) {
       listenables.addAll([firstName, lastName, email]);
@@ -453,43 +437,13 @@ class _StepButton extends StatelessWidget {
       listenable: Listenable.merge(listenables),
       builder: (_, __) {
         final enabled = _canProceed();
-        return AnimatedOpacity(
-          opacity: enabled ? 1.0 : 0.45,
-          duration: const Duration(milliseconds: 200),
-          child: NpButton(
-            label: step == 2 ? 'Create Account' : 'Continue',
-            variant: NpButtonVariant.primary,
-            loading: isLoading,
-            onPressed: enabled ? onPressed : null,
-          ),
+        return NpButton(
+          label: step == 2 ? 'Create Account' : 'Continue',
+          variant: NpButtonVariant.primary,
+          loading: isLoading,
+          onPressed: enabled ? onPressed : null,
         );
       },
-    );
-  }
-}
-
-// ── Static background ────────────────────────────────────────────────────────
-
-class _SignupBackground extends StatelessWidget {
-  const _SignupBackground();
-
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox.expand(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF0D1520),
-              Color(0xFF12100A),
-              Color(0xFF1A1200),
-            ],
-            stops: [0.0, 0.45, 1.0],
-          ),
-        ),
-      ),
     );
   }
 }

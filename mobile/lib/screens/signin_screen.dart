@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../services/auth_api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/auth_shell.dart';
@@ -233,11 +234,6 @@ class _SignInScreenState extends State<SignInScreen> {
                 action: 'Create one',
                 onTap: _goToSignUp,
               ),
-              // ✅ DEV ONLY — remove before release
-              if (!_isResetMode) ...[
-                const SizedBox(height: 16),
-                const DevBypassButton(),
-              ],
             ],
           ),
         ),
@@ -251,7 +247,7 @@ class _SignInScreenState extends State<SignInScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SectionTitle(
+          _SectionTitle(
             title: 'Your account',
             caption: 'Use your UCF email and password to continue.',
           ),

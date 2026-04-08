@@ -6,26 +6,29 @@ import '../theme/app_theme.dart';
 
 // Pre-baked static styles — created once at import time, never rebuilt
 final _labelStyle = GoogleFonts.dmSans(
-  fontSize: 15,
-  fontWeight: FontWeight.w500,
-  color: AppColors.textPrimary,
+  fontSize: 12,
+  fontWeight: FontWeight.w700,
+  color: AppColors.textSecondary,
+  letterSpacing: 0.7,
 );
 final _inputStyle = GoogleFonts.dmSans(
-  fontSize: 16,
+  fontSize: 15,
   color: AppColors.textPrimary,
-  fontWeight: FontWeight.w400,
+  fontWeight: FontWeight.w500,
 );
 final _hintStyle = GoogleFonts.dmSans(
-  fontSize: 16,
-  color: AppColors.textMuted,
+  fontSize: 15,
+  color: AppColors.textMuted.withValues(alpha: 0.9),
 );
 final _errorStyle = GoogleFonts.dmSans(
   fontSize: 13,
   color: const Color(0xFFEF4444),
+  height: 1.4,
 );
 final _successStyle = GoogleFonts.dmSans(
   fontSize: 13,
   color: AppColors.open,
+  height: 1.4,
 );
 
 class NpTextField extends StatefulWidget {
@@ -67,8 +70,8 @@ class _NpTextFieldState extends State<NpTextField> {
   bool _focused = false;
   final _focusNode = FocusNode();
 
-  static const _fillColor = Color(0xFF1A2233);
-  static const _radius = BorderRadius.all(Radius.circular(8));
+  static const _fillColor = Color(0xFF172231);
+  static const _radius = BorderRadius.all(Radius.circular(18));
 
   @override
   void initState() {
@@ -92,28 +95,36 @@ class _NpTextFieldState extends State<NpTextField> {
     if (widget.errorText != null && widget.errorText!.isNotEmpty) {
       return const Color(0xFFEF4444);
     }
-    if (_focused) return AppColors.gold.withValues(alpha: 0.6);
-    return Colors.transparent;
+    if (_focused) return AppColors.gold.withValues(alpha: 0.42);
+    return Colors.white.withValues(alpha: 0.07);
   }
 
   @override
   Widget build(BuildContext context) {
     final hasError = widget.errorText != null && widget.errorText!.isNotEmpty;
+    final hasSuccess =
+        widget.successText != null && widget.successText!.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.label,
-          style: _labelStyle.copyWith(fontSize: 13), // 👈 smaller label
-        ),
-        const SizedBox(height: 6),
+        Text(widget.label.toUpperCase(), style: _labelStyle),
+        const SizedBox(height: 8),
 
         Container(
           decoration: BoxDecoration(
             color: _fillColor,
             borderRadius: _radius,
             border: Border.all(color: _borderColor, width: 1.2),
+            boxShadow: _focused
+                ? [
+                    BoxShadow(
+                      color: AppColors.gold.withValues(alpha: 0.08),
+                      blurRadius: 18,
+                      spreadRadius: 1,
+                    ),
+                  ]
+                : null,
           ),
           child: TextField(
             controller: widget.controller,
@@ -125,27 +136,26 @@ class _NpTextFieldState extends State<NpTextField> {
             readOnly: widget.readOnly,
             onTap: widget.onTap,
             textCapitalization: widget.textCapitalization,
-            style: _inputStyle.copyWith(fontSize: 14), // 👈 smaller input
+            style: _inputStyle,
             decoration: InputDecoration(
               hintText: widget.hint,
-              hintStyle: _hintStyle.copyWith(fontSize: 14),
+              hintStyle: _hintStyle,
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 12, // 👈 reduced height
+                horizontal: 16,
+                vertical: 16,
               ),
 
-              // 👇 make eye icon less dominant
               suffixIcon: widget.obscureText
                   ? Padding(
-                      padding: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.only(right: 10),
                       child: GestureDetector(
                         onTap: () => setState(() => _obscure = !_obscure),
                         child: Icon(
                           _obscure
                               ? Icons.visibility_off_outlined
                               : Icons.visibility_outlined,
-                          color: AppColors.textMuted.withValues(alpha: 0.6),
+                          color: AppColors.textSecondary.withValues(alpha: 0.75),
                           size: 18,
                         ),
                       ),
@@ -159,7 +169,7 @@ class _NpTextFieldState extends State<NpTextField> {
           const SizedBox(height: 6),
           Text(widget.errorText!, style: _errorStyle),
         ],
-        if (!hasError && widget.successText != null && widget.successText!.isNotEmpty) ...[
+        if (!hasError && hasSuccess) ...[
           const SizedBox(height: 6),
           Text(widget.successText!, style: _successStyle),
         ],
@@ -189,22 +199,23 @@ class NpDropdownField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label, style: _labelStyle.copyWith(fontSize: 13)),
-        const SizedBox(height: 6),
+        Text(label.toUpperCase(), style: _labelStyle),
+        const SizedBox(height: 8),
         GestureDetector(
           onTap: () => _showPicker(context),
           child: Container(
-            height: 54,
-            decoration: const BoxDecoration(
-              color: Color(0xFF1C2333),
-              borderRadius: BorderRadius.all(Radius.circular(10)),
+            height: 56,
+            decoration: BoxDecoration(
+              color: const Color(0xFF172231),
+              borderRadius: const BorderRadius.all(Radius.circular(18)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
-                    value ?? '',
+                    value ?? 'Select your major',
                     style: value != null ? _inputStyle : _hintStyle,
                   ),
                 ),
