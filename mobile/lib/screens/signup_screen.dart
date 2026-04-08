@@ -49,7 +49,7 @@ class _SignUpScreenState extends State<SignUpScreen>
   );
   static final _linkStyle = GoogleFonts.dmSans(
     fontSize: 15,
-    color: Color(0xFF4A9EFF),
+    color: const Color(0xFF4A9EFF),
     fontWeight: FontWeight.w500,
   );
 

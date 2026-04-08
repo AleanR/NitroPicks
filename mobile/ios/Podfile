@@ -1,0 +1,21 @@
+platform :ios, '13.0'
+
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', 'Debug' => :debug, 'Profile' => :release, 'Release' => :release
+
+workspace 'Runner.xcworkspace'
+
+def flutter_root
+  generated_xcode_build_settings = `cd .. && dirname $(dirname $(which flutter))`.strip
+  if generated_xcode_build_settings.empty?
+    raise 'Unable to find flutter executable in PATH. Make sure flutter is installed and available.'
+  end
+  generated_xcode_build_settings
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+target 'Runner' do
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+end

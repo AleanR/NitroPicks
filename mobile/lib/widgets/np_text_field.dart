@@ -21,7 +21,7 @@ final _hintStyle = GoogleFonts.dmSans(
 );
 final _errorStyle = GoogleFonts.dmSans(
   fontSize: 13,
-  color: Color(0xFFEF4444),
+  color: const Color(0xFFEF4444),
 );
 final _successStyle = GoogleFonts.dmSans(
   fontSize: 13,

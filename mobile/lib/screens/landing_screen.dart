@@ -231,7 +231,7 @@ class _LandingWordmark extends StatelessWidget {
           style: GoogleFonts.dmSans(
             fontSize: 28,
             fontWeight: FontWeight.w400,
-            color: Color(0xFF888888),
+            color: const Color(0xFF888888),
             height: 1.3,
           ),
         ),
