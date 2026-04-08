@@ -1,8 +1,10 @@
-// lib/screens/welcome_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../theme/app_theme.dart';
+import '../widgets/auth_shell.dart';
+import '../widgets/nitropicks_logo.dart';
 
 class WelcomeScreen extends StatefulWidget {
   final String username;
@@ -18,6 +20,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   late AnimationController _ctrl;
   late Animation<double> _fade;
   late Animation<Offset> _slide;
+  late Animation<double> _scale;
 
   @override
   void initState() {
@@ -28,12 +31,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
     _slide = Tween<Offset>(
-      begin: const Offset(0, 0.12),
+      begin: const Offset(0, 0.08),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    _scale = Tween<double>(
+      begin: 0.96,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
     _ctrl.forward();
 
-    // Auto-navigate to home after 2.5 seconds
     Future.delayed(const Duration(milliseconds: 2500), () {
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/home');
@@ -55,72 +61,80 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         backgroundColor: AppColors.bgDark,
         body: Stack(
           children: [
-            _buildBackground(),
+            const AuthBackground(),
             SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(28, 60, 28, 0),
-                child: FadeTransition(
-                  opacity: _fade,
-                  child: SlideTransition(
-                    position: _slide,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Welcome,',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 42,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                            height: 1.2,
-                            letterSpacing: -1,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: FadeTransition(
+                    opacity: _fade,
+                    child: SlideTransition(
+                      position: _slide,
+                      child: ScaleTransition(
+                        scale: _scale,
+                        child: AuthCard(
+                          padding: const EdgeInsets.fromLTRB(24, 28, 24, 26),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const NitroPicksLogo(size: 110),
+                              const SizedBox(height: 24),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 7,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.gold.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(
+                                    color: AppColors.gold.withValues(
+                                      alpha: 0.18,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Welcome To NitroPicks',
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1.1,
+                                    color: AppColors.goldLight,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              Text(
+                                'Hey, ${widget.username}',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 34,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary,
+                                  letterSpacing: -1.4,
+                                  height: 1.05,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Your account is ready. We are taking you to today\'s picks now.',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 15,
+                                  height: 1.55,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        Text(
-                          widget.username,
-                          style: GoogleFonts.dmSans(
-                            fontSize: 42,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                            height: 1.2,
-                            letterSpacing: -1,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBackground() {
-    return const _WelcomeBackground();
-  }
-}
-
-class _WelcomeBackground extends StatelessWidget {
-  const _WelcomeBackground();
-
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox.expand(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: [
-              Color(0xFF0D1B2A),
-              Color(0xFF080A0E),
-              Color(0xFF0A0800),
-            ],
-            stops: [0.0, 0.5, 1.0],
-          ),
         ),
       ),
     );

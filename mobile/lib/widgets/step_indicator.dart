@@ -24,10 +24,14 @@ class StepIndicator extends StatelessWidget {
           return Expanded(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
-              height: 2,
-              color: isCompleted
-                  ? AppColors.gold
-                  : const Color(0xFF3A3A3A),
+              height: 3,
+              margin: const EdgeInsets.symmetric(horizontal: 6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                color: isCompleted
+                    ? AppColors.gold
+                    : Colors.white.withValues(alpha: 0.10),
+              ),
             ),
           );
         } else {
@@ -38,25 +42,25 @@ class StepIndicator extends StatelessWidget {
 
           return AnimatedContainer(
             duration: const Duration(milliseconds: 300),
-            width: 30,
-            height: 30,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isCurrent
-                  ? Colors.transparent
-                  : Colors.transparent,
+                  ? AppColors.gold.withValues(alpha: 0.14)
+                  : Colors.white.withValues(alpha: 0.03),
               border: Border.all(
                 color: (isCurrent || isCompleted)
                     ? AppColors.gold
-                    : const Color(0xFF3A3A3A),
-                width: 2,
+                    : Colors.white.withValues(alpha: 0.14),
+                width: 1.5,
               ),
             ),
             child: Center(
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                width: isCurrent ? 12 : (isCompleted ? 10 : 0),
-                height: isCurrent ? 12 : (isCompleted ? 10 : 0),
+                width: isCurrent ? 12 : (isCompleted ? 9 : 0),
+                height: isCurrent ? 12 : (isCompleted ? 9 : 0),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: (isCurrent || isCompleted)
