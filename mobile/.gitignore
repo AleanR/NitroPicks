@@ -44,20 +44,34 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Flutter
+
+# Flutter/Dart
 build/
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+.packages
+pubspec.lock
 
 # Android
+android/.gradle/
 android/local.properties
-.gradle/
+android/app/google-services.json
+*.keystore
+*.jks
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/ephemeral/
+ios/Runner/GeneratedPluginRegistrant.*
 
 # IDE
 .idea/
+.vscode/
 *.iml
+*.iml.bak
 
-# Misc
-*.log
+# OS
 .DS_Store
+Thumbs.db
