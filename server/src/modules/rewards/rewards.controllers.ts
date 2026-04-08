@@ -1,6 +1,6 @@
 import { Response } from 'express';
-import { AuthenticatedRequest } from '../helpers/auth';
-import { UserModel } from '../db/users';
+import { AuthenticatedRequest } from '../../helpers/auth';
+import { UserModel } from '../users/users.model';
 
 
 // Fixed reward catalog (only 3 rewards as your project requires)

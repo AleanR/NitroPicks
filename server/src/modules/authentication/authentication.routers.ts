@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { login, logout, register } from '../controllers/authentication';
-import { verifyEmail } from '../controllers/verify';
+import { login, logout, register, verifyEmail } from './authentication.controllers';
 
 export default (router: Router) => {
     router.post('/users/auth/register', register);

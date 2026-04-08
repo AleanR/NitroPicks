@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
-import { refund } from "./users";
+import { refund } from "../users/users.model";
 
 ////// Single ///////////
 const BetLegSchema = new mongoose.Schema({
     gameId: { type: mongoose.Schema.Types.ObjectId, ref: 'Game', required: true },
     team: { type: String, enum: ["home", "away"], required: true },
     odds: { type: Number, required: true },
-    result: { type: String, enum: ["pending", "win", "lose"], default: 'pending' }
+    result: { type: String, enum: ["pending", "win", "lose", "cancelled"], default: 'pending' }
 })
 
 /////// Parlay ////////////
@@ -26,6 +26,8 @@ const BetSchema = new mongoose.Schema({
 
 export const BetModel = mongoose.model('Bet', BetSchema);
 
+
+export const getBets = async () => BetModel.find();
 export const getBetsByGame = (gameId: string) => BetModel.find({ 'legs.gameId': gameId });
 export const getBetsByUser = (userId: string) => BetModel.find({ userId });
 export const getBetById = (id: string) => BetModel.findById(id);

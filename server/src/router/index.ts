@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import authentication from './authentication';
-import users from './users';
-import games from './games';
-import rewards from './rewards';
-import bets from './bets';
+import authentication from '../modules/authentication/authentication.routers';
+import users from '../modules/users/users.routers';
+import games from '../modules/games/games.routers';
+import rewards from '../modules/rewards/rewards.routers';
+import bets from '../modules/bets/bets.routers';
 
 const router = Router();
 

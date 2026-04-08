@@ -1,8 +1,44 @@
-
 import { Request, Response } from "express";
+import { AuthenticatedRequest } from "../../helpers/auth";
+import { getUserByEmail, getUserbyToken } from "./users.model";
+import { genResetToken, hashPassword } from "../../helpers/index";
+import { sendPassResetToken } from "../services/email.service";
+
 import crypto from 'crypto';
-import { getUserbyToken } from "../db/users";
-import { hashPassword } from "../helpers/index";
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+export const forgotPass = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { email } = req.body;
+
+        const user = await getUserByEmail(email);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found "});
+        }
+
+        const { resetToken, hashed } = await genResetToken();
+
+        user.authentication.resetPasswordToken = hashed;
+        user.authentication.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+        await user.save();
+
+        const resetURL = `http://localhost:8080/users/auth/reset-password/${resetToken}`;
+
+        await sendPassResetToken(user.email, resetURL);
+
+        return res.json({
+            message: "Reset token generated",
+            resetURL,
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error"});
+    }
+}
 
 export const resetPass = async (req: Request, res: Response) => {
     try {
@@ -41,3 +77,4 @@ export const resetPass = async (req: Request, res: Response) => {
         return res.status(500).json({ message: "Internal server error"});
     }
 }
+

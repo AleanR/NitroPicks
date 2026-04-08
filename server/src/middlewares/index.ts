@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { verifyToken } from '../helpers/jwt';
 import { AuthenticatedRequest } from '../helpers/auth';
-import { getUserById } from '../db/users';
+import { getUserById } from '../modules/users/users.model';
 
 
 export const isAuthenticated = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {

@@ -1,5 +1,5 @@
-import { AuthenticatedRequest } from '../helpers/auth';
-import { deleteUserById, getUsers, updateUserById, UserModel } from '../db/users';
+import { AuthenticatedRequest } from '../../helpers/auth';
+import { deleteUserById, getUsers, updateUserById, UserModel } from './users.model';
 import { Request, Response } from 'express';
 
 

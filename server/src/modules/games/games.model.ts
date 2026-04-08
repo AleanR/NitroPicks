@@ -1,4 +1,3 @@
-import { ReturnDocument } from "mongodb";
 import mongoose from "mongoose";
 
 const GameSchema = new mongoose.Schema({
@@ -47,7 +46,7 @@ const GameSchema = new mongoose.Schema({
     // Game lifecycle
     status: {
         type: String,
-        enum: ['upcoming', 'open', 'closed', 'finished', 'cancelled'],
+        enum: ['upcoming', 'live', 'finished', 'cancelled'],
         default: 'upcoming',
     },
 }, { timestamps: true });
@@ -57,7 +56,7 @@ export const GameModel = mongoose.model('Game', GameSchema);
 export const getGames = () => GameModel.find();
 export const getGameById = (id: string) => GameModel.findById(id);
 export const createGame = (values: Record<string, any>) => GameModel.create(values);
-export const updateGameById = (id: string, values: Record<string, any>) => GameModel.findByIdAndUpdate(id, values, { new: true, updatePipeline: true, runValidators: true });
+export const updateGameById = (id: string, values: Record<string, any>) => GameModel.findByIdAndUpdate(id, values, { returnDocument: 'after', runValidators: true });
 export const deleteGameById = (id: string) => GameModel.deleteOne({ _id: id });
 
 export const updateGameBetsById = async (id: string, team: string, teamBetPool: string, amount: number) => {

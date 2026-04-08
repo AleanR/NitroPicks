@@ -1,8 +1,7 @@
-import { deleteUser, getAllUsers, searchUsers, updateUser } from '../controllers/users';
 import { Router } from 'express';
-import { isAuthenticated } from '../middlewares';
-import { forgotPass } from '../controllers/forget';
-import { resetPass } from '../controllers/reset';
+import { deleteUser, getAllUsers, searchUsers, updateUser } from './users.controllers';
+import { isAuthenticated } from '../../middlewares';
+import { forgotPass, resetPass } from './users.password';
 
 export default (router: Router) => {
     router.get('/users', isAuthenticated, getAllUsers);

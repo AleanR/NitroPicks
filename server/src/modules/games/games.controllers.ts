@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
-import { getGames, getGameById, createGame, updateGameById, deleteGameById, GameModel } from '../db/games';
-import { AuthenticatedRequest } from '../helpers/auth';
-import { refundPlayersByBets } from '../db/bets';
+import { getGames, getGameById, createGame, updateGameById, deleteGameById, GameModel } from './games.model';
+import { AuthenticatedRequest } from '../../helpers/auth';
+import { refundPlayersByBets } from '../bets/bets.model';
+import { refund } from '../services/cancel.service';
+import { gameOver } from '../services/results.service';
 
 
 // GET ALL GAMES
@@ -72,7 +74,6 @@ export const searchGames = async (req: Request, res: Response) => {
 // ADD GAMES
 export const addGame = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        // TODO: validate request body
         const { homeTeam, awayTeam, bettingOpensAt, bettingClosesAt } = req.body;
 
         if (!homeTeam || !awayTeam || !bettingOpensAt || !bettingClosesAt) {
@@ -105,12 +106,12 @@ export const addGame = async (req: AuthenticatedRequest, res: Response) => {
         
 
         // Initialize odds for home & away teams
-        const homeWin = { "label": "", "odds": initOdds };
-        const awayWin = { "label": "", "odds": initOdds };
+        const homeWin = { "label": `${homeTeam.split(' ')[1]} Win`, "odds": initOdds };
+        const awayWin = { "label": `${awayTeam.split(' ')[1]} Win`, "odds": initOdds };
 
 
         // creating Game
-        const game = await createGame({
+        await createGame({
             homeTeam: homeTeam,
             awayTeam: awayTeam,
             homeWin: homeWin,
@@ -135,12 +136,18 @@ export const updateGame = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { id } = req.params;
 
+        if (!req.user) {
+            return res.status(400).json({ message: "Unauthorized" });
+        }
         if (!id || typeof id !== 'string') {
             return res.status(400).json({ message: "Game ID is required" });
         }
 
         const updated = await updateGameById(id, req.body);
-        if (!updated) return res.status(404).json({ message: "Game not found" });
+        
+        if (!updated) 
+            return res.status(404).json({ message: "Game not found" });
+
         return res.status(200).json(updated);
     } catch (error) {
         console.log(error);
@@ -148,6 +155,27 @@ export const updateGame = async (req: AuthenticatedRequest, res: Response) => {
     }
 };
 
+
+export const endGame = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        if (!req.user) {
+            return res.status(400).json({ message: "Unauthorized" });
+        }
+
+        if (!id || typeof id !== 'string') {
+            return res.status(400).json({ message: "Game ID is required" });
+        }
+
+        await gameOver(id);
+
+        return res.status(200).json({ message: "Game ended successfully" });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
 
 // CANCEL GAMES
 export const cancelGame = async (req: AuthenticatedRequest, res: Response) => {
@@ -161,13 +189,15 @@ export const cancelGame = async (req: AuthenticatedRequest, res: Response) => {
         if (!id || typeof id !== 'string') {
             return res.status(400).json({ message: "Game ID is required" });
         }
-        
-        const game = await getGameById(id);
 
-        if (!game) {
-            return res.status(400).json({ message: "Game not found" });
-        }
-        const bets = await refundPlayersByBets(id);
+        await refund(id);
+        
+        // const game = await getGameById(id);
+
+        // if (!game) {
+        //     return res.status(400).json({ message: "Game not found" });
+        // }
+        // const bets = await refundPlayersByBets(id);
         
         await deleteGameById(id);
         return res.status(200).json({ message: "Game deleted" });
