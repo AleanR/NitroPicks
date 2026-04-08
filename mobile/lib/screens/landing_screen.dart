@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nitropicks_logo.dart';
 import '../widgets/np_button.dart';
+import '../widgets/dev_bypass_button.dart'; // ✅ DEV
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
@@ -96,9 +97,7 @@ class _LandingScreenState extends State<LandingScreen>
         backgroundColor: AppColors.bgDark,
         body: Stack(
           children: [
-            // Static background — never rebuilds
             const _LandingBackground(),
-            // Animated content in a RepaintBoundary so only this layer repaints
             RepaintBoundary(
               child: SafeArea(
                 child: Padding(
@@ -107,7 +106,6 @@ class _LandingScreenState extends State<LandingScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Spacer(flex: 1),
-                      // Logo
                       Center(
                         child: FadeTransition(
                           opacity: _logoFade,
@@ -118,7 +116,6 @@ class _LandingScreenState extends State<LandingScreen>
                         ),
                       ),
                       const SizedBox(height: 18),
-                      // Wordmark + tagline
                       FadeTransition(
                         opacity: _textFade,
                         child: SlideTransition(
@@ -127,7 +124,6 @@ class _LandingScreenState extends State<LandingScreen>
                         ),
                       ),
                       const Spacer(flex: 1),
-                      // Buttons
                       FadeTransition(
                         opacity: _btnFade,
                         child: SlideTransition(
@@ -161,12 +157,15 @@ class _LandingScreenState extends State<LandingScreen>
           variant: NpButtonVariant.secondary,
           onPressed: () => Navigator.pushNamed(context, '/signin'),
         ),
+        const SizedBox(height: 12),
+        // ✅ DEV ONLY — remove before release
+        const DevBypassButton(),
       ],
     );
   }
 }
 
-// ── Static widgets below — extracted so Flutter never rebuilds them ──────────
+// ── Static widgets ────────────────────────────────────────────────────────────
 
 class _LandingBackground extends StatelessWidget {
   const _LandingBackground();
@@ -201,42 +200,42 @@ class _LandingWordmark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Center(
-        child: Text(
-          'NitroPicks',
-          style: GoogleFonts.dmSans(
-            fontSize: 60,
-            fontWeight: FontWeight.w900,
-            fontStyle: FontStyle.italic,
-            color: AppColors.textPrimary,
-            letterSpacing: -2,
-            height: 1.0,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(
+          child: Text(
+            'NitroPicks',
+            style: GoogleFonts.dmSans(
+              fontSize: 60,
+              fontWeight: FontWeight.w900,
+              fontStyle: FontStyle.italic,
+              color: AppColors.textPrimary,
+              letterSpacing: -2,
+              height: 1.0,
+            ),
           ),
         ),
-      ),
-      const SizedBox(height: 36),
-      Text(
-        'Charge on.',
-        style: GoogleFonts.dmSans(
-          fontSize: 36,
-          fontWeight: FontWeight.w400,
-          color: AppColors.textSecondary,
-          height: 1.3,
+        const SizedBox(height: 36),
+        Text(
+          'Charge on.',
+          style: GoogleFonts.dmSans(
+            fontSize: 36,
+            fontWeight: FontWeight.w400,
+            color: AppColors.textSecondary,
+            height: 1.3,
+          ),
         ),
-      ),
-      Text(
-        'Cash in.',
-        style: GoogleFonts.dmSans(
-          fontSize: 36,
-          fontWeight: FontWeight.w400,
-          color: const Color(0xFF888888),
-          height: 1.3,
+        Text(
+          'Cash in.',
+          style: GoogleFonts.dmSans(
+            fontSize: 36,
+            fontWeight: FontWeight.w400,
+            color: const Color(0xFF888888),
+            height: 1.3,
+          ),
         ),
-      ),
-    ],
-  );
-}
+      ],
+    );
+  }
 }
