@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_api_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/auth_shell.dart';
 import '../widgets/np_button.dart';
 import '../widgets/np_text_field.dart';
 import '../widgets/dev_bypass_button.dart'; // ✅ DEV
@@ -26,45 +27,6 @@ class _SignInScreenState extends State<SignInScreen> {
   bool _resetSent = false;
   String? _resetMessage;
   String? _resetError;
-
-  static final _titleStyle = GoogleFonts.dmSans(
-    fontSize: 40,
-    fontWeight: FontWeight.w800,
-    color: AppColors.textPrimary,
-    height: 1.1,
-    letterSpacing: -1.5,
-  );
-
-  static final _forgotStyle = GoogleFonts.dmSans(
-    fontSize: 13,
-    color: const Color(0xFF2F80ED),
-    fontWeight: FontWeight.w500,
-  );
-
-  static final _errorStyle = GoogleFonts.dmSans(
-    fontSize: 13,
-    color: const Color(0xFFFF4D4F),
-    fontWeight: FontWeight.w500,
-    height: 1.5,
-  );
-
-  static final _bottomLinkStyle = GoogleFonts.dmSans(
-    fontSize: 15,
-    color: const Color(0xFF2F80ED),
-    fontWeight: FontWeight.w500,
-  );
-
-  static final _descriptionStyle = GoogleFonts.dmSans(
-    fontSize: 14,
-    color: AppColors.textMuted,
-    height: 1.6,
-  );
-
-  static final _successStyle = GoogleFonts.dmSans(
-    fontSize: 14,
-    color: AppColors.open,
-    height: 1.6,
-  );
 
   @override
   void initState() {
@@ -102,15 +64,9 @@ class _SignInScreenState extends State<SignInScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
-    if (email.isEmpty || !email.contains('@')) {
+    if (email.isEmpty || !email.contains('@') || password.isEmpty) {
       _errorMessage.value =
-          'Invalid email address or password.\nPlease try again.';
-      return;
-    }
-
-    if (password.isEmpty) {
-      _errorMessage.value =
-          'Invalid email address or password.\nPlease try again.';
+          'Invalid email address or password. Please try again.';
       return;
     }
 
@@ -136,11 +92,11 @@ class _SignInScreenState extends State<SignInScreen> {
       if (!mounted) return;
       setState(() => _isLoading = false);
       _errorMessage.value =
-          'Invalid email address or password.\nPlease try again.';
+          'Invalid email address or password. Please try again.';
     } catch (_) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      _errorMessage.value = 'Unable to sign in. Please try again.';
+      _errorMessage.value = 'Unable to sign in right now. Please try again.';
     }
   }
 
@@ -194,6 +150,7 @@ class _SignInScreenState extends State<SignInScreen> {
       _resetMessage = null;
       _resetError = null;
       _resetEmailController.text = _emailController.text.trim();
+      _errorMessage.value = null;
     });
   }
 
@@ -212,147 +169,118 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final title = _isResetMode ? 'Reset your password' : 'Welcome back';
+    final subtitle = _isResetMode
+        ? 'Enter your UCF email and we will send you a reset code.'
+        : 'Sign in to keep tracking campus picks, streaks, and game day wins.';
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: AppColors.bgDark,
         resizeToAvoidBottomInset: true,
-        body: Stack(
-          children: [
-            const _SignInBackground(),
-            SafeArea(
-              child: GestureDetector(
-                onTap: () => FocusScope.of(context).unfocus(),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      IconButton(
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        icon: const Icon(
-                          Icons.arrow_back_ios_new,
-                          color: AppColors.textPrimary,
-                          size: 18,
-                        ),
-                        onPressed: _isResetMode
-                            ? _backToSignIn
-                            : () => Navigator.pop(context),
-                      ),
-                      const SizedBox(height: 50),
-                      Text('Hello', style: _titleStyle),
-                      const SizedBox(height: 10),
-                      Text('Sign in!', style: _titleStyle),
-                      const SizedBox(height: 80),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        switchInCurve: Curves.easeOut,
-                        switchOutCurve: Curves.easeIn,
-                        transitionBuilder: (child, animation) {
-                          final offsetAnimation = Tween<Offset>(
-                            begin: const Offset(0.1, 0),
-                            end: Offset.zero,
-                          ).animate(animation);
-                          return SlideTransition(
-                            position: offsetAnimation,
-                            child: FadeTransition(
-                                opacity: animation, child: child),
-                          );
-                        },
-                        child: _isResetMode
-                            ? _buildForgotPasswordCard()
-                            : _buildSignInCard(),
-                      ),
-                      const SizedBox(height: 12),
-                      ValueListenableBuilder<String?>(
-                        valueListenable: _errorMessage,
-                        builder: (context, error, child) {
-                          if (error == null || error.isEmpty) {
-                            return const SizedBox(height: 34);
-                          }
-
-                          return SizedBox(
-                            height: 34,
-                            child: Center(
-                              child: Text(
-                                error,
-                                textAlign: TextAlign.center,
-                                style: _errorStyle,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      _isResetMode
-                          ? _buildResetActions()
-                          : NpButton(
-                              label: 'Sign in',
-                              variant: NpButtonVariant.primary,
-                              loading: _isLoading,
-                              onPressed:
-                                  (_isLoading || !_isComplete) ? null : _submit,
-                            ),
-                      const SizedBox(height: 14),
-                      Center(
-                        child: GestureDetector(
-                          onTap: _goToSignUp,
-                          child: Text(
-                            "Don't have an account?",
-                            style: _bottomLinkStyle,
-                          ),
-                        ),
-                      ),
-                      // ✅ DEV ONLY — remove before release
-                      if (!_isResetMode) ...[
-                        const SizedBox(height: 24),
-                        const DevBypassButton(),
-                      ],
-                    ],
-                  ),
-                ),
+        body: AuthScaffold(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AuthBackButton(
+                onPressed: _isResetMode
+                    ? _backToSignIn
+                    : () => Navigator.pop(context),
               ),
-            ),
-          ],
+              const SizedBox(height: 28),
+              AuthHeader(
+                eyebrow: _isResetMode ? 'Account Recovery' : 'Sign In',
+                title: title,
+                subtitle: subtitle,
+              ),
+              const SizedBox(height: 28),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 280),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.04, 0.02),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                },
+                child: _isResetMode
+                    ? _buildForgotPasswordCard()
+                    : _buildSignInCard(),
+              ),
+              const SizedBox(height: 16),
+              ValueListenableBuilder<String?>(
+                valueListenable: _errorMessage,
+                builder: (context, error, child) {
+                  if (error == null || error.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return AuthMessage(text: error, isError: true);
+                },
+              ),
+              if (!_isResetMode || !_resetSent) const SizedBox(height: 18),
+              if (_isResetMode) _buildResetActions() else _buildSignInActions(),
+              const SizedBox(height: 18),
+              AuthFooterLink(
+                prompt: "Don't have an account?",
+                action: 'Create one',
+                onTap: _goToSignUp,
+              ),
+              // ✅ DEV ONLY — remove before release
+              if (!_isResetMode) ...[
+                const SizedBox(height: 16),
+                const DevBypassButton(),
+              ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildSignInCard() {
-    return Container(
+    return AuthCard(
       key: const ValueKey('sign-in-card'),
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111827),
-        borderRadius: BorderRadius.circular(20),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const _SectionTitle(
+            title: 'Your account',
+            caption: 'Use your UCF email and password to continue.',
+          ),
+          const SizedBox(height: 22),
           NpTextField(
             label: 'UCF Email',
-            hint: '',
+            hint: 'knight@ucf.edu',
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           NpTextField(
             label: 'Password',
-            hint: '',
+            hint: 'Enter your password',
             controller: _passwordController,
             obscureText: true,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
           Align(
             alignment: Alignment.centerRight,
             child: GestureDetector(
               onTap: _showForgotPassword,
               child: Text(
                 'Forgot password?',
-                style: _forgotStyle,
+                style: GoogleFonts.dmSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.goldLight,
+                ),
               ),
             ),
           ),
@@ -362,45 +290,30 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   Widget _buildForgotPasswordCard() {
-    return Container(
+    return AuthCard(
       key: const ValueKey('forgot-password-card'),
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111827),
-        borderRadius: BorderRadius.circular(20),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Forgot password', style: _titleStyle.copyWith(fontSize: 32)),
-          const SizedBox(height: 12),
-          Text(
-            'Enter your UCF email and we\'ll send a code to your email.',
-            style: _descriptionStyle,
+          _SectionTitle(
+            title: _resetSent ? 'Check your inbox' : 'Reset access',
+            caption: _resetSent
+                ? 'Your next step is waiting in email.'
+                : 'We will email a secure code to help you get back in.',
           ),
-          const SizedBox(height: 24),
-          if (_resetSent) ...[
-            Text('Check your inbox', style: _titleStyle.copyWith(fontSize: 26)),
-            const SizedBox(height: 12),
-            Text(_resetMessage ?? '', style: _successStyle),
-            const SizedBox(height: 28),
-            NpButton(
-              label: 'Back to sign in',
-              variant: NpButtonVariant.secondary,
-              onPressed: _backToSignIn,
-            ),
-          ] else ...[
+          const SizedBox(height: 22),
+          if (_resetSent)
+            AuthMessage(text: _resetMessage ?? '')
+          else ...[
             NpTextField(
               label: 'UCF Email',
-              hint: '',
+              hint: 'knight@ucf.edu',
               controller: _resetEmailController,
               keyboardType: TextInputType.emailAddress,
             ),
-            const SizedBox(height: 10),
             if (_resetError != null) ...[
-              Text(_resetError!, style: _errorStyle),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
+              AuthMessage(text: _resetError!, isError: true),
             ],
           ],
         ],
@@ -408,22 +321,35 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
+  Widget _buildSignInActions() {
+    return NpButton(
+      label: 'Sign In',
+      variant: NpButtonVariant.primary,
+      loading: _isLoading,
+      onPressed: (_isLoading || !_isComplete) ? null : _submit,
+    );
+  }
+
   Widget _buildResetActions() {
     if (_resetSent) {
-      return const SizedBox.shrink();
+      return NpButton(
+        label: 'Back to Sign In',
+        variant: NpButtonVariant.secondary,
+        onPressed: _backToSignIn,
+      );
     }
 
     return Column(
       children: [
         NpButton(
-          label: 'Send code',
+          label: 'Send Reset Code',
           variant: NpButtonVariant.primary,
           loading: _isLoading,
           onPressed: (_isLoading || !_isComplete) ? null : _sendResetEmail,
         ),
         const SizedBox(height: 12),
         NpButton(
-          label: 'Back to sign in',
+          label: 'Back to Sign In',
           variant: NpButtonVariant.secondary,
           onPressed: _backToSignIn,
         ),
@@ -432,26 +358,36 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 }
 
-class _SignInBackground extends StatelessWidget {
-  const _SignInBackground();
+class _SectionTitle extends StatelessWidget {
+  final String title;
+  final String caption;
+
+  const _SectionTitle({required this.title, required this.caption});
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox.expand(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF0D1520),
-              Color(0xFF12100A),
-              Color(0xFF1A1200),
-            ],
-            stops: [0.0, 0.45, 1.0],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: GoogleFonts.dmSans(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+            letterSpacing: -0.8,
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        Text(
+          caption,
+          style: GoogleFonts.dmSans(
+            fontSize: 14,
+            height: 1.5,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 }
