@@ -35,6 +35,31 @@ class AuthApiService {
     final message = body['message']?.toString() ?? 'Login failed';
     throw AuthException(message);
   }
+
+  Future<void> forgotPassword({
+    required String email,
+  }) async {
+    final uri = Uri.parse('$_baseUrl/users/forgot-password');
+    final response = await _client.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'email': email}),
+    );
+
+    if (response.statusCode == 200) {
+      return;
+    }
+
+    final body = response.body.isNotEmpty
+        ? jsonDecode(response.body) as Map<String, dynamic>
+        : <String, dynamic>{};
+
+    final message =
+        body['message']?.toString() ?? 'Unable to send reset instructions.';
+    throw AuthException(message);
+  }
 }
 
 class AuthException implements Exception {
