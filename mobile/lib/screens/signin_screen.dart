@@ -5,6 +5,7 @@ import '../services/auth_api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/np_button.dart';
 import '../widgets/np_text_field.dart';
+import '../widgets/dev_bypass_button.dart'; // ✅ DEV
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -303,6 +304,11 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                         ),
                       ),
+                      // ✅ DEV ONLY — remove before release
+                      if (!_isResetMode) ...[
+                        const SizedBox(height: 24),
+                        const DevBypassButton(),
+                      ],
                     ],
                   ),
                 ),
@@ -370,7 +376,7 @@ class _SignInScreenState extends State<SignInScreen> {
           Text('Forgot password', style: _titleStyle.copyWith(fontSize: 32)),
           const SizedBox(height: 12),
           Text(
-            'Enter your UCF email and we’ll send a code to your email.',
+            'Enter your UCF email and we\'ll send a code to your email.',
             style: _descriptionStyle,
           ),
           const SizedBox(height: 24),

@@ -1,9 +1,10 @@
-// lib/utils/app_router.dart
 import 'package:flutter/material.dart';
 import '../screens/landing_screen.dart';
 import '../screens/signin_screen.dart';
 import '../screens/signup_screen.dart';
 import '../screens/welcome_screen.dart';
+import '../screens/events_screen.dart';
+import '../models/event_model.dart';
 
 class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -22,7 +23,11 @@ class AppRouter {
         return _slide(const SignInScreen());
 
       case '/home':
-        return _fade(const _PlaceholderScreen(title: 'Events'));
+        return _fade(const EventsScreen());
+
+      case '/event-detail':
+        final event = settings.arguments as EventModel?;
+        return _slide(_EventDetailPlaceholder(event: event));
 
       case '/verify-email-pending':
         final email = settings.arguments as String? ?? '';
@@ -56,12 +61,11 @@ class AppRouter {
       );
 }
 
-// ── Screens ──────────────────────────────────────────────────────────────────
+// ── Screens ───────────────────────────────────────────────────────────────────
 
-/// Temporary placeholder while other screens are being built
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-  const _PlaceholderScreen({required this.title});
+class _EventDetailPlaceholder extends StatelessWidget {
+  final EventModel? event;
+  const _EventDetailPlaceholder({this.event});
 
   @override
   Widget build(BuildContext context) {
@@ -70,21 +74,24 @@ class _PlaceholderScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: Text(title,
-            style: const TextStyle(color: Colors.white, fontSize: 18)),
+        title: Text(
+          event != null
+              ? '${event!.home.shortName} vs ${event!.away.shortName}'
+              : 'Event Detail',
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+        ),
       ),
-      body: Center(
+      body: const Center(
         child: Text(
-          '$title screen\n(coming soon)',
+          'Event detail\n(coming soon)',
           textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.grey, fontSize: 16),
+          style: TextStyle(color: Colors.grey, fontSize: 16),
         ),
       ),
     );
   }
 }
 
-/// Shown immediately after signup — tells the user to check their email
 class VerifyEmailPendingScreen extends StatelessWidget {
   final String email;
   const VerifyEmailPendingScreen({super.key, required this.email});
@@ -148,7 +155,6 @@ class VerifyEmailPendingScreen extends StatelessWidget {
   }
 }
 
-/// Shown when the user taps the verification link and the app reopens
 class EmailVerifiedScreen extends StatelessWidget {
   const EmailVerifiedScreen({super.key});
 
