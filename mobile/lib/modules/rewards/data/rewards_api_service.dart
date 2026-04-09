@@ -1,0 +1,3 @@
+class RewardsApiService {
+  const RewardsApiService();
+}

@@ -1,0 +1,3 @@
+class PlacedBet {
+  const PlacedBet();
+}

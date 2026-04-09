@@ -1,0 +1,3 @@
+class EventDetailController {
+  const EventDetailController();
+}

@@ -1,0 +1,3 @@
+class BetRepository {
+  const BetRepository();
+}

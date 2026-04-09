@@ -1,0 +1,3 @@
+class BetsController {
+  const BetsController();
+}

@@ -1,0 +1,3 @@
+class AccountController {
+  const AccountController();
+}

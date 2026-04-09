@@ -1,0 +1,3 @@
+class RewardsRepository {
+  const RewardsRepository();
+}

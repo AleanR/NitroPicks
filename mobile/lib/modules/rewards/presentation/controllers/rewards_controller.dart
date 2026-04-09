@@ -1,0 +1,3 @@
+class RewardsController {
+  const RewardsController();
+}

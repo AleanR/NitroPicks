@@ -1,0 +1,3 @@
+class AccountApiService {
+  const AccountApiService();
+}

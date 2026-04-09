@@ -1,0 +1,3 @@
+class BetApiService {
+  const BetApiService();
+}
