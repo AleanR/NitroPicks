@@ -47,9 +47,11 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/lodash": "^4.17.24",
     "@types/mongoose": "^5.11.96",
+    "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^7.0.11",
     "@types/react": "^19.2.14",
     "@types/react-router-dom": "^5.3.3",
+    "node-cron": "^4.2.1",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.2"

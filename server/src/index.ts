@@ -34,7 +34,11 @@ server.listen(PORT, () => {
 });
 
 mongoose.Promise = Promise;
+<<<<<<< HEAD
+mongoose.connect(process.env.MONGODB_URI!);
+=======
 mongoose.connect(process.env.MONGO_DB_URL!);
+>>>>>>> b386fa8e879932a4c1dfa46bb434a9ba48e6decb
 
 mongoose.connection.on('error', (error: Error) => console.log(error));
 

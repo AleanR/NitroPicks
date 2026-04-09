@@ -1,5 +1,5 @@
-import { AuthenticatedRequest } from '../helpers/auth';
-import { deleteUserById, getUsers, getUserById, updateUserById, UserModel } from '../db/users';
+import { AuthenticatedRequest } from '../../helpers/auth';
+import { deleteUserById, getUsers, updateUserById, UserModel, getUserById } from './users.model';
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 
