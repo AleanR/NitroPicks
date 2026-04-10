@@ -4,13 +4,15 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const getEmailAuth = () => ({
+    user: process.env.USER_EMAIL || process.env.EMAIL_USER,
+    pass: process.env.USER_PASS || process.env.EMAIL_PASS,
+});
+
 export const sendPassResetToken = async (userEmail: string, url: string) => {
     const transporter = createTransport({
             service: "Gmail",
-            auth: {
-                user: process.env.USER_EMAIL,
-                pass: process.env.USER_PASS,
-            },
+            auth: getEmailAuth(),
         });
 
     await transporter.sendMail({
@@ -26,10 +28,7 @@ export const sendEmailVerifOTP = async (userEmail: string, url: string) => {
 
     const transporter = createTransport({
             service: "Gmail",
-            auth: {
-                user: process.env.USER_EMAIL,
-                pass: process.env.USER_PASS,
-            },
+            auth: getEmailAuth(),
         });
 
     await transporter.sendMail({
