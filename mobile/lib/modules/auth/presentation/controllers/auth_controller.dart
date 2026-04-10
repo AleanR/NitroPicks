@@ -15,11 +15,13 @@ class AuthController extends ChangeNotifier {
     ));
   }
 
-  void setAuthenticated(User user) {
+  // ← token parameter added so the router can read it from state
+  void setAuthenticated(User user, {String? token}) {
     _emit(AuthState(
       status: AuthStatus.authenticated,
       user: user,
       email: user.email,
+      token: token,
     ));
   }
 

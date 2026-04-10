@@ -1,78 +1,42 @@
-import '../domain/event.dart';
-import '../domain/odds.dart';
+// lib/modules/events/data/event_api_service.dart
 
-final List<EventModel> mockEvents = [
-  EventModel(
-    id: '1',
-    home: const TeamOdds(name: 'UCF Knights', shortName: 'UCF', odds: '-115'),
-    away: const TeamOdds(name: 'UF Gators', shortName: 'UF', odds: '+105'),
-    status: EventStatus.open,
-    league: 'NCAAB',
-    gameTime: 'Today · 7:30 PM',
-    svgAsset: 'assets/svg/card_1.svg',
-  ),
-  EventModel(
-    id: '2',
-    home: const TeamOdds(name: 'Miami Heat', shortName: 'MIA', odds: '+130'),
-    away: const TeamOdds(name: 'Boston Celtics', shortName: 'BOS', odds: '-150'),
-    status: EventStatus.soon,
-    league: 'NBA',
-    gameTime: 'Today · 8:00 PM',
-    svgAsset: 'assets/svg/card_2.svg',
-  ),
-  EventModel(
-    id: '3',
-    home: const TeamOdds(name: 'Tampa Bay Rays', shortName: 'TB', odds: '-120'),
-    away: const TeamOdds(name: 'NY Yankees', shortName: 'NYY', odds: '+100'),
-    status: EventStatus.closing,
-    league: 'MLB',
-    gameTime: 'Live',
-    closingIn: const Duration(minutes: 3, seconds: 42),
-    svgAsset: 'assets/svg/card_3.svg',
-  ),
-  EventModel(
-    id: '4',
-    home: const TeamOdds(name: 'Orlando Magic', shortName: 'ORL', odds: '+200'),
-    away: const TeamOdds(name: 'Indiana Pacers', shortName: 'IND', odds: '-240'),
-    status: EventStatus.closed,
-    league: 'NBA',
-    gameTime: 'Yesterday',
-    svgAsset: 'assets/svg/card_4.svg',
-  ),
-  EventModel(
-    id: '5',
-    home: const TeamOdds(name: 'FSU Seminoles', shortName: 'FSU', odds: '+110'),
-    away: const TeamOdds(name: 'Miami Hurricanes', shortName: 'MIA', odds: '-130'),
-    status: EventStatus.won,
-    league: 'NCAAF',
-    gameTime: 'Final',
-    svgAsset: 'assets/svg/card_5.svg',
-  ),
-  EventModel(
-    id: '6',
-    home: const TeamOdds(name: 'TB Lightning', shortName: 'TBL', odds: '-105'),
-    away: const TeamOdds(name: 'Florida Panthers', shortName: 'FLA', odds: '-115'),
-    status: EventStatus.lost,
-    league: 'NHL',
-    gameTime: 'Final',
-    svgAsset: 'assets/svg/card_6.svg',
-  ),
-  EventModel(
-    id: '7',
-    home: const TeamOdds(name: 'Dallas Cowboys', shortName: 'DAL', odds: '-180'),
-    away: const TeamOdds(name: 'NY Giants', shortName: 'NYG', odds: '+160'),
-    status: EventStatus.open,
-    league: 'NFL',
-    gameTime: 'Sun · 1:00 PM',
-    svgAsset: 'assets/svg/card_7.svg',
-  ),
-  EventModel(
-    id: '8',
-    home: const TeamOdds(name: 'Inter Miami CF', shortName: 'MIA', odds: '-200'),
-    away: const TeamOdds(name: 'Atlanta United', shortName: 'ATL', odds: '+175'),
-    status: EventStatus.soon,
-    league: 'MLS',
-    gameTime: 'Sat · 3:30 PM',
-    svgAsset: 'assets/svg/card_8.svg',
-  ),
-];
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../domain/event.dart';
+
+class EventApiService {
+  static const String _baseUrl = 'http://localhost:8080/api';
+
+  final String token;
+
+  const EventApiService({required this.token});
+
+  /// GET /games/search?query=&page=1
+  /// Returns paginated list of games. Pass empty query for all.
+  Future<List<EventModel>> searchGames({
+    String query = '',
+    int page = 1,
+  }) async {
+    final uri = Uri.parse('$_baseUrl/games/search').replace(queryParameters: {
+      'query': query.isEmpty ? ' ' : query, // backend requires non-empty query
+      'page': page.toString(),
+    });
+
+    final response = await http.get(uri, headers: _headers);
+
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final results = body['results'] as List<dynamic>;
+      return results
+          .map((g) => EventModel.fromJson(g as Map<String, dynamic>))
+          .toList();
+    }
+
+    throw Exception('Failed to load events: ${response.statusCode}');
+  }
+
+  Map<String, String> get _headers => {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      };
+}

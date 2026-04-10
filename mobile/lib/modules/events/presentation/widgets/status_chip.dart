@@ -2,82 +2,77 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../shared/theme/app_theme.dart';
 import '../../domain/event.dart';
 
 class StatusChip extends StatelessWidget {
   final EventStatus status;
+
+  /// Kept for API compatibility but no longer used — countdown is on the card.
   final Duration? closingIn;
 
-  const StatusChip({super.key, required this.status, this.closingIn});
+  const StatusChip({
+    super.key,
+    required this.status,
+    this.closingIn,
+  });
+
+  String get _label {
+    switch (status) {
+      case EventStatus.upcoming:
+        return 'OPEN';
+      case EventStatus.live:
+        return 'LIVE';
+      case EventStatus.finished:
+        return 'CLOSED';
+      case EventStatus.cancelled:
+        return 'CANCELLED';
+    }
+  }
+
+  Color get _color {
+    switch (status) {
+      case EventStatus.upcoming:
+        return const Color(0xFFFBBF24);
+      case EventStatus.live:
+        return const Color(0xFF4ADE80);
+      case EventStatus.finished:
+        return const Color(0xFF94A3B8);
+      case EventStatus.cancelled:
+        return const Color(0xFFEF4444);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final config = _configFor(status);
-    final label = status == EventStatus.closing && closingIn != null
-        ? _formatCountdown(closingIn!)
-        : config.label;
-
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: config.bg,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: config.color.withValues(alpha: 0.35), width: 1),
+        color: _color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: _color.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 5,
-            height: 5,
-            decoration: BoxDecoration(
-              color: config.color,
-              shape: BoxShape.circle,
+          if (status == EventStatus.live) ...[
+            Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(color: _color, shape: BoxShape.circle),
             ),
-          ),
-          const SizedBox(width: 5),
+            const SizedBox(width: 4),
+          ],
           Text(
-            label,
-            style: GoogleFonts.dmMono(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: config.color,
-              letterSpacing: 0.4,
+            _label,
+            style: GoogleFonts.dmSans(
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              color: _color,
+              letterSpacing: 0.8,
             ),
           ),
         ],
       ),
     );
   }
-
-  static String _formatCountdown(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
-  }
-
-  static _StatusConfig _configFor(EventStatus status) {
-    switch (status) {
-      case EventStatus.open:
-        return _StatusConfig('OPEN', AppColors.open, AppColors.openBg);
-      case EventStatus.soon:
-        return _StatusConfig('SOON', AppColors.soon, AppColors.soonBg);
-      case EventStatus.closing:
-        return _StatusConfig('CLOSING', AppColors.closing, AppColors.closingBg);
-      case EventStatus.closed:
-        return _StatusConfig('CLOSED', AppColors.closed, AppColors.closedBg);
-      case EventStatus.won:
-        return _StatusConfig('WON', AppColors.open, AppColors.openBg);
-      case EventStatus.lost:
-        return _StatusConfig('LOST', AppColors.closing, AppColors.closingBg);
-    }
-  }
-}
-
-class _StatusConfig {
-  final String label;
-  final Color color;
-  final Color bg;
-  const _StatusConfig(this.label, this.color, this.bg);
 }

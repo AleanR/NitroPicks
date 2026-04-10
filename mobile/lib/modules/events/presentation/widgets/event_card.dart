@@ -1,18 +1,21 @@
 // lib/modules/events/presentation/widgets/event_card.dart
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../domain/event.dart';
-import 'status_chip.dart';
-import 'odds_chip.dart';
 
 class EventCard extends StatefulWidget {
   final EventModel event;
-  final VoidCallback onTap;
+  final void Function(String team, double odds) onSideSelected;
 
-  const EventCard({super.key, required this.event, required this.onTap});
+  const EventCard({
+    super.key,
+    required this.event,
+    required this.onSideSelected,
+  });
 
   @override
   State<EventCard> createState() => _EventCardState();
@@ -20,136 +23,147 @@ class EventCard extends StatefulWidget {
 
 class _EventCardState extends State<EventCard>
     with SingleTickerProviderStateMixin {
-  // -1 = none, 0 = home, 1 = away
-  int _selectedSide = -1;
-  late AnimationController _flashCtrl;
-  late Animation<double> _flashAnim;
+  int _selectedSide = -1; // -1 = none, 0 = home, 1 = away
+  late AnimationController _pressCtrl;
+  Timer? _countdownTimer;
+  Duration? _remaining;
 
   bool get _isTerminal =>
-      widget.event.status == EventStatus.closed ||
-      widget.event.status == EventStatus.won ||
-      widget.event.status == EventStatus.lost;
+      widget.event.computedStatus == EventStatus.finished ||
+      widget.event.computedStatus == EventStatus.cancelled;
+
+  bool get _isBettable =>
+      widget.event.computedStatus == EventStatus.upcoming ||
+      widget.event.computedStatus == EventStatus.live;
 
   @override
   void initState() {
     super.initState();
-    _flashCtrl = AnimationController(
+    _pressCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 200),
     );
-    _flashAnim = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _flashCtrl, curve: Curves.easeOut),
-    );
+    _remaining = widget.event.timeUntilClose;
+    if (_remaining != null) _startCountdown();
+  }
+
+  void _startCountdown() {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      final r = widget.event.timeUntilClose;
+      if (!mounted) return;
+      setState(() => _remaining = r);
+      if (r == null) _countdownTimer?.cancel();
+    });
   }
 
   @override
   void dispose() {
-    _flashCtrl.dispose();
+    _pressCtrl.dispose();
+    _countdownTimer?.cancel();
     super.dispose();
   }
 
   void _selectSide(int side) {
-    if (_isTerminal) return;
+    if (_isTerminal || !_isBettable) return;
     HapticFeedback.selectionClick();
     setState(() {
       _selectedSide = _selectedSide == side ? -1 : side;
     });
-    _flashCtrl.forward(from: 0);
+    if (_selectedSide != -1) {
+      final team = side == 0 ? 'home' : 'away';
+      final odds = side == 0
+          ? widget.event.homeWin.odds
+          : widget.event.awayWin.odds;
+      widget.onSideSelected(team, odds);
+    }
   }
 
-  Color _cardLeftBorderColor() {
-    switch (widget.event.status) {
-      case EventStatus.open:
-        return AppColors.open;
-      case EventStatus.soon:
-        return AppColors.soon;
-      case EventStatus.closing:
-        return AppColors.closing;
-      case EventStatus.closed:
-        return AppColors.closed;
-      case EventStatus.won:
-        return AppColors.open;
-      case EventStatus.lost:
-        return AppColors.closing;
+  Color get _accentColor {
+    switch (widget.event.computedStatus) {
+      case EventStatus.live:
+        return const Color(0xFF4ADE80);
+      case EventStatus.upcoming:
+        return const Color(0xFFFBBF24);
+      case EventStatus.finished:
+        return const Color(0xFF94A3B8);
+      case EventStatus.cancelled:
+        return const Color(0xFFEF4444);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final event = widget.event;
-    final borderColor = _cardLeftBorderColor();
-
-    return GestureDetector(
-      onTap: widget.onTap,
-      child: AnimatedBuilder(
-        animation: _flashAnim,
-        builder: (context, child) {
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceCard,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.border,
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: borderColor.withValues(alpha: 0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-                const BoxShadow(
-                  color: Color(0x14000000),
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Left accent bar
-                    Container(
-                      width: 3,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            borderColor,
-                            borderColor.withValues(alpha: 0.3),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Card content
-                    Expanded(child: _CardContent(event: event, selectedSide: _selectedSide, onSelectSide: _selectSide, isTerminal: _isTerminal)),
-                  ],
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF3A3939),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: _accentColor.withValues(alpha: 0.10),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Left accent bar
+              Container(
+                width: 3,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      _accentColor,
+                      _accentColor.withValues(alpha: 0.2)
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+              Expanded(
+                child: _CardBody(
+                  event: widget.event,
+                  selectedSide: _selectedSide,
+                  onSelectSide: _selectSide,
+                  isTerminal: _isTerminal,
+                  isBettable: _isBettable,
+                  accentColor: _accentColor,
+                  remaining: _remaining,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-class _CardContent extends StatelessWidget {
+// ── Card body ─────────────────────────────────────────────────────────────────
+
+class _CardBody extends StatelessWidget {
   final EventModel event;
   final int selectedSide;
   final void Function(int) onSelectSide;
   final bool isTerminal;
+  final bool isBettable;
+  final Color accentColor;
+  final Duration? remaining;
 
-  const _CardContent({
+  const _CardBody({
     required this.event,
     required this.selectedSide,
     required this.onSelectSide,
     required this.isTerminal,
+    required this.isBettable,
+    required this.accentColor,
+    required this.remaining,
   });
 
   @override
@@ -159,15 +173,17 @@ class _CardContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _TopRow(event: event),
-          const SizedBox(height: 12),
-          _TeamsVsRow(event: event),
+          _TopRow(event: event, accentColor: accentColor, remaining: remaining),
+          const SizedBox(height: 10),
+          _TeamsRow(event: event),
+          const SizedBox(height: 4),
+          _PoolRow(event: event),
           const SizedBox(height: 12),
           _OddsRow(
             event: event,
             selectedSide: selectedSide,
             onSelectSide: onSelectSide,
-            isTerminal: isTerminal,
+            isDisabled: isTerminal || !isBettable,
           ),
         ],
       ),
@@ -175,9 +191,53 @@ class _CardContent extends StatelessWidget {
   }
 }
 
+// ── Top row ───────────────────────────────────────────────────────────────────
+
 class _TopRow extends StatelessWidget {
   final EventModel event;
-  const _TopRow({required this.event});
+  final Color accentColor;
+  final Duration? remaining;
+
+  const _TopRow({
+    required this.event,
+    required this.accentColor,
+    required this.remaining,
+  });
+
+  String get _dateLabel {
+    final d = event.bettingOpensAt;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final eventDay = DateTime(d.year, d.month, d.day);
+    if (eventDay == today) {
+      final h = d.hour % 12 == 0 ? 12 : d.hour % 12;
+      final m = d.minute.toString().padLeft(2, '0');
+      final ampm = d.hour < 12 ? 'AM' : 'PM';
+      return 'Today · $h:$m $ampm';
+    }
+    final diff = eventDay.difference(today).inDays;
+    if (diff == 1) return 'Tomorrow';
+    return '${_monthName(d.month)} ${d.day}';
+  }
+
+  String _monthName(int m) {
+    const names = [
+      '',
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return names[m];
+  }
+
+  String get _countdownLabel {
+    final r = remaining;
+    if (r == null) return '';
+    final h = r.inHours;
+    final m = r.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = r.inSeconds.remainder(60).toString().padLeft(2, '0');
+    if (h > 0) return 'Closes in ${h}h ${m}m';
+    return 'Closes in $m:$s';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -186,42 +246,97 @@ class _TopRow extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
           decoration: BoxDecoration(
-            color: AppColors.surfaceElevated,
+            color: Colors.white.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(5),
           ),
           child: Text(
-            event.league,
+            _dateLabel,
             style: GoogleFonts.dmSans(
               fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textMuted,
-              letterSpacing: 0.6,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF94A3B8),
             ),
           ),
         ),
         const SizedBox(width: 8),
-        if (event.gameTime != null)
+        if (remaining != null && event.computedStatus == EventStatus.live)
           Text(
-            event.gameTime!,
-            style: GoogleFonts.dmSans(
-              fontSize: 11,
-              color: AppColors.textMuted,
-              fontWeight: FontWeight.w500,
+            _countdownLabel,
+            style: GoogleFonts.dmMono(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFFFBBF24),
             ),
           ),
         const Spacer(),
-        StatusChip(
-          status: event.status,
-          closingIn: event.closingIn,
-        ),
+        _StatusBadge(status: event.computedStatus, accentColor: accentColor),
       ],
     );
   }
 }
 
-class _TeamsVsRow extends StatelessWidget {
+class _StatusBadge extends StatelessWidget {
+  final EventStatus status;
+  final Color accentColor;
+
+  const _StatusBadge({required this.status, required this.accentColor});
+
+  String get _label {
+    switch (status) {
+      case EventStatus.upcoming:
+        return 'OPEN';
+      case EventStatus.live:
+        return 'LIVE';
+      case EventStatus.finished:
+        return 'CLOSED';
+      case EventStatus.cancelled:
+        return 'CANCELLED';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: accentColor.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: accentColor.withValues(alpha: 0.3), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (status == EventStatus.live) ...[
+            Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                color: accentColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            _label,
+            style: GoogleFonts.dmSans(
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              color: accentColor,
+              letterSpacing: 0.8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Teams row ─────────────────────────────────────────────────────────────────
+
+class _TeamsRow extends StatelessWidget {
   final EventModel event;
-  const _TeamsVsRow({required this.event});
+  const _TeamsRow({required this.event});
 
   @override
   Widget build(BuildContext context) {
@@ -229,12 +344,12 @@ class _TeamsVsRow extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            event.home.name,
+            event.homeTeam,
             style: GoogleFonts.dmSans(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-              letterSpacing: -0.2,
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.3,
             ),
           ),
         ),
@@ -245,19 +360,19 @@ class _TeamsVsRow extends StatelessWidget {
             style: GoogleFonts.dmSans(
               fontSize: 11,
               fontWeight: FontWeight.w400,
-              color: AppColors.textMuted,
+              color: const Color(0xFF64748B),
             ),
           ),
         ),
         Expanded(
           child: Text(
-            event.away.name,
+            event.awayTeam,
             textAlign: TextAlign.right,
             style: GoogleFonts.dmSans(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-              letterSpacing: -0.2,
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.3,
             ),
           ),
         ),
@@ -266,17 +381,68 @@ class _TeamsVsRow extends StatelessWidget {
   }
 }
 
+// ── Pool / bettors row ────────────────────────────────────────────────────────
+
+class _PoolRow extends StatelessWidget {
+  final EventModel event;
+  const _PoolRow({required this.event});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _StatPill(
+          icon: Icons.people_outline_rounded,
+          label: '${event.totalBettors} bets',
+        ),
+        const SizedBox(width: 8),
+        _StatPill(
+          icon: Icons.toll_rounded,
+          label: '${event.betPool.toStringAsFixed(0)} KP pool',
+        ),
+      ],
+    );
+  }
+}
+
+class _StatPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _StatPill({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 11, color: const Color(0xFF64748B)),
+        const SizedBox(width: 3),
+        Text(
+          label,
+          style: GoogleFonts.dmSans(
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF64748B),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Odds buttons ──────────────────────────────────────────────────────────────
+
 class _OddsRow extends StatelessWidget {
   final EventModel event;
   final int selectedSide;
   final void Function(int) onSelectSide;
-  final bool isTerminal;
+  final bool isDisabled;
 
   const _OddsRow({
     required this.event,
     required this.selectedSide,
     required this.onSelectSide,
-    required this.isTerminal,
+    required this.isDisabled,
   });
 
   @override
@@ -284,25 +450,105 @@ class _OddsRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: OddsButton(
-            teamName: event.home.shortName,
-            odds: event.home.odds,
+          child: _OddsButton(
+            teamName: event.homeTeam.split(' ').last,
+            oddsLabel: event.homeWin.displayOdds,
+            bettors: event.numBettorsHome,
             isSelected: selectedSide == 0,
-            isDisabled: isTerminal,
+            isDisabled: isDisabled,
             onTap: () => onSelectSide(0),
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: OddsButton(
-            teamName: event.away.shortName,
-            odds: event.away.odds,
+          child: _OddsButton(
+            teamName: event.awayTeam.split(' ').last,
+            oddsLabel: event.awayWin.displayOdds,
+            bettors: event.numBettorsAway,
             isSelected: selectedSide == 1,
-            isDisabled: isTerminal,
+            isDisabled: isDisabled,
             onTap: () => onSelectSide(1),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _OddsButton extends StatelessWidget {
+  final String teamName;
+  final String oddsLabel;
+  final int bettors;
+  final bool isSelected;
+  final bool isDisabled;
+  final VoidCallback onTap;
+
+  const _OddsButton({
+    required this.teamName,
+    required this.oddsLabel,
+    required this.bettors,
+    required this.isSelected,
+    required this.isDisabled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const selectedColor = Color(0xFFFBBF24);
+    final bg = isSelected
+        ? selectedColor.withValues(alpha: 0.15)
+        : Colors.white.withValues(alpha: 0.05);
+    final border = isSelected
+        ? selectedColor.withValues(alpha: 0.6)
+        : Colors.white.withValues(alpha: 0.08);
+
+    return GestureDetector(
+      onTap: isDisabled ? null : onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: border, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              teamName,
+              style: GoogleFonts.dmSans(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: isDisabled
+                    ? const Color(0xFF475569)
+                    : const Color(0xFF94A3B8),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              oddsLabel,
+              style: GoogleFonts.dmMono(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: isDisabled
+                    ? const Color(0xFF475569)
+                    : isSelected
+                        ? selectedColor
+                        : Colors.white,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '$bettors bettors',
+              style: GoogleFonts.dmSans(
+                fontSize: 9,
+                color: const Color(0xFF475569),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

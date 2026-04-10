@@ -36,26 +36,29 @@ class AuthRepository {
   final AuthApiService _apiService;
   final SecureStorageService _storageService;
 
-  Future<User> signIn({
-    required String email,
-    required String password,
-  }) async {
-    final response = await _apiService.login(
-      email: email,
-      password: password,
-    );
+Future<(User, String?)> signIn({
+  required String email,
+  required String password,
+}) async {
+  final response = await _apiService.login(
+    email: email,
+    password: password,
+  );
 
-    final token = response['token']?.toString();
-    if (token != null && token.isNotEmpty) {
-      await _storageService.write(key: _sessionTokenKey, value: token);
-    }
+  final token = response['token']?.toString();
 
-    final userJson = response['user'] is Map<String, dynamic>
-        ? response['user'] as Map<String, dynamic>
-        : response;
-
-    return User.fromJson(userJson);
+  if (token != null && token.isNotEmpty) {
+    await _storageService.write(key: _sessionTokenKey, value: token);
   }
+
+  final userJson = response['user'] is Map<String, dynamic>
+      ? response['user'] as Map<String, dynamic>
+      : response;
+
+  final user = User.fromJson(userJson);
+
+  return (user, token);
+}
 
   Future<AuthRegistrationResult> register({
     required String firstName,

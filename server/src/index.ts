@@ -18,7 +18,15 @@ const allowedOrigins = process.env.CLIENT_URL
   : ['http://localhost:5173', 'http://localhost:5174'];
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin || origin.startsWith('http://localhost')) {
+      callback(null, true);
+    } else if (process.env.CLIENT_URL && origin === process.env.CLIENT_URL) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 

@@ -46,16 +46,22 @@ class SignInController extends ChangeNotifier {
     _authController.setLoading();
 
     try {
-      final user = await _authRepository.signIn(
+      final (user, token) = await _authRepository.signIn(
         email: email.trim(),
         password: password,
       );
+
       _state = AuthState(
         status: AuthStatus.authenticated,
         user: user,
         email: user.email,
+        token: token,
       );
-      _authController.setAuthenticated(user);
+
+_authController.setAuthenticated(
+  user,
+  token: token,
+);
       notifyListeners();
       return true;
     } catch (error) {

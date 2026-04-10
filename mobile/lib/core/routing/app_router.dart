@@ -44,11 +44,14 @@ class AppRouter {
         );
 
       case '/home':
-        return _fade(const EventsScreen());
+        // Token lives at authController.state.user?.token
+        final token = authController.state.token ?? '';
+        return _fade(EventsScreen(authToken: token));
 
       case '/event-detail':
+        // EventDetailScreen reads event from route arguments via ModalRoute
         final event = settings.arguments as EventModel?;
-        return _slide(EventDetailScreen(event: event));
+        return _slideWithArgs(const EventDetailScreen(), event);
 
       case '/verify-email-pending':
         final email = settings.arguments as String? ?? '';
@@ -70,6 +73,22 @@ class AppRouter {
       );
 
   static PageRoute _slide(Widget page) => PageRouteBuilder(
+        pageBuilder: (_, __, ___) => page,
+        transitionsBuilder: (_, anim, __, child) => SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+          child: child,
+        ),
+        transitionDuration: const Duration(milliseconds: 350),
+      );
+
+  /// Slide transition that also forwards route arguments so
+  /// EventDetailScreen can read them via ModalRoute.of(context)?.settings.arguments
+  static PageRoute _slideWithArgs(Widget page, Object? arguments) =>
+      PageRouteBuilder(
+        settings: RouteSettings(arguments: arguments),
         pageBuilder: (_, __, ___) => page,
         transitionsBuilder: (_, anim, __, child) => SlideTransition(
           position: Tween<Offset>(

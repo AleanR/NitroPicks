@@ -1,0 +1,466 @@
+.
+├── client
+│   ├── README.md
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── public
+│   │   ├── favicon.svg
+│   │   ├── icons.svg
+│   │   └── nitropicks.png
+│   ├── src
+│   │   ├── App.css
+│   │   ├── App.tsx
+│   │   ├── assets
+│   │   │   ├── hero.png
+│   │   │   ├── react.svg
+│   │   │   └── vite.svg
+│   │   ├── components
+│   │   │   ├── Navigation.tsx
+│   │   │   └── StakeHandler.tsx
+│   │   ├── data
+│   │   │   ├── mockHomeData.ts
+│   │   │   ├── mockLeaderboardData.ts
+│   │   │   ├── mockMarketsData.ts
+│   │   │   └── mockProfileData.ts
+│   │   ├── index.css
+│   │   ├── main.tsx
+│   │   └── pages
+│   │       ├── AdminPage.tsx
+│   │       ├── EarnPointsPage.tsx
+│   │       ├── ForgotPasswordPage.tsx
+│   │       ├── HomePage.tsx
+│   │       ├── LeaderboardPage.tsx
+│   │       ├── LoginPage.tsx
+│   │       ├── MarketsPage.tsx
+│   │       ├── ProfilePage.tsx
+│   │       ├── RedeemPointsPage.tsx
+│   │       ├── RegisterPage.tsx
+│   │       ├── ResetPasswordPage.tsx
+│   │       ├── UserProfilePage.tsx
+│   │       └── VerifyEmailPage.tsx
+│   ├── tsconfig.app.json
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   └── vite.config.ts
+├── config
+│   └── db.js
+├── docs
+│   ├── NitroPicks-mobile-ui.pdf
+│   ├── controllers-dart.png
+│   ├── models-dart.png
+│   ├── screens-dart.png
+│   └── services-dart.png
+├── mobile
+│   ├── README.md
+│   ├── analysis_options.yaml
+│   ├── android
+│   │   ├── app
+│   │   │   ├── build.gradle.kts
+│   │   │   └── src
+│   │   │       ├── debug
+│   │   │       │   └── AndroidManifest.xml
+│   │   │       ├── main
+│   │   │       │   ├── AndroidManifest.xml
+│   │   │       │   ├── java
+│   │   │       │   │   ├── com
+│   │   │       │   │   │   └── nitropicks
+│   │   │       │   │   │       └── app
+│   │   │       │   │   │           └── mobile
+│   │   │       │   │   │               └── MainActivity.java
+│   │   │       │   │   └── io
+│   │   │       │   │       └── flutter
+│   │   │       │   │           └── plugins
+│   │   │       │   │               └── GeneratedPluginRegistrant.java
+│   │   │       │   ├── kotlin
+│   │   │       │   │   └── com
+│   │   │       │   │       └── example
+│   │   │       │   │           └── nitropicks
+│   │   │       │   │               └── MainActivity.kt
+│   │   │       │   └── res
+│   │   │       │       ├── drawable
+│   │   │       │       │   └── launch_background.xml
+│   │   │       │       ├── drawable-v21
+│   │   │       │       │   └── launch_background.xml
+│   │   │       │       ├── mipmap-hdpi
+│   │   │       │       │   └── ic_launcher.png
+│   │   │       │       ├── mipmap-mdpi
+│   │   │       │       │   └── ic_launcher.png
+│   │   │       │       ├── mipmap-xhdpi
+│   │   │       │       │   └── ic_launcher.png
+│   │   │       │       ├── mipmap-xxhdpi
+│   │   │       │       │   └── ic_launcher.png
+│   │   │       │       ├── mipmap-xxxhdpi
+│   │   │       │       │   └── ic_launcher.png
+│   │   │       │       ├── values
+│   │   │       │       │   └── styles.xml
+│   │   │       │       └── values-night
+│   │   │       │           └── styles.xml
+│   │   │       └── profile
+│   │   │           └── AndroidManifest.xml
+│   │   ├── build.gradle.kts
+│   │   ├── gradle
+│   │   │   └── wrapper
+│   │   │       ├── gradle-wrapper.jar
+│   │   │       └── gradle-wrapper.properties
+│   │   ├── gradle.properties
+│   │   ├── gradlew
+│   │   ├── gradlew.bat
+│   │   ├── local.properties
+│   │   ├── mobile_android.iml
+│   │   └── settings.gradle.kts
+│   ├── assets
+│   │   └── icons
+│   │       └── money_bag.png
+│   ├── build
+│   │   ├── af2a66ccc2de974f951e7ca0b55c19b7
+│   │   │   ├── _composite.stamp
+│   │   │   ├── dart_build.d
+│   │   │   ├── dart_build.stamp
+│   │   │   ├── dart_build_result.json
+│   │   │   ├── gen_dart_plugin_registrant.stamp
+│   │   │   ├── gen_localizations.stamp
+│   │   │   └── outputs.json
+│   │   ├── b70f9274ac3b5ec9754be8774a3c9a1c.cache.dill.track.dill
+│   │   ├── flutter_assets
+│   │   │   ├── AssetManifest.bin
+│   │   │   ├── AssetManifest.bin.json
+│   │   │   ├── FontManifest.json
+│   │   │   ├── NOTICES
+│   │   │   ├── assets
+│   │   │   │   └── icons
+│   │   │   │       └── money_bag.png
+│   │   │   ├── fonts
+│   │   │   │   └── MaterialIcons-Regular.otf
+│   │   │   └── shaders
+│   │   │       ├── ink_sparkle.frag
+│   │   │       └── stretch_effect.frag
+│   │   ├── native_assets
+│   │   │   └── web
+│   │   └── native_hooks
+│   ├── ios
+│   │   ├── Flutter
+│   │   │   ├── AppFrameworkInfo.plist
+│   │   │   ├── Debug.xcconfig
+│   │   │   ├── Generated.xcconfig
+│   │   │   ├── Release.xcconfig
+│   │   │   ├── ephemeral
+│   │   │   │   ├── flutter_lldb_helper.py
+│   │   │   │   └── flutter_lldbinit
+│   │   │   └── flutter_export_environment.sh
+│   │   ├── Podfile
+│   │   ├── Podfile.lock
+│   │   ├── Runner
+│   │   │   ├── AppDelegate.swift
+│   │   │   ├── Assets.xcassets
+│   │   │   │   ├── AppIcon.appiconset
+│   │   │   │   │   ├── Contents.json
+│   │   │   │   │   ├── Icon-App-1024x1024@1x.png
+│   │   │   │   │   ├── Icon-App-20x20@1x.png
+│   │   │   │   │   ├── Icon-App-20x20@2x.png
+│   │   │   │   │   ├── Icon-App-20x20@3x.png
+│   │   │   │   │   ├── Icon-App-29x29@1x.png
+│   │   │   │   │   ├── Icon-App-29x29@2x.png
+│   │   │   │   │   ├── Icon-App-29x29@3x.png
+│   │   │   │   │   ├── Icon-App-40x40@1x.png
+│   │   │   │   │   ├── Icon-App-40x40@2x.png
+│   │   │   │   │   ├── Icon-App-40x40@3x.png
+│   │   │   │   │   ├── Icon-App-60x60@2x.png
+│   │   │   │   │   ├── Icon-App-60x60@3x.png
+│   │   │   │   │   ├── Icon-App-76x76@1x.png
+│   │   │   │   │   ├── Icon-App-76x76@2x.png
+│   │   │   │   │   └── Icon-App-83.5x83.5@2x.png
+│   │   │   │   └── LaunchImage.imageset
+│   │   │   │       ├── Contents.json
+│   │   │   │       ├── LaunchImage.png
+│   │   │   │       ├── LaunchImage@2x.png
+│   │   │   │       ├── LaunchImage@3x.png
+│   │   │   │       └── README.md
+│   │   │   ├── Base.lproj
+│   │   │   │   ├── LaunchScreen.storyboard
+│   │   │   │   └── Main.storyboard
+│   │   │   ├── GeneratedPluginRegistrant.h
+│   │   │   ├── GeneratedPluginRegistrant.m
+│   │   │   ├── Info.plist
+│   │   │   ├── Runner-Bridging-Header.h
+│   │   │   └── SceneDelegate.swift
+│   │   ├── Runner.xcodeproj
+│   │   │   ├── project.pbxproj
+│   │   │   ├── project.xcworkspace
+│   │   │   │   ├── contents.xcworkspacedata
+│   │   │   │   └── xcshareddata
+│   │   │   │       ├── IDEWorkspaceChecks.plist
+│   │   │   │       └── WorkspaceSettings.xcsettings
+│   │   │   └── xcshareddata
+│   │   │       └── xcschemes
+│   │   │           └── Runner.xcscheme
+│   │   ├── Runner.xcworkspace
+│   │   │   ├── contents.xcworkspacedata
+│   │   │   └── xcshareddata
+│   │   │       ├── IDEWorkspaceChecks.plist
+│   │   │       └── WorkspaceSettings.xcsettings
+│   │   └── RunnerTests
+│   │       └── RunnerTests.swift
+│   ├── lib
+│   │   ├── README.md
+│   │   ├── core
+│   │   │   ├── constants
+│   │   │   │   ├── api_constants.dart
+│   │   │   │   └── app_constants.dart
+│   │   │   ├── errors
+│   │   │   │   ├── app_exception.dart
+│   │   │   │   └── failure.dart
+│   │   │   ├── routing
+│   │   │   │   └── app_router.dart
+│   │   │   ├── services
+│   │   │   │   └── api_service.dart
+│   │   │   └── storage
+│   │   │       └── secure_storage_service.dart
+│   │   ├── main.dart
+│   │   ├── modules
+│   │   │   ├── account
+│   │   │   │   ├── data
+│   │   │   │   │   └── account_api_service.dart
+│   │   │   │   ├── domain
+│   │   │   │   │   └── account.dart
+│   │   │   │   └── presentation
+│   │   │   │       ├── controllers
+│   │   │   │       │   └── account_controller.dart
+│   │   │   │       └── screens
+│   │   │   │           └── account_screen.dart
+│   │   │   ├── auth
+│   │   │   │   ├── data
+│   │   │   │   │   ├── auth_api_service.dart
+│   │   │   │   │   └── auth_repository.dart
+│   │   │   │   ├── domain
+│   │   │   │   │   ├── auth_state.dart
+│   │   │   │   │   ├── ucf_majors.dart
+│   │   │   │   │   └── user.dart
+│   │   │   │   └── presentation
+│   │   │   │       ├── controllers
+│   │   │   │       │   ├── auth_controller.dart
+│   │   │   │       │   ├── sign_in_controller.dart
+│   │   │   │       │   └── sign_up_controller.dart
+│   │   │   │       └── screens
+│   │   │   │           ├── forgot_password_screen.dart
+│   │   │   │           ├── landing_screen.dart
+│   │   │   │           ├── signin_screen.dart
+│   │   │   │           ├── signup_screen.dart
+│   │   │   │           └── welcome_screen.dart
+│   │   │   ├── bets
+│   │   │   │   ├── data
+│   │   │   │   │   ├── bet_api_service.dart
+│   │   │   │   │   └── bet_repository.dart
+│   │   │   │   ├── domain
+│   │   │   │   │   ├── bet.dart
+│   │   │   │   │   └── placed_bet.dart
+│   │   │   │   └── presentation
+│   │   │   │       ├── controllers
+│   │   │   │       │   └── bets_controller.dart
+│   │   │   │       ├── screens
+│   │   │   │       │   └── bets_screen.dart
+│   │   │   │       └── widgets
+│   │   │   │           └── bet_card.dart
+│   │   │   ├── events
+│   │   │   │   ├── data
+│   │   │   │   │   ├── event_api_service.dart
+│   │   │   │   │   └── event_repository.dart
+│   │   │   │   ├── domain
+│   │   │   │   │   ├── event.dart
+│   │   │   │   │   └── odds.dart
+│   │   │   │   └── presentation
+│   │   │   │       ├── controllers
+│   │   │   │       │   ├── event_detail_controller.dart
+│   │   │   │       │   └── events_controller.dart
+│   │   │   │       ├── screens
+│   │   │   │       │   ├── bet_slip_panel.dart
+│   │   │   │       │   ├── event_detail_screen.dart
+│   │   │   │       │   └── events_screen.dart
+│   │   │   │       └── widgets
+│   │   │   │           ├── event_card.dart
+│   │   │   │           ├── events_search_bar.dart
+│   │   │   │           ├── filter_tab_bar.dart
+│   │   │   │           ├── odds_chip.dart
+│   │   │   │           └── status_chip.dart
+│   │   │   └── rewards
+│   │   │       ├── data
+│   │   │       │   ├── rewards_api_service.dart
+│   │   │       │   └── rewards_repository.dart
+│   │   │       ├── domain
+│   │   │       │   └── reward.dart
+│   │   │       └── presentation
+│   │   │           ├── controllers
+│   │   │           │   └── rewards_controller.dart
+│   │   │           ├── screens
+│   │   │           │   └── rewards_screen.dart
+│   │   │           └── widgets
+│   │   │               └── reward_card.dart
+│   │   └── shared
+│   │       ├── theme
+│   │       │   ├── app_colors.dart
+│   │       │   ├── app_text_styles.dart
+│   │       │   └── app_theme.dart
+│   │       └── widgets
+│   │           ├── auth_shell.dart
+│   │           ├── dev_bypass_button.dart
+│   │           ├── nitropicks_logo.dart
+│   │           ├── np_button.dart
+│   │           ├── np_text_field.dart
+│   │           └── step_indicator.dart
+│   ├── linux
+│   │   ├── CMakeLists.txt
+│   │   ├── flutter
+│   │   │   ├── CMakeLists.txt
+│   │   │   ├── generated_plugin_registrant.cc
+│   │   │   ├── generated_plugin_registrant.h
+│   │   │   └── generated_plugins.cmake
+│   │   └── runner
+│   │       ├── CMakeLists.txt
+│   │       ├── main.cc
+│   │       ├── my_application.cc
+│   │       └── my_application.h
+│   ├── macos
+│   │   ├── Flutter
+│   │   │   ├── Flutter-Debug.xcconfig
+│   │   │   ├── Flutter-Release.xcconfig
+│   │   │   ├── GeneratedPluginRegistrant.swift
+│   │   │   └── ephemeral
+│   │   │       ├── Flutter-Generated.xcconfig
+│   │   │       └── flutter_export_environment.sh
+│   │   ├── Podfile
+│   │   ├── Podfile.lock
+│   │   ├── Runner
+│   │   │   ├── AppDelegate.swift
+│   │   │   ├── Assets.xcassets
+│   │   │   │   └── AppIcon.appiconset
+│   │   │   │       ├── Contents.json
+│   │   │   │       ├── app_icon_1024.png
+│   │   │   │       ├── app_icon_128.png
+│   │   │   │       ├── app_icon_16.png
+│   │   │   │       ├── app_icon_256.png
+│   │   │   │       ├── app_icon_32.png
+│   │   │   │       ├── app_icon_512.png
+│   │   │   │       └── app_icon_64.png
+│   │   │   ├── Base.lproj
+│   │   │   │   └── MainMenu.xib
+│   │   │   ├── Configs
+│   │   │   │   ├── AppInfo.xcconfig
+│   │   │   │   ├── Debug.xcconfig
+│   │   │   │   ├── Release.xcconfig
+│   │   │   │   └── Warnings.xcconfig
+│   │   │   ├── DebugProfile.entitlements
+│   │   │   ├── Info.plist
+│   │   │   ├── MainFlutterWindow.swift
+│   │   │   └── Release.entitlements
+│   │   ├── Runner.xcodeproj
+│   │   │   ├── project.pbxproj
+│   │   │   ├── project.xcworkspace
+│   │   │   │   └── xcshareddata
+│   │   │   │       └── IDEWorkspaceChecks.plist
+│   │   │   └── xcshareddata
+│   │   │       └── xcschemes
+│   │   │           └── Runner.xcscheme
+│   │   ├── Runner.xcworkspace
+│   │   │   ├── contents.xcworkspacedata
+│   │   │   └── xcshareddata
+│   │   │       └── IDEWorkspaceChecks.plist
+│   │   └── RunnerTests
+│   │       └── RunnerTests.swift
+│   ├── mobile.iml
+│   ├── pubspec.lock
+│   ├── pubspec.yaml
+│   ├── screens
+│   ├── test
+│   │   ├── modules
+│   │   │   └── auth
+│   │   │       ├── auth_repository_test.dart
+│   │   │       ├── sign_in_controller_test.dart
+│   │   │       └── sign_up_controller_test.dart
+│   │   └── widget_test.dart
+│   ├── web
+│   │   ├── favicon.png
+│   │   ├── icons
+│   │   │   ├── Icon-192.png
+│   │   │   ├── Icon-512.png
+│   │   │   ├── Icon-maskable-192.png
+│   │   │   └── Icon-maskable-512.png
+│   │   ├── index.html
+│   │   └── manifest.json
+│   └── windows
+│       ├── CMakeLists.txt
+│       ├── flutter
+│       │   ├── CMakeLists.txt
+│       │   ├── ephemeral
+│       │   ├── generated_plugin_registrant.cc
+│       │   ├── generated_plugin_registrant.h
+│       │   └── generated_plugins.cmake
+│       └── runner
+│           ├── CMakeLists.txt
+│           ├── Runner.rc
+│           ├── flutter_window.cpp
+│           ├── flutter_window.h
+│           ├── main.cpp
+│           ├── resource.h
+│           ├── resources
+│           │   └── app_icon.ico
+│           ├── runner.exe.manifest
+│           ├── utils.cpp
+│           ├── utils.h
+│           ├── win32_window.cpp
+│           └── win32_window.h
+├── models
+│   ├── Events.js
+│   └── User.js
+├── nitropicktree.txt
+├── package-lock.json
+├── package.json
+├── seeds
+│   └── seed.js
+├── selected_files.zip
+└── server
+    ├── LICENSE
+    ├── README.md
+    ├── nodemon.json
+    ├── package-lock.json
+    ├── package.json
+    ├── src
+    │   ├── helpers
+    │   │   ├── auth.ts
+    │   │   ├── index.ts
+    │   │   ├── jwt.ts
+    │   │   └── status.ts
+    │   ├── index.ts
+    │   ├── middlewares
+    │   │   └── index.ts
+    │   ├── modules
+    │   │   ├── authentication
+    │   │   │   ├── authentication.controllers.ts
+    │   │   │   └── authentication.routers.ts
+    │   │   ├── bets
+    │   │   │   ├── bets.controllers.ts
+    │   │   │   ├── bets.model.ts
+    │   │   │   └── bets.routers.ts
+    │   │   ├── games
+    │   │   │   ├── games.controllers.ts
+    │   │   │   ├── games.model.ts
+    │   │   │   └── games.routers.ts
+    │   │   ├── rewards
+    │   │   │   ├── rewards.controllers.ts
+    │   │   │   └── rewards.routers.ts
+    │   │   ├── services
+    │   │   │   ├── bet.service.ts
+    │   │   │   ├── cancel.service.ts
+    │   │   │   ├── email.service.ts
+    │   │   │   └── results.service.ts
+    │   │   └── users
+    │   │       ├── users.controllers.ts
+    │   │       ├── users.model.ts
+    │   │       ├── users.password.ts
+    │   │       └── users.routers.ts
+    │   └── router
+    │       ├── bets.ts
+    │       └── index.ts
+    └── tsconfig.json
+
+156 directories, 307 files
