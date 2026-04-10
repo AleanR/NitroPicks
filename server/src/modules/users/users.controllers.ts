@@ -44,7 +44,7 @@ export const getPublicUser = async (req: Request, res: Response) => {
             lastname: user.lastname,
             username: user.username,
             major: user.major,
-            pointBalance: user.pointBalance,
+            knightPoints: user.knightPoints,
             createdAt: (user as any).createdAt,
         });
     } catch (error) {
@@ -88,14 +88,14 @@ export const getLeaderboard = async (req: Request, res: Response) => {
         const users = await getUsers();
         const leaderboard = users
             .filter((u: any) => u.username !== 'admin')
-            .sort((a: any, b: any) => (b.pointBalance || 0) - (a.pointBalance || 0))
+            .sort((a: any, b: any) => (b.knightPoints || 0) - (a.knightPoints || 0))
             .slice(0, 10)
             .map((user: any, index: number) => ({
                 id: user._id,
                 name: `${user.firstname || user.firstName} ${user.lastname || user.lastName}`,
                 initials: `${(user.firstname || user.firstName || '').charAt(0)}${(user.lastname || user.lastName || '').charAt(0)}`,
                 rank: index + 1,
-                points: (user.pointBalance || user.pointsBalance || 0).toLocaleString(),
+                points: (user.knightPoints || 0).toLocaleString(),
                 winRate: Math.floor(Math.random() * 30) + 50, // Placeholder
                 bets: Math.floor(Math.random() * 50) + 20, // Placeholder
                 medal: index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : 'none'
@@ -312,11 +312,11 @@ export const earnPoints = async (req: AuthenticatedRequest, res: Response) => {
             return res.status(400).json({ message: "Code must be exactly 16 digits" });
         }
 
-        const updated = await updateUserById(req.user.id, { $inc: { pointBalance: 1000 } });
+        const updated = await updateUserById(req.user.id, { $inc: { knightPoints: 1000 } });
 
         if (!updated) return res.status(404).json({ message: "User not found" });
 
-        return res.status(200).json({ message: "1000 KP added!", pointBalance: updated.pointBalance });
+        return res.status(200).json({ message: "1000 KP added!", knightPoints: updated.knightPoints });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal server error" });
@@ -341,11 +341,11 @@ export const redeemPerk = async (req: AuthenticatedRequest, res: Response) => {
         const user = await getUserById(req.user.id);
         if (!user) return res.status(404).json({ message: "User not found" });
 
-        if ((user.pointBalance || 0) < cost) {
+        if ((user.knightPoints || 0) < cost) {
             return res.status(400).json({ message: "Not enough KP" });
         }
 
-        const updated = await updateUserById(req.user.id, { $inc: { pointBalance: -cost } });
+        const updated = await updateUserById(req.user.id, { $inc: { knightPoints: -cost } });
 
         // Generate a cryptographically random 16-digit confirmation code
         const digits = Array.from({ length: 16 }, () => Math.floor(Math.random() * 10)).join('');
@@ -353,7 +353,7 @@ export const redeemPerk = async (req: AuthenticatedRequest, res: Response) => {
         return res.status(200).json({
             message: "Purchase successful!",
             confirmationCode: digits,
-            pointBalance: updated?.pointBalance,
+            knightPoints: updated?.knightPoints,
         });
     } catch (error) {
         console.log(error);

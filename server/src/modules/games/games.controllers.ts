@@ -177,7 +177,7 @@ export const endGame = async (req: AuthenticatedRequest, res: Response) => {
     }
 }
 
-// CANCEL GAMES
+// CANCEL GAME — refund all bettors and mark as cancelled (does not delete)
 export const cancelGame = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { id } = req.params;
@@ -191,18 +191,46 @@ export const cancelGame = async (req: AuthenticatedRequest, res: Response) => {
         }
 
         await refund(id);
-        
-        // const game = await getGameById(id);
 
-        // if (!game) {
-        //     return res.status(400).json({ message: "Game not found" });
-        // }
-        // const bets = await refundPlayersByBets(id);
-        
+        return res.status(200).json({ message: "Game cancelled and all bets refunded" });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// DELETE GAME — hard delete, admin only, use only when game was created by mistake
+export const deleteGame = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        if (!req.user) {
+            return res.status(400).json({ message: "Unauthorized" });
+        }
+
+        if (!id || typeof id !== 'string') {
+            return res.status(400).json({ message: "Game ID is required" });
+        }
+
+        const game = await getGameById(id);
+        if (!game) return res.status(404).json({ message: "Game not found" });
+
         await deleteGameById(id);
         return res.status(200).json({ message: "Game deleted" });
     } catch (error) {
         console.log(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// PUBLIC — list upcoming/live games for frontend markets page
+export const getPublicGames = async (req: Request, res: Response) => {
+    try {
+        const games = await GameModel.find({ status: { $in: ['upcoming', 'live'] } })
+            .select('homeTeam awayTeam homeWin awayWin betPool bettingOpensAt bettingClosesAt status')
+            .sort({ bettingOpensAt: 1 });
+        return res.status(200).json(games);
+    } catch (error) {
         return res.status(500).json({ message: "Internal server error" });
     }
 };

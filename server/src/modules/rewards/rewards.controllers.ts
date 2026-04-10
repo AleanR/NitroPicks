@@ -46,20 +46,20 @@ export const redeemReward = async (req: AuthenticatedRequest, res: Response) => 
             return res.status(404).json({ message: "User not found" });
         }
 
-        if (user.pointBalance < reward.cost) {
+        if (user.knightPoints < reward.cost) {
             return res.status(400).json({
                 message: "Not enough points to redeem this reward"
             });
         }
 
-        user.pointBalance -= reward.cost;
+        user.knightPoints -= reward.cost;
         await user.save();
 
         return res.status(200).json({
             message: "Reward redeemed successfully",
             reward: reward.name,
             cost: reward.cost,
-            remainingPoints: user.pointBalance
+            remainingKnightPoints: user.knightPoints
         });
 
     } catch (error) {

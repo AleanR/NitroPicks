@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { createBet, deleteBetById, getBetById, getBets } from '../bets/bets.model';
 import { AuthenticatedRequest } from '../../helpers/auth';
-import { updatePointBalanceById } from '../users/users.model';
+import { deductKnightPoints } from '../users/users.model';
 import { updateGameBetsById } from '../games/games.model';
 import { placeBet } from '../services/bet.service';
 
