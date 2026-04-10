@@ -22,7 +22,7 @@ export async function refund (gameId: string) {
                     const user = await getUserById(bet.userId.toString()).session(session);
                     if (!user) throw new Error("User not found");
 
-                    user.pointBalance += bet.stake;
+                    user.knightPoints += bet.stake;
                     await user.save({ session });
                 }
 
@@ -38,7 +38,7 @@ export async function refund (gameId: string) {
                     const user = await getUserById(bet.userId.toString()).session(session);
                     if (!user) throw new Error("User not found");
 
-                    user.pointBalance += bet.stake;
+                    user.knightPoints += bet.stake;
                     await user.save({ session });
                 }
             }

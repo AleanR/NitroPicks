@@ -4,7 +4,7 @@ const UserSchema = new mongoose.Schema({
     firstname: { type: String, required: true },
     lastname: { type: String, required: true },
     ucfID: { type: String, required: true },
-    pointBalance: { type: Number, default: 2000 },
+    knightPoints: { type: Number, default: 1000 },
     major: { type: String, required: true },
     username: { type: String, required: true },
     email: { type: String, required: true },
@@ -38,30 +38,27 @@ export const updateUserById = (id: string, values: Record<string, any>) => UserM
 
 export const getUserbyToken = (token: Record<string, any>) => UserModel.findOne(token);
 
-export const updatePointBalanceById = async (id: string, amount: number) => {
-
+export const deductKnightPoints = async (id: string, amount: number) => {
     const updatedUser = await UserModel.findOneAndUpdate(
         {
             _id: id,
-            pointBalance: { $gte: amount } as any
+            knightPoints: { $gte: amount } as any
         },
-        { $inc: { pointBalance: -amount } },
+        { $inc: { knightPoints: -amount } },
         { returnDocument: 'after', runValidators: true }
     );
-
     return updatedUser;
 }
 
+export const awardKnightPoints = async (id: string, amount: number) => {
+    return updateUserById(id, { $inc: { knightPoints: amount } });
+}
 
 export const refund = async (userId: string, amount: number) => {
     const updatedUser = await updateUserById(
         userId,
-        { $inc: { pointBalance: amount }},
-    )
-
-    if (!updatedUser) {
-        return null;
-    }
-
+        { $inc: { knightPoints: amount } },
+    );
+    if (!updatedUser) return null;
     return updatedUser;
 }

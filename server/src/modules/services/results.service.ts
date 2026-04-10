@@ -13,7 +13,8 @@ export async function gameOver(gameId: string) {
         const game = await getGameById(gameId).session(session);
         if (!game || game.status !== 'live') throw new Error('Game not found');
 
-        const team = game.scoreHome > game.scoreAway ? 'home' : 'away';
+        const isTie = game.scoreHome === game.scoreAway;
+        const team = isTie ? 'tie' : (game.scoreHome > game.scoreAway ? 'home' : 'away');
 
         game.winner = team;
         game.status = 'finished';
@@ -27,6 +28,18 @@ export async function gameOver(gameId: string) {
         for (const bet of bets) {
             if (bet.status === 'active') {
 
+                // TIE — refund stake to all bettors
+                if (isTie) {
+                    bet.status = 'refunded';
+                    for (const leg of bet.legs) leg.result = 'cancelled';
+                    const user = await getUserById(bet.userId.toString()).session(session);
+                    if (!user) throw new Error('User not found');
+                    user.knightPoints += bet.stake;
+                    await user.save({ session });
+                    await bet.save({ session });
+                    continue;
+                }
+
                 // SINGLE BET
                 if (bet.betType === 'single') {
                     if (bet.legs[0].team === team) {
@@ -36,7 +49,7 @@ export async function gameOver(gameId: string) {
                         const user = await getUserById(bet.userId.toString()).session(session);
                         if (!user) throw new Error('User not found');
     
-                        user.pointBalance += bet.expectedPayout;
+                        user.knightPoints += bet.expectedPayout;
                         await user.save({ session });
                     }
                     else {
@@ -67,7 +80,7 @@ export async function gameOver(gameId: string) {
                         const user = await getUserById(bet.userId.toString()).session(session);
                         if (!user) throw new Error('User not found');
 
-                        user.pointBalance += bet.expectedPayout;
+                        user.knightPoints += bet.expectedPayout;
                         await user.save({ session });
                     }
                 }

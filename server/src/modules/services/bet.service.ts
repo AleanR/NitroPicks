@@ -13,7 +13,7 @@ export async function placeBet (userId: string, stake: number, legs: any) {
 
         const user = await getUserById(userId).session(session);
         if (!user) throw new Error('User not found');
-        if (user.pointBalance < stake) throw new Error('Insufficient funds');
+        if (user.knightPoints < stake) throw new Error('Insufficient funds');
 
         const betType = legs.length === 1 ? "single" : "parlay";
         
@@ -72,7 +72,7 @@ export async function placeBet (userId: string, stake: number, legs: any) {
             expectedPayout: expectedPayout,
         })
 
-        user.pointBalance -= stake;
+        user.knightPoints -= stake;
         await user.save({ session });
 
         await session.commitTransaction();
