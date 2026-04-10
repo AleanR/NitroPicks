@@ -8,6 +8,7 @@ import '../../modules/auth/presentation/screens/welcome_screen.dart';
 import '../../modules/events/domain/event.dart';
 import '../../modules/events/presentation/screens/event_detail_screen.dart';
 import '../../modules/events/presentation/screens/events_screen.dart';
+import '../../shared/widgets/main_shell.dart';
 
 class AppRouter {
   final AuthRepository authRepository;
@@ -46,7 +47,7 @@ class AppRouter {
       case '/home':
         // Token lives at authController.state.user?.token
         final token = authController.state.token ?? '';
-        return _fade(EventsScreen(authToken: token));
+        return _fade(MainShell(authToken: token));
 
       case '/event-detail':
         // EventDetailScreen reads event from route arguments via ModalRoute
