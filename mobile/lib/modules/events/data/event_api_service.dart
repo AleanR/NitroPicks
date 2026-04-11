@@ -11,14 +11,30 @@ class EventApiService {
 
   const EventApiService({required this.token});
 
-  /// GET /games/search?query=&page=1
-  /// Returns paginated list of games. Pass empty query for all.
+  /// GET /events — all upcoming/live games, no page limit.
+  /// Used for the main events list when there is no search query.
+  Future<List<EventModel>> getPublicGames() async {
+    final uri = Uri.parse('$_baseUrl/events');
+    final response = await http.get(uri, headers: _headers);
+
+    if (response.statusCode == 200) {
+      final results = jsonDecode(response.body) as List<dynamic>;
+      return results
+          .map((g) => EventModel.fromJson(g as Map<String, dynamic>))
+          .toList();
+    }
+
+    throw Exception('Failed to load events: ${response.statusCode}');
+  }
+
+  /// GET /games/search?query=&page=1 — paginated search (7 per page).
+  /// Used only when the user has typed a search term.
   Future<List<EventModel>> searchGames({
-    String query = '',
+    required String query,
     int page = 1,
   }) async {
     final uri = Uri.parse('$_baseUrl/games/search').replace(queryParameters: {
-      'query': query.isEmpty ? ' ' : query, // backend requires non-empty query
+      'query': query,
       'page': page.toString(),
     });
 

@@ -18,6 +18,10 @@ class AccountController extends ChangeNotifier {
   bool _disposed = false;
   String? _errorMessage;
 
+  int totalBets = 0;
+  int betsWon   = 0;
+  int betsLost  = 0;
+
   Account? get account => _account;
   bool get isLoading => _isLoading;
   bool get isSubmitting => _isSubmitting;
@@ -29,7 +33,15 @@ class AccountController extends ChangeNotifier {
     _notify();
 
     try {
-      _account = await _apiService.getCurrentAccount();
+      final results = await Future.wait([
+        _apiService.getCurrentAccount(),
+        _apiService.getBetStats(),
+      ]);
+      _account = results[0] as Account;
+      final stats = results[1] as Map<String, int>;
+      totalBets = stats['total'] ?? 0;
+      betsWon   = stats['won']   ?? 0;
+      betsLost  = stats['lost']  ?? 0;
       return _account;
     } catch (error) {
       _errorMessage = error.toString().replaceFirst('Exception: ', '');

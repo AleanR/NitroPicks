@@ -10,6 +10,9 @@ class EventRepository {
       : _service = service;
 
   Future<List<EventModel>> getEvents({String query = '', int page = 1}) async {
+    if (query.isEmpty) {
+      return _service.getPublicGames();
+    }
     return _service.searchGames(query: query, page: page);
   }
 }

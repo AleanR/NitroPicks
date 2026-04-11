@@ -164,7 +164,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     _ErrorBanner(message: _controller.errorMessage!),
                   ],
                   const SizedBox(height: 22),
-                  const _StatsSection(),
+                  _StatsSection(controller: _controller),
                   const SizedBox(height: 22),
                   _StudentInfo(account: account),
                   const SizedBox(height: 22),
@@ -457,7 +457,8 @@ class _ErrorBanner extends StatelessWidget {
 }
 
 class _StatsSection extends StatelessWidget {
-  const _StatsSection();
+  final AccountController controller;
+  const _StatsSection({required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -467,12 +468,12 @@ class _StatsSection extends StatelessWidget {
         _SectionLabel(label: 'STATS'),
         const SizedBox(height: 10),
         Row(
-          children: const [
-            Expanded(child: _StatPill(value: '0', label: 'Total bets')),
-            SizedBox(width: 10),
-            Expanded(child: _StatPill(value: '0', label: 'Won')),
-            SizedBox(width: 10),
-            Expanded(child: _StatPill(value: '0', label: 'Lost')),
+          children: [
+            Expanded(child: _StatPill(value: '${controller.totalBets}', label: 'Total bets')),
+            const SizedBox(width: 10),
+            Expanded(child: _StatPill(value: '${controller.betsWon}',   label: 'Won')),
+            const SizedBox(width: 10),
+            Expanded(child: _StatPill(value: '${controller.betsLost}',  label: 'Lost')),
           ],
         ),
       ],

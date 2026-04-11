@@ -56,7 +56,7 @@ export const searchGames = async (req: Request, res: Response) => {
 
         // Limit searches by 7 results per page
         const games = await GameModel.find(filter)
-                .select('homeTeam awayTeam status homeWin awayWin betPool numBettorsHome numBettorsAway totalBetAmountHome totalBetAmountAway bettingOpensAt bettingClosesAt')
+                .select('sport homeTeam awayTeam status homeWin awayWin betPool numBettorsHome numBettorsAway totalBetAmountHome totalBetAmountAway bettingOpensAt bettingClosesAt')
                 .limit(7).skip(skip);
 
         return res.status(200).json({
@@ -221,15 +221,13 @@ export const deleteGame = async (req: AuthenticatedRequest, res: Response) => {
 export const getPublicGames = async (req: Request, res: Response) => {
     try {
         const now = new Date();
-        // Exclude cancelled games and games whose bettingOpensAt was more than 6 hours ago
-        // (guards against games with incorrectly distant bettingClosesAt dates)
-        const sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+        // Include all open games plus games closed within the last 24 h (so the Closed tab has data)
+        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         const games = await GameModel.find({
             status: { $ne: 'cancelled' },
-            bettingOpensAt: { $gte: sixHoursAgo },  // opened in the last 6 h OR still upcoming
-            bettingClosesAt: { $gt: now },            // betting window hasn't closed
+            bettingClosesAt: { $gt: oneDayAgo },
         })
-            .select('homeTeam awayTeam homeWin awayWin betPool numBettorsHome numBettorsAway totalBetAmountHome totalBetAmountAway bettingOpensAt bettingClosesAt status')
+            .select('sport homeTeam awayTeam homeWin awayWin betPool numBettorsHome numBettorsAway totalBetAmountHome totalBetAmountAway bettingOpensAt bettingClosesAt status')
             .sort({ bettingOpensAt: 1 });
         return res.status(200).json(games);
     } catch (error) {

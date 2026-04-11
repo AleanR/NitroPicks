@@ -38,7 +38,8 @@ class _EventCardState extends State<EventCard> {
       widget.event.computedStatus == EventStatus.cancelled;
 
   bool get _isBettable =>
-      widget.event.computedStatus == EventStatus.live;
+      widget.event.computedStatus == EventStatus.live &&
+      widget.event.gameDayStatus != GameDayStatus.upcoming;
 
   /// True when the betting window has < 10 minutes remaining.
   bool get _isClosing {
@@ -107,28 +108,45 @@ class _EventCardState extends State<EventCard> {
     return const Color(0xFF111318);
   }
 
-  String get _statusLabel {
+  /// Bet status label: Open | Closing in X min | Closed
+  String get _betStatusLabel {
     if (_hasResult) return widget.userWon! ? 'Won' : 'Lost';
-    switch (widget.event.computedStatus) {
-      case EventStatus.upcoming:
+    if (widget.event.computedStatus == EventStatus.cancelled) return 'Cancelled';
+    if (widget.event.computedStatus == EventStatus.finished ||
+        widget.event.gameDayStatus == GameDayStatus.past) return 'Closed';
+    if (_isClosing) {
+      final r = _remaining!;
+      final minLeft = (r.inSeconds + 59) ~/ 60;
+      return 'Closing in $minLeft min';
+    }
+    return 'Open';
+  }
+
+  /// Game day label: Upcoming | Today | Past
+  String get _gameDayLabel {
+    switch (widget.event.gameDayStatus) {
+      case GameDayStatus.upcoming:
         return 'Upcoming';
-      case EventStatus.live:
-        if (_isClosing) {
-          final r = _remaining!;
-          // Ceiling division: e.g. 9m 30s → "Closing in 10 min"
-          final minLeft = (r.inSeconds + 59) ~/ 60;
-          return 'Closing in $minLeft min';
-        }
-        return 'Open';
-      case EventStatus.finished:
-        return 'Closed';
-      case EventStatus.cancelled:
-        return 'Cancelled';
+      case GameDayStatus.today:
+        return 'Today';
+      case GameDayStatus.past:
+        return 'Past';
+    }
+  }
+
+  Color get _gameDayColor {
+    switch (widget.event.gameDayStatus) {
+      case GameDayStatus.upcoming:
+        return const Color(0xFF818CF8); // indigo
+      case GameDayStatus.today:
+        return const Color(0xFF38BDF8); // sky blue
+      case GameDayStatus.past:
+        return const Color(0xFF6B7280); // grey
     }
   }
 
   String get _dateLabel {
-    final d = widget.event.bettingOpensAt;
+    final d = widget.event.bettingClosesAt; // game starts ≈ when betting closes
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final eventDay = DateTime(d.year, d.month, d.day);
@@ -151,6 +169,9 @@ class _EventCardState extends State<EventCard> {
   }
 
   String get _sportLabel {
+    final sport = widget.event.sport;
+    if (sport.isNotEmpty) return sport;
+    // Fallback: infer from team names for games seeded without a sport field
     final s = '${widget.event.homeTeam} ${widget.event.awayTeam}'.toLowerCase();
     if (s.contains('softball')) return 'Softball';
     if (s.contains('baseball')) return 'Baseball';
@@ -174,7 +195,7 @@ class _EventCardState extends State<EventCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top row
+            // Top row: sport/date on left, bet-status + game-day badges on right
             Row(
               children: [
                 Text(
@@ -186,7 +207,9 @@ class _EventCardState extends State<EventCard> {
                   ),
                 ),
                 const Spacer(),
-                _StatusBadge(label: _statusLabel, color: accent),
+                _StatusBadge(label: _gameDayLabel, color: _gameDayColor),
+                const SizedBox(width: 6),
+                _StatusBadge(label: _betStatusLabel, color: accent),
               ],
             ),
             const SizedBox(height: 10),

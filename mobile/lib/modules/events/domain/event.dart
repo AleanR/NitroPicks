@@ -4,8 +4,12 @@ import 'odds.dart';
 
 enum EventStatus { upcoming, live, finished, cancelled }
 
+/// Status of the game day relative to today — independent of the betting window.
+enum GameDayStatus { upcoming, today, past }
+
 class EventModel {
   final String id;
+  final String sport;
   final String homeTeam;
   final String awayTeam;
   final int numBettorsHome;
@@ -24,6 +28,7 @@ class EventModel {
 
   const EventModel({
     required this.id,
+    required this.sport,
     required this.homeTeam,
     required this.awayTeam,
     required this.numBettorsHome,
@@ -41,37 +46,41 @@ class EventModel {
     required this.status,
   });
 
-  /// The effective close time is the earlier of bettingClosesAt and
-  /// bettingOpensAt + 6 hours.  This guards against games where bettingClosesAt
-  /// was set far in the future by mistake — no sporting event lasts >6 hours.
-  DateTime get _effectiveClose {
-    final cap = bettingOpensAt.add(const Duration(hours: 6));
-    return bettingClosesAt.isBefore(cap) ? bettingClosesAt : cap;
-  }
-
-  /// Mirrors the backend's computedStatus virtual (with the 6-hour cap)
+  /// Bettable from creation until bettingClosesAt (game start time).
+  /// No 6-hour cap — relies on bettingClosesAt being set correctly.
   EventStatus get computedStatus {
     final now = DateTime.now();
     if (status == EventStatus.cancelled) return EventStatus.cancelled;
-    if (now.isBefore(bettingOpensAt)) return EventStatus.upcoming;
-    if (now.isBefore(_effectiveClose)) return EventStatus.live;
+    if (now.isBefore(bettingClosesAt)) return EventStatus.live;
     return EventStatus.finished;
   }
 
-  /// Time remaining in the betting window (null if not live)
+  /// Time remaining until betting closes (null if already closed).
   Duration? get timeUntilClose {
     final now = DateTime.now();
-    if (now.isBefore(_effectiveClose)) {
-      return _effectiveClose.difference(now);
-    }
+    if (now.isBefore(bettingClosesAt)) return bettingClosesAt.difference(now);
     return null;
   }
 
   int get totalBettors => numBettorsHome + numBettorsAway;
 
+  /// Upcoming = game day is tomorrow or later.
+  /// Today    = game day is today (betting still open).
+  /// Past     = game has started (now >= bettingClosesAt).
+  GameDayStatus get gameDayStatus {
+    final now = DateTime.now();
+    if (now.isAfter(bettingClosesAt)) return GameDayStatus.past;
+    final gameDay = DateTime(
+        bettingClosesAt.year, bettingClosesAt.month, bettingClosesAt.day);
+    final today = DateTime(now.year, now.month, now.day);
+    if (gameDay.isAtSameMomentAs(today)) return GameDayStatus.today;
+    return GameDayStatus.upcoming;
+  }
+
   factory EventModel.fromJson(Map<String, dynamic> json) {
     return EventModel(
       id: json['_id'] as String,
+      sport: json['sport'] as String? ?? '',
       homeTeam: json['homeTeam'] as String,
       awayTeam: json['awayTeam'] as String,
       numBettorsHome: (json['numBettorsHome'] as num?)?.toInt() ?? 0,

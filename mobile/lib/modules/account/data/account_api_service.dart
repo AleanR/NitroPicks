@@ -39,6 +39,24 @@ class AccountApiService {
     return Account.fromJson(body);
   }
 
+  Future<Map<String, int>> getBetStats() async {
+    final response = await _client.get(
+      Uri.parse('${ApiConstants.baseUrl}/bets/my'),
+      headers: _headers,
+    );
+
+    final body = _decodeResponse(
+      response,
+      fallbackMessage: 'Unable to load bet stats.',
+    );
+
+    return {
+      'total': (body['total'] as num?)?.toInt() ?? 0,
+      'won':   (body['won']   as num?)?.toInt() ?? 0,
+      'lost':  (body['lost']  as num?)?.toInt() ?? 0,
+    };
+  }
+
   Future<EarnPointsResult> earnPoints({required String code}) async {
     final response = await _client.post(
       Uri.parse('${ApiConstants.baseUrl}/users/earn-points'),

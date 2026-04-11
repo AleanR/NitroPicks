@@ -9,6 +9,7 @@ import '../../../bets/data/bet_repository.dart';
 import '../../data/event_api_service.dart';
 import '../../data/event_repository.dart';
 import '../../domain/event.dart';
+// GameDayStatus enum is defined in event.dart and used for the Upcoming tab filter
 import '../controllers/event_detail_controller.dart';
 import '../controllers/events_controller.dart';
 import '../widgets/event_card.dart';
@@ -35,7 +36,7 @@ class EventsScreen extends StatefulWidget {
 
 class _EventsScreenState extends State<EventsScreen>
     with SingleTickerProviderStateMixin {
-  static const _tabs = ['All', 'Open', 'Closing', 'Closed'];
+  static const _tabs = ['All', 'Open', 'Closing', 'Upcoming', 'Closed'];
 
   late final EventsController _eventsController;
   late final EventDetailController _detailController;
@@ -87,17 +88,12 @@ class _EventsScreenState extends State<EventsScreen>
     return r != null && r.inSeconds <= 600;
   }
 
-  // Sort priority: Closing (0) > Open (1) > Upcoming (2) > Closed (3)
+  // Sort priority: Closing (0) > Open (1) > Upcoming game day (2) > Closed/Past (3)
   int _sortPriority(EventModel e) {
     if (_isClosing(e)) return 0;
-    switch (e.computedStatus) {
-      case EventStatus.live:
-        return 1;
-      case EventStatus.upcoming:
-        return 2;
-      default:
-        return 3;
-    }
+    if (e.computedStatus == EventStatus.live) return 1;
+    if (e.gameDayStatus == GameDayStatus.upcoming) return 2;
+    return 3;
   }
 
   List<EventModel> get _filteredEvents {
@@ -106,20 +102,23 @@ class _EventsScreenState extends State<EventsScreen>
     if (_selectedTab != 0) {
       events = events.where((e) {
         switch (_selectedTab) {
-          case 1: // 'Open' — live and NOT closing
+          case 1: // 'Open' — betting open, not closing
             return e.computedStatus == EventStatus.live && !_isClosing(e);
-          case 2: // 'Closing' — live and within 10 min
+          case 2: // 'Closing' — within 10 min of closing
             return _isClosing(e);
-          case 3: // 'Closed'
+          case 3: // 'Upcoming' — game day is a future calendar day
+            return e.gameDayStatus == GameDayStatus.upcoming;
+          case 4: // 'Closed' — betting window closed / game started
             return e.computedStatus == EventStatus.finished ||
-                e.computedStatus == EventStatus.cancelled;
+                e.computedStatus == EventStatus.cancelled ||
+                e.gameDayStatus == GameDayStatus.past;
           default:
             return true;
         }
       }).toList();
     }
 
-    // Sort: Closing → Open → Upcoming → Closed, then by bettingOpensAt within same group
+    // Sort: Closing → Open → Upcoming → Closed, then by bettingClosesAt within same group
     events.sort((a, b) {
       final pa = _sortPriority(a);
       final pb = _sortPriority(b);
@@ -259,18 +258,6 @@ class _EventsHeader extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-          const Spacer(),
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: AppColors.surfaceElevated,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: const Icon(Icons.tune_rounded,
-                color: AppColors.textSecondary, size: 18),
           ),
         ],
       ),

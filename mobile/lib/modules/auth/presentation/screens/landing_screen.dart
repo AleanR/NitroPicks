@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../shared/theme/app_theme.dart';
-import '../../../../shared/widgets/dev_bypass_button.dart';
 import '../../../../shared/widgets/nitropicks_logo.dart';
 import '../../../../shared/widgets/np_button.dart';
 
@@ -157,9 +156,6 @@ class _LandingScreenState extends State<LandingScreen>
           variant: NpButtonVariant.secondary,
           onPressed: () => Navigator.pushNamed(context, '/signin'),
         ),
-        const SizedBox(height: 12),
-        // ✅ DEV ONLY — remove before release
-        const DevBypassButton(),
       ],
     );
   }

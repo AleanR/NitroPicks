@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { addBet } from '../controllers/bets';
-
-
+import { addBet, getMyBets } from '../modules/bets/bets.controllers';
+import { isAuthenticated } from '../middlewares';
 
 export default (router: Router) => {
-    router.post('/bets', addBet);
-}   
+    router.get('/bets/my', isAuthenticated, getMyBets);
+    router.post('/bets', isAuthenticated, addBet);
+}

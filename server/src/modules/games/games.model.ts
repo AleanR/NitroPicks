@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const GameSchema = new mongoose.Schema({
-    // sport: { type: String, required: true },        
+    sport: { type: String, default: '' },
     homeTeam: { type: String, required: true },     
     awayTeam: { type: String, required: true },     
 

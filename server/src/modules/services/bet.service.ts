@@ -50,6 +50,14 @@ export async function placeBet (userId: string, stake: number, legs: any) {
             if (status === 'cancelled') throw new Error('Game is cancelled');
             if (status !== 'live') throw new Error('Betting window closed');
 
+            // Upcoming games (game day is a future calendar day) are not yet open for betting
+            const now = new Date();
+            const closeDay = new Date(game.bettingClosesAt);
+            closeDay.setHours(0, 0, 0, 0);
+            const todayDay = new Date(now);
+            todayDay.setHours(0, 0, 0, 0);
+            if (closeDay > todayDay) throw new Error('Betting not yet open for this game');
+
             if (leg.team === 'home') {
                 game.numBettorsHome += 1;
                 game.totalBetAmountHome += stake;

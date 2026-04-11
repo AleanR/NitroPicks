@@ -1,10 +1,23 @@
 import { Response } from 'express';
-import { createBet, deleteBetById, getBetById, getBets } from '../bets/bets.model';
+import { createBet, deleteBetById, getBetById, getBets, getBetsByUser } from '../bets/bets.model';
 import { AuthenticatedRequest } from '../../helpers/auth';
 import { deductKnightPoints } from '../users/users.model';
 import { updateGameBetsById } from '../games/games.model';
 import { placeBet } from '../services/bet.service';
 
+
+export const getMyBets = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+        const bets = await getBetsByUser(req.user.id);
+        const total = bets.length;
+        const won   = bets.filter(b => b.status === 'win').length;
+        const lost  = bets.filter(b => b.status === 'lose').length;
+        return res.status(200).json({ total, won, lost });
+    } catch (error) {
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
 
 export const getAllBets = async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -92,6 +105,7 @@ export const addBet = async (req: AuthenticatedRequest, res: Response) => {
             'Game not found',
             'Game is cancelled',
             'Betting window closed',
+            'Betting not yet open',
             'Game odds data is missing',
         ];
         const msg: string = error?.message ?? '';
