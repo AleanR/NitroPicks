@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { createBet, deleteBetById, getBetById, getBets, getBetsByUser } from '../bets/bets.model';
+import { createBet, deleteBetById, getBetById, getBets, getBetsByUser, getBetsByUserWithGames } from '../bets/bets.model';
 import { AuthenticatedRequest } from '../../helpers/auth';
 import { deductKnightPoints } from '../users/users.model';
 import { updateGameBetsById } from '../games/games.model';
@@ -14,6 +14,16 @@ export const getMyBets = async (req: AuthenticatedRequest, res: Response) => {
         const won   = bets.filter(b => b.status === 'win').length;
         const lost  = bets.filter(b => b.status === 'lose').length;
         return res.status(200).json({ total, won, lost });
+    } catch (error) {
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const getMyBetsList = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+        const bets = await getBetsByUserWithGames(req.user.id);
+        return res.status(200).json(bets);
     } catch (error) {
         return res.status(500).json({ message: 'Internal server error' });
     }

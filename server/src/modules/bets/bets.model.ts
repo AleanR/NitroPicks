@@ -30,6 +30,8 @@ export const BetModel = mongoose.model('Bet', BetSchema);
 export const getBets = async () => BetModel.find();
 export const getBetsByGame = (gameId: string) => BetModel.find({ 'legs.gameId': gameId });
 export const getBetsByUser = (userId: string) => BetModel.find({ userId });
+export const getBetsByUserWithGames = (userId: string) =>
+    BetModel.find({ userId }).populate('legs.gameId').sort({ createdAt: -1 });
 export const getBetById = (id: string) => BetModel.findById(id);
 export const createBet = (values: Record<string, any>) => BetModel.create(values);
 

@@ -14,4 +14,8 @@ class BetRepository {
   }) async {
     return _service.placeBet(stake: stake, legs: legs);
   }
+
+  Future<List<Bet>> getMyBets() async {
+    return _service.getMyBets();
+  }
 }

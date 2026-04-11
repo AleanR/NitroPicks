@@ -13,10 +13,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../modules/account/presentation/screens/account_screen.dart';
 import '../../modules/auth/domain/user.dart';
+import '../../modules/bets/presentation/screens/bets_screen.dart';
 import '../../modules/events/presentation/screens/events_screen.dart';
-// TODO: swap these placeholders for your real screens when ready
-// import '../../modules/bets/presentation/screens/bets_screen.dart';
-// import '../../modules/rewards/presentation/screens/rewards_screen.dart';
 
 class MainShell extends StatefulWidget {
   final String authToken;
@@ -55,7 +53,10 @@ class _MainShellState extends State<MainShell> {
         knightPointsListenable: _knightPoints,
         onKnightPointsChanged: _setKnightPoints,
       ),
-      _PlaceholderPage(label: 'Bets', icon: Icons.attach_money_rounded),
+      BetsScreen(
+        authToken: widget.authToken,
+        knightPointsListenable: _knightPoints,
+      ),
       _PlaceholderPage(label: 'Rewards', icon: Icons.card_giftcard_rounded),
       AccountScreen(
         authToken: widget.authToken,
