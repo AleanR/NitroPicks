@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../modules/account/presentation/screens/account_screen.dart';
+import '../../modules/admin/presentation/screens/admin_screen.dart';
 import '../../modules/auth/domain/user.dart';
 import '../../modules/bets/presentation/screens/bets_screen.dart';
 import '../../modules/events/presentation/screens/events_screen.dart';
@@ -39,23 +40,31 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   late final ValueNotifier<int> _knightPoints;
+  late final bool _isAdmin;
+  late final ValueNotifier<int> _betsRefreshTrigger;
 
   // Keep pages alive when switching tabs
   late final List<Widget> _pages;
+  late final List<_NavItem> _navItems;
 
   @override
   void initState() {
     super.initState();
     _knightPoints = ValueNotifier<int>(widget.initialKnightPoints);
+    _betsRefreshTrigger = ValueNotifier<int>(0);
+    _isAdmin = widget.initialUser?.isAdmin ?? false;
+
     _pages = [
       EventsScreen(
         authToken: widget.authToken,
         knightPointsListenable: _knightPoints,
         onKnightPointsChanged: _setKnightPoints,
+        onBetPlaced: () => _betsRefreshTrigger.value++,
       ),
       BetsScreen(
         authToken: widget.authToken,
         knightPointsListenable: _knightPoints,
+        refreshTrigger: _betsRefreshTrigger,
       ),
       _PlaceholderPage(label: 'Rewards', icon: Icons.card_giftcard_rounded),
       AccountScreen(
@@ -65,12 +74,24 @@ class _MainShellState extends State<MainShell> {
         onKnightPointsChanged: _setKnightPoints,
         onSignOut: widget.onSignOut,
       ),
+      if (_isAdmin)
+        AdminScreen(authToken: widget.authToken),
+    ];
+
+    _navItems = [
+      const _NavItem(label: 'Events', icon: Icons.bolt_rounded),
+      const _NavItem(label: 'Bets', icon: Icons.attach_money_rounded),
+      const _NavItem(label: 'Rewards', icon: Icons.card_giftcard_rounded),
+      const _NavItem(label: 'Account', icon: Icons.person_outline_rounded),
+      if (_isAdmin)
+        const _NavItem(label: 'Admin', icon: Icons.admin_panel_settings_rounded),
     ];
   }
 
   @override
   void dispose() {
     _knightPoints.dispose();
+    _betsRefreshTrigger.dispose();
     super.dispose();
   }
 
@@ -96,6 +117,7 @@ class _MainShellState extends State<MainShell> {
         children: _pages,
       ),
       bottomNavigationBar: _NitroNavBar(
+        items: _navItems,
         currentIndex: _currentIndex,
         onTap: _onTap,
       ),
@@ -106,17 +128,15 @@ class _MainShellState extends State<MainShell> {
 // ── Bottom nav bar ────────────────────────────────────────────────────────────
 
 class _NitroNavBar extends StatelessWidget {
+  final List<_NavItem> items;
   final int currentIndex;
   final void Function(int) onTap;
 
-  const _NitroNavBar({required this.currentIndex, required this.onTap});
-
-  static const _items = [
-    _NavItem(label: 'Events', icon: Icons.bolt_rounded),
-    _NavItem(label: 'Bets', icon: Icons.attach_money_rounded),
-    _NavItem(label: 'Rewards', icon: Icons.card_giftcard_rounded),
-    _NavItem(label: 'Account', icon: Icons.person_outline_rounded),
-  ];
+  const _NitroNavBar({
+    required this.items,
+    required this.currentIndex,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -131,10 +151,10 @@ class _NitroNavBar extends StatelessWidget {
       padding: EdgeInsets.only(bottom: bottom > 0 ? bottom : 8, top: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(_items.length, (i) {
+        children: List.generate(items.length, (i) {
           final selected = i == currentIndex;
           return _NavButton(
-            item: _items[i],
+            item: items[i],
             selected: selected,
             onTap: () => onTap(i),
           );

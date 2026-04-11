@@ -8,6 +8,7 @@ class User {
   final String? ucfId;
   final int? pointBalance;
   final bool isVerified;
+  final bool isAdmin;
 
   const User({
     required this.id,
@@ -19,6 +20,7 @@ class User {
     this.ucfId,
     this.pointBalance,
     this.isVerified = false,
+    this.isAdmin = false,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -34,6 +36,7 @@ class User {
       pointBalance:
           points is num ? points.toInt() : int.tryParse('${points ?? ''}'),
       isVerified: json['isVerified'] == true,
+      isAdmin: json['isAdmin'] == true,
     );
   }
 
@@ -59,6 +62,7 @@ class User {
     String? ucfId,
     int? pointBalance,
     bool? isVerified,
+    bool? isAdmin,
   }) {
     return User(
       id: id ?? this.id,
@@ -70,6 +74,7 @@ class User {
       ucfId: ucfId ?? this.ucfId,
       pointBalance: pointBalance ?? this.pointBalance,
       isVerified: isVerified ?? this.isVerified,
+      isAdmin: isAdmin ?? this.isAdmin,
     );
   }
 }

@@ -13,11 +13,13 @@ import '../widgets/bet_card.dart';
 class BetsScreen extends StatefulWidget {
   final String authToken;
   final ValueListenable<int> knightPointsListenable;
+  final ValueListenable<int>? refreshTrigger;
 
   const BetsScreen({
     super.key,
     required this.authToken,
     required this.knightPointsListenable,
+    this.refreshTrigger,
   });
 
   @override
@@ -40,10 +42,12 @@ class _BetsScreenState extends State<BetsScreen>
     _tabController = TabController(length: 2, vsync: this);
     _controller.addListener(() => setState(() {}));
     _controller.loadBets();
+    widget.refreshTrigger?.addListener(_onRefresh);
   }
 
   @override
   void dispose() {
+    widget.refreshTrigger?.removeListener(_onRefresh);
     _controller.dispose();
     _tabController.dispose();
     super.dispose();

@@ -21,12 +21,14 @@ class EventsScreen extends StatefulWidget {
   final String authToken;
   final ValueListenable<int> knightPointsListenable;
   final ValueChanged<int> onKnightPointsChanged;
+  final VoidCallback? onBetPlaced;
 
   const EventsScreen({
     super.key,
     required this.authToken,
     required this.knightPointsListenable,
     required this.onKnightPointsChanged,
+    this.onBetPlaced,
   });
 
   @override
@@ -102,8 +104,10 @@ class _EventsScreenState extends State<EventsScreen>
     if (_selectedTab != 0) {
       events = events.where((e) {
         switch (_selectedTab) {
-          case 1: // 'Open' — betting open, not closing
-            return e.computedStatus == EventStatus.live && !_isClosing(e);
+          case 1: // 'Open' — betting open today, not closing
+            return e.computedStatus == EventStatus.live &&
+                !_isClosing(e) &&
+                e.gameDayStatus == GameDayStatus.today;
           case 2: // 'Closing' — within 10 min of closing
             return _isClosing(e);
           case 3: // 'Upcoming' — game day is a future calendar day
@@ -168,6 +172,9 @@ class _EventsScreenState extends State<EventsScreen>
     widget.onKnightPointsChanged(nextBalance);
     _detailController.reset();
 
+    // Notify My Bets screen to reload
+    widget.onBetPlaced?.call();
+
     // Refresh events so the updated odds and bettor count are shown immediately
     _eventsController.loadEvents(query: _query);
   }
@@ -182,7 +189,7 @@ class _EventsScreenState extends State<EventsScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _EventsHeader(),
+            _EventsHeader(knightPointsListenable: widget.knightPointsListenable),
             const SizedBox(height: 14),
             EventsSearchBar(
               controller: _searchController,
@@ -231,11 +238,24 @@ class _EventsScreenState extends State<EventsScreen>
 // ── Header ────────────────────────────────────────────────────────────────────
 
 class _EventsHeader extends StatelessWidget {
+  final ValueListenable<int> knightPointsListenable;
+
+  const _EventsHeader({required this.knightPointsListenable});
+
+  String _formatPoints(int kp) {
+    if (kp >= 1000) {
+      final k = kp / 1000;
+      return '${k == k.truncate() ? k.truncate() : k.toStringAsFixed(1)}K';
+    }
+    return kp.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,6 +278,28 @@ class _EventsHeader extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const Spacer(),
+          ValueListenableBuilder<int>(
+            valueListenable: knightPointsListenable,
+            builder: (_, kp, __) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xFFFBBF24),
+                  width: 1.5,
+                ),
+              ),
+              child: Text(
+                '${_formatPoints(kp)} Credits',
+                style: GoogleFonts.dmSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFFFBBF24),
+                ),
+              ),
+            ),
           ),
         ],
       ),

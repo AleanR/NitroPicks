@@ -13,6 +13,17 @@ interface GameEvent {
   awayOdds: string
 }
 
+interface Game {
+  _id: string
+  homeTeam: string
+  awayTeam: string
+  status: string
+  winner: string
+  scoreHome: number
+  scoreAway: number
+  bettingClosesAt: string
+}
+
 const EMPTY_FORM: GameEvent = {
   homeTeam: '',
   awayTeam: '',
@@ -31,6 +42,14 @@ function AdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Game result state
+  const [games, setGames] = useState<Game[]>([])
+  const [gamesLoading, setGamesLoading] = useState(true)
+  const [resolvingId, setResolvingId] = useState<string | null>(null)
+  const [resolveWinner, setResolveWinner] = useState<'home' | 'away' | 'tie' | ''>('')
+  const [resolveError, setResolveError] = useState<string | null>(null)
+  const [resolveSuccess, setResolveSuccess] = useState<string | null>(null)
 
   // Guard: redirect if not admin
   useEffect(() => {
@@ -59,6 +78,43 @@ function AdminPage() {
   }
 
   useEffect(() => { fetchEvents() }, [])
+
+  const fetchGames = async () => {
+    try {
+      const res = await fetch('/api/games', { credentials: 'include' })
+      if (res.ok) setGames(await res.json())
+    } catch {
+      // non-critical
+    } finally {
+      setGamesLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchGames() }, [])
+
+  const handleResolveGame = async (gameId: string) => {
+    if (!resolveWinner) return
+    setResolveError(null)
+    setResolveSuccess(null)
+    try {
+      const res = await fetch(`/api/games/${gameId}/end`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ winner: resolveWinner }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.message || 'Failed to resolve game')
+      }
+      setResolveSuccess('Game resolved successfully — bets have been settled.')
+      setResolvingId(null)
+      setResolveWinner('')
+      await fetchGames()
+    } catch (e: any) {
+      setResolveError(e.message)
+    }
+  }
 
   const handleChange = (field: keyof GameEvent, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -336,6 +392,93 @@ function AdminPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </section>
+        {/* RESOLVE GAMES */}
+        <section className="mt-12">
+          <h2 className="mb-2 text-2xl font-extrabold">Resolve Games</h2>
+          <p className="mb-5 text-sm text-zinc-400">
+            Set the outcome for a game to settle all pending bets.
+          </p>
+
+          {resolveError && (
+            <div className="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-red-400">
+              {resolveError}
+            </div>
+          )}
+          {resolveSuccess && (
+            <div className="mb-4 rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-3 text-green-400">
+              {resolveSuccess}
+            </div>
+          )}
+
+          {gamesLoading ? (
+            <p className="text-zinc-400">Loading games...</p>
+          ) : games.filter(g => g.status !== 'finished' && g.status !== 'cancelled').length === 0 ? (
+            <p className="text-zinc-400">No unresolved games.</p>
+          ) : (
+            <div className="space-y-4">
+              {games
+                .filter(g => g.status !== 'finished' && g.status !== 'cancelled')
+                .map(game => (
+                  <div key={game._id} className="rounded-3xl border border-zinc-800 bg-[#14161d] px-6 py-5">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div>
+                        <p className="text-xl font-bold">
+                          {game.homeTeam} <span className="text-zinc-500">vs</span> {game.awayTeam}
+                        </p>
+                        <p className="mt-1 text-sm text-zinc-400">
+                          Closes: {new Date(game.bettingClosesAt).toLocaleString()}
+                        </p>
+                        <span className={`mt-1 inline-block rounded-full px-3 py-0.5 text-xs font-semibold ${
+                          game.status === 'live'
+                            ? 'bg-yellow-500/15 text-yellow-400'
+                            : 'bg-zinc-700/40 text-zinc-400'
+                        }`}>
+                          {game.status}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        {resolvingId === game._id ? (
+                          <div className="flex items-center gap-2">
+                            <select
+                              value={resolveWinner}
+                              onChange={e => setResolveWinner(e.target.value as any)}
+                              className="rounded-xl border border-zinc-700 bg-[#181b22] px-3 py-2 text-sm text-white outline-none focus:border-yellow-400"
+                            >
+                              <option value="">Pick winner…</option>
+                              <option value="home">{game.homeTeam} wins</option>
+                              <option value="away">{game.awayTeam} wins</option>
+                              <option value="tie">Tie</option>
+                            </select>
+                            <button
+                              disabled={!resolveWinner}
+                              onClick={() => handleResolveGame(game._id)}
+                              className="rounded-xl bg-yellow-400 px-4 py-2 text-sm font-bold text-black hover:bg-yellow-500 transition disabled:opacity-40"
+                            >
+                              Confirm
+                            </button>
+                            <button
+                              onClick={() => { setResolvingId(null); setResolveWinner('') }}
+                              className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-400 hover:border-white transition"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => { setResolvingId(game._id); setResolveWinner(''); setResolveError(null); setResolveSuccess(null) }}
+                            className="rounded-xl border border-yellow-500/40 bg-yellow-500/10 px-4 py-2 text-sm font-semibold text-yellow-400 hover:bg-yellow-500/20 transition"
+                          >
+                            Set Result
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
             </div>
           )}
         </section>

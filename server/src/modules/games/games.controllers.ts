@@ -161,7 +161,12 @@ export const endGame = async (req: AuthenticatedRequest, res: Response) => {
             return res.status(400).json({ message: "Game ID is required" });
         }
 
-        await gameOver(id);
+        const { winner } = req.body as { winner?: string };
+        if (!winner || !['home', 'away', 'tie'].includes(winner)) {
+            return res.status(400).json({ message: "winner is required: 'home', 'away', or 'tie'" });
+        }
+
+        await gameOver(id, winner as 'home' | 'away' | 'tie');
 
         return res.status(200).json({ message: "Game ended successfully" });
 

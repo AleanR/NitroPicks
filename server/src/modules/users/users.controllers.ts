@@ -28,7 +28,7 @@ try {
 const isAdminUser = async (req: AuthenticatedRequest): Promise<boolean> => {
     if (!req.user) return false;
     const user = await getUserById(req.user.id);
-    return user?.username === 'admin';
+    return user?.role === 'admin';
 };
 
 
@@ -64,7 +64,7 @@ export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) =
             return res.status(404).json({ message: "User not found" });
         }
 
-        const isAdmin = user.username === 'admin';
+        const isAdmin = user.role === 'admin';
         return res.status(200).json({ ...user.toObject(), isAdmin });
     } catch (error) {
         console.log(error);
