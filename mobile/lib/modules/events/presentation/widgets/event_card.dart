@@ -84,21 +84,19 @@ class _EventCardState extends State<EventCard> {
     }
   }
 
+  static const _green  = Color(0xFF22C55E);
+  static const _amber  = Color(0xFFF59E0B);
+  static const _blue   = Color(0xFF818CF8);
+  static const _grey   = Color(0xFF6B7280);
+  static const _red    = Color(0xFFEF4444);
+
   Color get _borderColor {
-    if (_hasResult) {
-      return widget.userWon! ? const Color(0xFF22C55E) : const Color(0xFFEF4444);
-    }
-    switch (widget.event.computedStatus) {
-      case EventStatus.upcoming:
-        return const Color(0xFF6B7280); // grey — not open yet
-      case EventStatus.live:
-        return _isClosing
-            ? const Color(0xFFF59E0B) // amber — closing soon
-            : const Color(0xFF22C55E); // green — open
-      case EventStatus.finished:
-        return const Color(0xFF4B5563); // grey — closed
-      case EventStatus.cancelled:
-        return const Color(0xFFEF4444);
+    if (_hasResult) return widget.userWon! ? _green : _red;
+    if (widget.event.computedStatus == EventStatus.cancelled) return _red;
+    switch (widget.event.gameDayStatus) {
+      case GameDayStatus.upcoming: return _blue;
+      case GameDayStatus.today:    return _isClosing ? _amber : _green;
+      case GameDayStatus.past:     return _grey;
     }
   }
 
@@ -108,45 +106,39 @@ class _EventCardState extends State<EventCard> {
     return const Color(0xFF111318);
   }
 
-  /// Bet status label: Open | Closing in X min | Closed
-  String get _betStatusLabel {
-    if (_hasResult) return widget.userWon! ? 'Won' : 'Lost';
-    if (widget.event.computedStatus == EventStatus.cancelled) return 'Cancelled';
-    if (widget.event.computedStatus == EventStatus.finished ||
-        widget.event.gameDayStatus == GameDayStatus.past) return 'Closed';
-    if (_isClosing) {
-      final r = _remaining!;
-      final minLeft = (r.inSeconds + 59) ~/ 60;
-      return 'Closing in $minLeft min';
+  /// Builds the badge(s) shown in the top-right of the card.
+  ///
+  /// Upcoming  → single blue  "Upcoming"
+  /// Today     → single green "Open"  OR  amber "Closing in X min"
+  /// Past      → grey "Closed"   (no second badge needed)
+  /// Cancelled → red  "Cancelled"
+  /// Won/Lost  → result colour
+  Widget _buildBadges() {
+    if (_hasResult) {
+      return _StatusBadge(
+        label: widget.userWon! ? 'Won' : 'Lost',
+        color: widget.userWon! ? _green : _red,
+      );
     }
-    return 'Open';
-  }
-
-  /// Game day label: Upcoming | Today | Past
-  String get _gameDayLabel {
+    if (widget.event.computedStatus == EventStatus.cancelled) {
+      return _StatusBadge(label: 'Cancelled', color: _red);
+    }
     switch (widget.event.gameDayStatus) {
       case GameDayStatus.upcoming:
-        return 'Upcoming';
+        return _StatusBadge(label: 'Upcoming', color: _blue);
       case GameDayStatus.today:
-        return 'Today';
+        if (_isClosing) {
+          final minLeft = (_remaining!.inSeconds + 59) ~/ 60;
+          return _StatusBadge(label: 'Closing in $minLeft min', color: _amber);
+        }
+        return _StatusBadge(label: 'Open', color: _green);
       case GameDayStatus.past:
-        return 'Past';
-    }
-  }
-
-  Color get _gameDayColor {
-    switch (widget.event.gameDayStatus) {
-      case GameDayStatus.upcoming:
-        return const Color(0xFF818CF8); // indigo
-      case GameDayStatus.today:
-        return const Color(0xFF38BDF8); // sky blue
-      case GameDayStatus.past:
-        return const Color(0xFF6B7280); // grey
+        return _StatusBadge(label: 'Closed', color: _grey);
     }
   }
 
   String get _dateLabel {
-    final d = widget.event.bettingClosesAt; // game starts ≈ when betting closes
+    final d = widget.event.bettingClosesAt.toLocal(); // game starts ≈ when betting closes
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final eventDay = DateTime(d.year, d.month, d.day);
@@ -207,9 +199,7 @@ class _EventCardState extends State<EventCard> {
                   ),
                 ),
                 const Spacer(),
-                _StatusBadge(label: _gameDayLabel, color: _gameDayColor),
-                const SizedBox(width: 6),
-                _StatusBadge(label: _betStatusLabel, color: accent),
+                _buildBadges(),
               ],
             ),
             const SizedBox(height: 10),

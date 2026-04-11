@@ -52,11 +52,16 @@ async function seed() {
     await mongoose.connect(uri);
     console.log('Connected to MongoDB');
 
+    // Wipe all existing games so the list is clean for testing
+    const { deletedCount } = await Game.deleteMany({});
+    console.log(`Cleared ${deletedCount} existing game(s).\n`);
+
     const now = new Date();
+    console.log(`Seeding relative to: ${now.toLocaleString()}\n`);
 
     const games = [
         {
-            label: 'OPEN (today, closes in 4 h)',
+            label: '🟢 OPEN — today, betting closes in 90 min',
             doc: {
                 sport: 'Basketball',
                 homeTeam: 'UCF Knights',
@@ -66,12 +71,12 @@ async function seed() {
                 totalBetAmountHome: 100,
                 totalBetAmountAway: 100,
                 betPool: 200,
-                bettingOpensAt:  new Date(now.getTime() - hours(2)),
-                bettingClosesAt: new Date(now.getTime() + hours(4)),
+                bettingOpensAt:  new Date(now.getTime() - hours(3)),
+                bettingClosesAt: new Date(now.getTime() + mins(90)),
             },
         },
         {
-            label: 'CLOSING (today, closes in ~9 min)',
+            label: '🟡 CLOSING — today, betting closes in 8 min',
             doc: {
                 sport: 'Baseball',
                 homeTeam: 'UCF Knights',
@@ -81,12 +86,12 @@ async function seed() {
                 totalBetAmountHome: 100,
                 totalBetAmountAway: 100,
                 betPool: 200,
-                bettingOpensAt:  new Date(now.getTime() - hours(3)),
-                bettingClosesAt: new Date(now.getTime() + mins(9)),
+                bettingOpensAt:  new Date(now.getTime() - hours(4)),
+                bettingClosesAt: new Date(now.getTime() + mins(8)),
             },
         },
         {
-            label: 'CLOSED / PAST (game started 2 h ago)',
+            label: '⚫ CLOSED / PAST — game started 1 h ago',
             doc: {
                 sport: 'Softball',
                 homeTeam: 'UCF Knights',
@@ -96,12 +101,12 @@ async function seed() {
                 totalBetAmountHome: 100,
                 totalBetAmountAway: 100,
                 betPool: 200,
-                bettingOpensAt:  new Date(now.getTime() - hours(5)),
-                bettingClosesAt: new Date(now.getTime() - hours(2)),
+                bettingOpensAt:  new Date(now.getTime() - hours(4)),
+                bettingClosesAt: new Date(now.getTime() - hours(1)),
             },
         },
         {
-            label: 'UPCOMING (game is tomorrow)',
+            label: '🔵 UPCOMING — game tomorrow afternoon',
             doc: {
                 sport: "Women's Tennis",
                 homeTeam: 'UCF Knights',
@@ -111,8 +116,23 @@ async function seed() {
                 totalBetAmountHome: 100,
                 totalBetAmountAway: 100,
                 betPool: 200,
+                bettingOpensAt:  new Date(now.getTime() - hours(2)),
+                bettingClosesAt: new Date(now.getTime() + days(1) + hours(4)),
+            },
+        },
+        {
+            label: '🔵 UPCOMING — game in 2 days',
+            doc: {
+                sport: 'Baseball',
+                homeTeam: 'UCF Knights',
+                awayTeam: 'Kansas Jayhawks',
+                homeWin: { label: 'UCF Knights Win', odds: INIT_ODDS },
+                awayWin: { label: 'Kansas Jayhawks Win', odds: INIT_ODDS },
+                totalBetAmountHome: 100,
+                totalBetAmountAway: 100,
+                betPool: 200,
                 bettingOpensAt:  new Date(now.getTime() - hours(1)),
-                bettingClosesAt: new Date(now.getTime() + days(1) + hours(6)),
+                bettingClosesAt: new Date(now.getTime() + days(2) + hours(2)),
             },
         },
     ];

@@ -70,9 +70,11 @@ class EventModel {
   GameDayStatus get gameDayStatus {
     final now = DateTime.now();
     if (now.isAfter(bettingClosesAt)) return GameDayStatus.past;
-    final gameDay = DateTime(
-        bettingClosesAt.year, bettingClosesAt.month, bettingClosesAt.day);
-    final today = DateTime(now.year, now.month, now.day);
+    // Convert to local time before comparing calendar dates so users in
+    // non-UTC timezones see the correct day label.
+    final closeLocal = bettingClosesAt.toLocal();
+    final gameDay = DateTime(closeLocal.year, closeLocal.month, closeLocal.day);
+    final today   = DateTime(now.year, now.month, now.day);
     if (gameDay.isAtSameMomentAs(today)) return GameDayStatus.today;
     return GameDayStatus.upcoming;
   }
