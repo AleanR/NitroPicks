@@ -41,22 +41,28 @@ class EventModel {
     required this.status,
   });
 
-  /// Mirrors the backend's computedStatus virtual
+  /// The effective close time is the earlier of bettingClosesAt and
+  /// bettingOpensAt + 6 hours.  This guards against games where bettingClosesAt
+  /// was set far in the future by mistake — no sporting event lasts >6 hours.
+  DateTime get _effectiveClose {
+    final cap = bettingOpensAt.add(const Duration(hours: 6));
+    return bettingClosesAt.isBefore(cap) ? bettingClosesAt : cap;
+  }
+
+  /// Mirrors the backend's computedStatus virtual (with the 6-hour cap)
   EventStatus get computedStatus {
     final now = DateTime.now();
     if (status == EventStatus.cancelled) return EventStatus.cancelled;
     if (now.isBefore(bettingOpensAt)) return EventStatus.upcoming;
-    if (now.isAfter(bettingOpensAt) && now.isBefore(bettingClosesAt)) {
-      return EventStatus.live;
-    }
+    if (now.isBefore(_effectiveClose)) return EventStatus.live;
     return EventStatus.finished;
   }
 
   /// Time remaining in the betting window (null if not live)
   Duration? get timeUntilClose {
     final now = DateTime.now();
-    if (now.isBefore(bettingClosesAt)) {
-      return bettingClosesAt.difference(now);
+    if (now.isBefore(_effectiveClose)) {
+      return _effectiveClose.difference(now);
     }
     return null;
   }
@@ -74,7 +80,7 @@ class EventModel {
       totalBetAmountAway: (json['totalBetAmountAway'] as num?)?.toDouble() ?? 100,
       betPool: (json['betPool'] as num?)?.toDouble() ?? 200,
       homeWin: TeamOdds.fromJson((json['homeWin'] as Map<String, dynamic>?) ?? {'label': '', 'odds': 1.8}),
-      awayWin: TeamOdds.fromJson((json['awayWin'] as Map<String, dynamic>?) ?? {'label': '', 'odds': 1.8}), 
+      awayWin: TeamOdds.fromJson((json['awayWin'] as Map<String, dynamic>?) ?? {'label': '', 'odds': 1.8}),
       scoreHome: (json['scoreHome'] as num?)?.toInt() ?? 0,
       scoreAway: (json['scoreAway'] as num?)?.toInt() ?? 0,
       bettingOpensAt: DateTime.parse(json['bettingOpensAt'] as String),

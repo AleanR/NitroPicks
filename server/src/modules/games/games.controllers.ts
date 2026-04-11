@@ -56,7 +56,7 @@ export const searchGames = async (req: Request, res: Response) => {
 
         // Limit searches by 7 results per page
         const games = await GameModel.find(filter)
-                .select('homeTeam awayTeam status homeWin awayWin betPool bettingOpensAt bettingClosesAt')
+                .select('homeTeam awayTeam status homeWin awayWin betPool numBettorsHome numBettorsAway totalBetAmountHome totalBetAmountAway bettingOpensAt bettingClosesAt')
                 .limit(7).skip(skip);
 
         return res.status(200).json({
@@ -98,14 +98,8 @@ export const addGame = async (req: AuthenticatedRequest, res: Response) => {
             return res.status(400).json({ message: "Invalid betting window" });
         }
 
-        // Calculating initial odds
-        const margin = 0.1; // fixed 10% house margin
-        const initialProb = 0.5;    // Each game has 50% probability
-
-        const initOdds = 1 / initialProb * (1 - margin);
-        
-
-        // Initialize odds for home & away teams
+        // Initialize odds: 50/50 with 10% house margin → 1/(0.5)*(1-0.1) = 1.80
+        const initOdds = 1.8;
         const homeWin = { "label": `${homeTeam.split(' ')[1]} Win`, "odds": initOdds };
         const awayWin = { "label": `${awayTeam.split(' ')[1]} Win`, "odds": initOdds };
 
@@ -226,8 +220,16 @@ export const deleteGame = async (req: AuthenticatedRequest, res: Response) => {
 // PUBLIC — list upcoming/live games for frontend markets page
 export const getPublicGames = async (req: Request, res: Response) => {
     try {
-        const games = await GameModel.find({ status: { $in: ['upcoming', 'live'] } })
-            .select('homeTeam awayTeam homeWin awayWin betPool bettingOpensAt bettingClosesAt status')
+        const now = new Date();
+        // Exclude cancelled games and games whose bettingOpensAt was more than 6 hours ago
+        // (guards against games with incorrectly distant bettingClosesAt dates)
+        const sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+        const games = await GameModel.find({
+            status: { $ne: 'cancelled' },
+            bettingOpensAt: { $gte: sixHoursAgo },  // opened in the last 6 h OR still upcoming
+            bettingClosesAt: { $gt: now },            // betting window hasn't closed
+        })
+            .select('homeTeam awayTeam homeWin awayWin betPool numBettorsHome numBettorsAway totalBetAmountHome totalBetAmountAway bettingOpensAt bettingClosesAt status')
             .sort({ bettingOpensAt: 1 });
         return res.status(200).json(games);
     } catch (error) {

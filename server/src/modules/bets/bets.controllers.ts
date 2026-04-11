@@ -80,9 +80,24 @@ export const addBet = async (req: AuthenticatedRequest, res: Response) => {
             message: "Bet created successfully",
             bet
         })
-        
-    } catch (error) {
+
+    } catch (error: any) {
         console.log(error);
+        // Surface business-logic errors as 400 so the client sees the real message
+        const businessErrors = [
+            'User not found',
+            'Insufficient funds',
+            'Stake exceeds 30%',
+            'Invalid bet data',
+            'Game not found',
+            'Game is cancelled',
+            'Betting window closed',
+            'Game odds data is missing',
+        ];
+        const msg: string = error?.message ?? '';
+        if (businessErrors.some((e) => msg.includes(e))) {
+            return res.status(400).json({ message: msg });
+        }
         return res.status(500).json({ message: "Internal server error" });
     }
 }

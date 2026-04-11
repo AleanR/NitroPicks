@@ -38,8 +38,14 @@ class _EventCardState extends State<EventCard> {
       widget.event.computedStatus == EventStatus.cancelled;
 
   bool get _isBettable =>
-      widget.event.computedStatus == EventStatus.upcoming ||
       widget.event.computedStatus == EventStatus.live;
+
+  /// True when the betting window has < 10 minutes remaining.
+  bool get _isClosing {
+    if (widget.event.computedStatus != EventStatus.live) return false;
+    final r = _remaining;
+    return r != null && r.inSeconds <= 600;
+  }
 
   bool get _hasResult =>
       _isTerminal && widget.userPickedTeam != null && widget.userWon != null;
@@ -83,13 +89,11 @@ class _EventCardState extends State<EventCard> {
     }
     switch (widget.event.computedStatus) {
       case EventStatus.upcoming:
-        return const Color(0xFF3B82F6); // blue — coming soon
+        return const Color(0xFF6B7280); // grey — not open yet
       case EventStatus.live:
-        final r = _remaining;
-        if (r != null && r.inMinutes < 60) {
-          return const Color(0xFFF97316); // orange — closing soon
-        }
-        return const Color(0xFFFBBF24); // gold — open
+        return _isClosing
+            ? const Color(0xFFF59E0B) // amber — closing soon
+            : const Color(0xFF22C55E); // green — open
       case EventStatus.finished:
         return const Color(0xFF4B5563); // grey — closed
       case EventStatus.cancelled:
@@ -107,10 +111,14 @@ class _EventCardState extends State<EventCard> {
     if (_hasResult) return widget.userWon! ? 'Won' : 'Lost';
     switch (widget.event.computedStatus) {
       case EventStatus.upcoming:
-        return 'Soon';
+        return 'Upcoming';
       case EventStatus.live:
-        final r = _remaining;
-        if (r != null && r.inMinutes < 60) return 'Closing';
+        if (_isClosing) {
+          final r = _remaining!;
+          // Ceiling division: e.g. 9m 30s → "Closing in 10 min"
+          final minLeft = (r.inSeconds + 59) ~/ 60;
+          return 'Closing in $minLeft min';
+        }
         return 'Open';
       case EventStatus.finished:
         return 'Closed';
@@ -228,10 +236,10 @@ class _EventCardState extends State<EventCard> {
             // Footer
             Row(
               children: [
-                if (_remaining != null && !_isTerminal)
+                if (_isClosing && _remaining != null)
                   Text(_countdownLabel,
                       style: GoogleFonts.dmSans(
-                          fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF6B7280))),
+                          fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFFF59E0B))),
                 const Spacer(),
                 Text('${widget.event.totalBettors} bets placed',
                     style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFF6B7280))),

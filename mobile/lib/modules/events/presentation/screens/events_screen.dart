@@ -80,22 +80,52 @@ class _EventsScreenState extends State<EventsScreen>
 
   // ── Filtering ──────────────────────────────────────────────────────────────
 
+  // Returns true when an event's betting window closes within 10 minutes.
+  bool _isClosing(EventModel e) {
+    if (e.computedStatus != EventStatus.live) return false;
+    final r = e.timeUntilClose;
+    return r != null && r.inSeconds <= 600;
+  }
+
+  // Sort priority: Closing (0) > Open (1) > Upcoming (2) > Closed (3)
+  int _sortPriority(EventModel e) {
+    if (_isClosing(e)) return 0;
+    switch (e.computedStatus) {
+      case EventStatus.live:
+        return 1;
+      case EventStatus.upcoming:
+        return 2;
+      default:
+        return 3;
+    }
+  }
+
   List<EventModel> get _filteredEvents {
-    var events = _eventsController.events;
+    var events = List<EventModel>.from(_eventsController.events);
 
     if (_selectedTab != 0) {
-      final statusMap = {
-        1: EventStatus.upcoming,
-        2: EventStatus.live,
-        3: EventStatus.finished,
-      };
-      final target = statusMap[_selectedTab];
-      if (target != null) {
-        events = events
-            .where((e) => e.computedStatus == target)
-            .toList();
-      }
+      events = events.where((e) {
+        switch (_selectedTab) {
+          case 1: // 'Open' — live and NOT closing
+            return e.computedStatus == EventStatus.live && !_isClosing(e);
+          case 2: // 'Closing' — live and within 10 min
+            return _isClosing(e);
+          case 3: // 'Closed'
+            return e.computedStatus == EventStatus.finished ||
+                e.computedStatus == EventStatus.cancelled;
+          default:
+            return true;
+        }
+      }).toList();
     }
+
+    // Sort: Closing → Open → Upcoming → Closed, then by bettingOpensAt within same group
+    events.sort((a, b) {
+      final pa = _sortPriority(a);
+      final pb = _sortPriority(b);
+      if (pa != pb) return pa.compareTo(pb);
+      return a.bettingOpensAt.compareTo(b.bettingOpensAt);
+    });
 
     return events;
   }
@@ -138,6 +168,9 @@ class _EventsScreenState extends State<EventsScreen>
     final nextBalance = widget.knightPointsListenable.value - stake.round();
     widget.onKnightPointsChanged(nextBalance);
     _detailController.reset();
+
+    // Refresh events so the updated odds and bettor count are shown immediately
+    _eventsController.loadEvents(query: _query);
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────
