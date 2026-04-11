@@ -138,7 +138,7 @@ class _EventCardState extends State<EventCard> {
   }
 
   String get _dateLabel {
-    final d = widget.event.bettingClosesAt; // game starts ≈ when betting closes
+    final d = widget.event.bettingClosesAt.toLocal(); // game starts ≈ when betting closes
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final eventDay = DateTime(d.year, d.month, d.day);
