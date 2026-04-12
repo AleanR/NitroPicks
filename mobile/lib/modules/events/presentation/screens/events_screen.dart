@@ -42,11 +42,15 @@ class _EventsScreenState extends State<EventsScreen>
 
   late final EventsController _eventsController;
   late final EventDetailController _detailController;
+  late final BetRepository _betRepo;
 
   int _selectedTab = 0;
   String _query = '';
   final _searchController = TextEditingController();
   late final AnimationController _listAnimCtrl;
+
+  /// gameId → 'home' | 'away' for all active (pending) single bets.
+  Map<String, String> _placedBets = {};
 
   @override
   void initState() {
@@ -56,20 +60,39 @@ class _EventsScreenState extends State<EventsScreen>
     final eventRepo = EventRepository(
       service: EventApiService(token: widget.authToken),
     );
-    final betRepo = BetRepository(
+    _betRepo = BetRepository(
       service: BetApiService(token: widget.authToken),
     );
 
     _eventsController = EventsController(repository: eventRepo);
-    _detailController = EventDetailController(betRepository: betRepo);
+    _detailController = EventDetailController(betRepository: _betRepo);
 
     _listAnimCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
     )..forward();
 
-    // Load events on mount
+    // Load events and placed bets on mount
     _eventsController.loadEvents();
+    _loadPlacedBets();
+  }
+
+  Future<void> _loadPlacedBets() async {
+    try {
+      final bets = await _betRepo.getMyBets();
+      final map = <String, String>{};
+      for (final bet in bets) {
+        if (!bet.isActive) continue;
+        for (final leg in bet.legs) {
+          if (leg.gameId.isNotEmpty && leg.result == 'pending') {
+            map[leg.gameId] = leg.team;
+          }
+        }
+      }
+      if (mounted) setState(() => _placedBets = map);
+    } catch (_) {
+      // Non-critical — fail silently, cards just won't show prior bets
+    }
   }
 
   @override
@@ -175,8 +198,9 @@ class _EventsScreenState extends State<EventsScreen>
     // Notify My Bets screen to reload
     widget.onBetPlaced?.call();
 
-    // Refresh events so the updated odds and bettor count are shown immediately
+    // Refresh events and placed-bets map
     _eventsController.loadEvents(query: _query);
+    _loadPlacedBets();
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────
@@ -224,6 +248,7 @@ class _EventsScreenState extends State<EventsScreen>
                     events: events,
                     animCtrl: _listAnimCtrl,
                     onSideSelected: _onSideSelected,
+                    placedBets: _placedBets,
                   );
                 },
               ),
@@ -313,11 +338,13 @@ class _EventsList extends StatelessWidget {
   final List<EventModel> events;
   final AnimationController animCtrl;
   final void Function(EventModel, String, double) onSideSelected;
+  final Map<String, String> placedBets;
 
   const _EventsList({
     required this.events,
     required this.animCtrl,
     required this.onSideSelected,
+    required this.placedBets,
   });
 
   @override
@@ -351,6 +378,7 @@ class _EventsList extends StatelessWidget {
             event: events[index],
             onSideSelected: (team, odds) =>
                 onSideSelected(events[index], team, odds),
+            userPickedTeam: placedBets[events[index].id],
           ),
         );
       },
@@ -485,7 +513,7 @@ class _EmptyState extends StatelessWidget {
           Icon(
             query.isNotEmpty
                 ? Icons.search_off_rounded
-                : Icons.sports_rounded,
+                : Icons.bolt_rounded,
             color: AppColors.textMuted,
             size: 48,
           ),
