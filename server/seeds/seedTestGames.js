@@ -67,20 +67,28 @@ function game(sport, home, away, closesFromNow) {
 
 const testGames = [
     // ── Upcoming (tomorrow / day after) ──────────────────────────────────────
-    game('Basketball', 'UCF Knights', 'Florida Gators',    days(1) + hours(6)),
-    game('Baseball',   'UCF Knights', 'FSU Seminoles',     days(2) + hours(2)),
+    game('Basketball', 'UCF Knights', 'Florida Gators',       days(1) + hours(6)),
+    game('Baseball',   'UCF Knights', 'FSU Seminoles',        days(2) + hours(2)),
+    game('Soccer',     'UCF Knights', 'FIU Panthers',         days(1) + hours(10)),
 
     // ── Open today ────────────────────────────────────────────────────────────
-    game('Softball',   'UCF Knights', 'Miami Hurricanes',  hours(5)),
-    game('Basketball', 'UCF Knights', 'Stetson Hatters',   hours(8)),
+    game('Softball',   'UCF Knights', 'Miami Hurricanes',     hours(5)),
+    game('Basketball', 'UCF Knights', 'Stetson Hatters',      hours(8)),
+    game('Baseball',   'UCF Knights', 'Bethune-Cookman',      hours(4)),
+    game('Soccer',     'UCF Knights', 'Florida Atlantic',     hours(6)),
+    game('Volleyball', 'UCF Knights', 'Tulane Green Wave',    hours(3)),
 
     // ── Closing (within 10 min) ───────────────────────────────────────────────
-    game('Baseball',   'UCF Knights', 'South Florida Bulls', mins(7)),
+    game('Baseball',   'UCF Knights', 'South Florida Bulls',  mins(7)),
 
     // ── Already closed — resolvable via Admin tab ─────────────────────────────
-    game('Basketball', 'UCF Knights', 'Cincinnati Bearcats', -hours(1)),
-    game('Softball',   'UCF Knights', 'Kansas Jayhawks',     -hours(3)),
-    game('Baseball',   'UCF Knights', 'Baylor Bears',        -hours(5)),
+    game('Basketball', 'UCF Knights', 'Cincinnati Bearcats',  -hours(1)),
+    game('Softball',   'UCF Knights', 'Kansas Jayhawks',      -hours(3)),
+    game('Baseball',   'UCF Knights', 'Baylor Bears',         -hours(5)),
+    game('Soccer',     'UCF Knights', 'Memphis Tigers',       -hours(2)),
+    game('Volleyball', 'UCF Knights', 'East Carolina Pirates',-hours(4)),
+    game('Basketball', 'UCF Knights', 'Temple Owls',          -hours(6)),
+    game('Baseball',   'UCF Knights', 'Wichita State Shockers',-hours(8)),
 ];
 
 async function seed() {

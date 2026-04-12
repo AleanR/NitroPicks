@@ -73,7 +73,7 @@ class _EventCardState extends State<EventCard> {
   }
 
   void _selectSide(int side) {
-    if (_isTerminal || !_isBettable) return;
+    if (_isTerminal || !_isBettable || widget.userPickedTeam != null) return;
     HapticFeedback.selectionClick();
     setState(() => _selectedSide = _selectedSide == side ? -1 : side);
     if (_selectedSide != -1) {
@@ -224,7 +224,7 @@ class _EventCardState extends State<EventCard> {
                     teamName: widget.event.homeTeam,
                     oddsLabel: widget.event.homeWin.displayOdds,
                     isSelected: _selectedSide == 0,
-                    isDisabled: _isTerminal || !_isBettable,
+                    isDisabled: _isTerminal || !_isBettable || widget.userPickedTeam != null,
                     isUserPick: widget.userPickedTeam == 'home',
                     userWon: _hasResult ? widget.userWon : null,
                     onTap: () => _selectSide(0),
@@ -236,7 +236,7 @@ class _EventCardState extends State<EventCard> {
                     teamName: widget.event.awayTeam,
                     oddsLabel: widget.event.awayWin.displayOdds,
                     isSelected: _selectedSide == 1,
-                    isDisabled: _isTerminal || !_isBettable,
+                    isDisabled: _isTerminal || !_isBettable || widget.userPickedTeam != null,
                     isUserPick: widget.userPickedTeam == 'away',
                     userWon: _hasResult ? widget.userWon : null,
                     onTap: () => _selectSide(1),
@@ -320,6 +320,9 @@ class _OddsChip extends StatelessWidget {
     } else if (isUserPick && userWon == false) {
       borderColor = red; textColor = red;
       bg = red.withValues(alpha: 0.08); subLabel = 'Your pick';
+    } else if (isUserPick && userWon == null) {
+      borderColor = gold.withValues(alpha: 0.7); textColor = gold;
+      bg = gold.withValues(alpha: 0.1); subLabel = 'Your bet';
     } else if (isSelected) {
       borderColor = gold.withValues(alpha: 0.7); textColor = gold;
       bg = gold.withValues(alpha: 0.12);
