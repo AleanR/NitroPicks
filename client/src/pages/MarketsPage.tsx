@@ -35,7 +35,7 @@ function MarketsPage() {
   useEffect(() => {
     const fetchGames = async () => {
       try {
-        const res = await fetch('/api/games')
+        const res = await fetch('/api/events')
         if (res.ok) setGames(await res.json())
       } catch {
         // silently fall back to empty

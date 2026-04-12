@@ -9,7 +9,10 @@ import router from './router';
 import dotenv from 'dotenv';
 import path from 'path';
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+if (!process.env.MONGO_DB_URL && !process.env.MONGODB_URI) {
+  dotenv.config(); // fallback to server-local .env
+}
 
 const app = express();
 
@@ -52,7 +55,9 @@ server.listen(PORT, () => {
 });
 
 mongoose.Promise = Promise;
-mongoose.connect(process.env.MONGO_DB_URL!);
+const mongoUri = process.env.MONGO_DB_URL || process.env.MONGO_DB_URI || process.env.MONGODB_URI;
+if (!mongoUri) throw new Error('No MongoDB URI found in environment variables');
+mongoose.connect(mongoUri);
 
 mongoose.connection.on('error', (error: Error) => console.log(error));
 
