@@ -81,11 +81,19 @@ export const redeemReward = async (req: AuthenticatedRequest, res: Response) => 
             return res.status(400).json({ message: 'Not enough Knight Points' });
         }
 
-        // Deduct points, increment redemption count
+        // Deduct points, increment redemption count, save redemption record
         user.knightPoints -= reward.pointsCost;
         reward.quantityRedeemed += 1;
 
         const voucherCode = generateVoucherCode();
+
+        (user as any).redemptions.push({
+            rewardId: reward._id,
+            rewardName: reward.name,
+            voucherCode,
+            pointsCost: reward.pointsCost,
+            redeemedAt: new Date(),
+        });
 
         await Promise.all([user.save(), reward.save()]);
 

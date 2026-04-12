@@ -303,6 +303,25 @@ export const adminDeleteEvent = async (req: AuthenticatedRequest, res: Response)
     }
 }
 
+export const getRedemptions = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+        if (req.user.id !== id) return res.status(403).json({ message: 'Forbidden' });
+
+        const user = await getUserById(id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const redemptions = ((user as any).redemptions ?? [])
+            .sort((a: any, b: any) => new Date(b.redeemedAt).getTime() - new Date(a.redeemedAt).getTime());
+
+        return res.status(200).json(redemptions);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 export const earnPoints = async (req: AuthenticatedRequest, res: Response) => {
     try {
         if (!req.user) return res.status(401).json({ message: "Not authenticated" });
