@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../domain/redemption.dart';
 import '../domain/reward.dart';
 
 class RewardsApiService {
@@ -36,5 +37,17 @@ class RewardsApiService {
     final body = jsonDecode(res.body) as Map<String, dynamic>;
     if (res.statusCode == 200) return body;
     throw Exception(body['message']?.toString() ?? 'Redemption failed');
+  }
+
+  Future<List<Redemption>> getRedemptions({required String userId}) async {
+    final res = await http.get(
+      Uri.parse('$_base/users/$userId/redemptions'),
+      headers: _headers,
+    );
+    if (res.statusCode == 200) {
+      final List data = jsonDecode(res.body);
+      return data.map((j) => Redemption.fromJson(j as Map<String, dynamic>)).toList();
+    }
+    throw Exception('Failed to load redemptions (${res.statusCode})');
   }
 }

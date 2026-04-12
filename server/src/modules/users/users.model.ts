@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
 
+const RedemptionSchema = new mongoose.Schema({
+    rewardId:    { type: mongoose.Schema.Types.ObjectId, ref: 'Reward', required: true },
+    rewardName:  { type: String, required: true },
+    voucherCode: { type: String, required: true },
+    pointsCost:  { type: Number, required: true },
+    redeemedAt:  { type: Date, default: Date.now },
+});
+
 const UserSchema = new mongoose.Schema({
     firstname: { type: String, required: true },
     lastname: { type: String, required: true },
@@ -17,7 +25,8 @@ const UserSchema = new mongoose.Schema({
         },
         required: true,
     },
-    role: { type: String, enum: ["user", "admin"], default: "user"}
+    role: { type: String, enum: ["user", "admin"], default: "user"},
+    redemptions: { type: [RedemptionSchema], default: [] },
 }, { timestamps: true });
 
 export const UserModel = mongoose.model('User', UserSchema);
