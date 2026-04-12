@@ -1,6 +1,20 @@
 const mongoose = require('mongoose');
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+
+const RewardSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    category: { type: String, required: true },
+    description: { type: String, required: true },
+    pointsCost: { type: Number, required: true },
+    quantityAvailable: { type: Number, required: true },
+    quantityRedeemed: { type: Number, default: 0 },
+    isActive: { type: Boolean, default: true },
+    eligibility: { type: String, default: '' },
+    redemptionInstructions: { type: String, default: '' },
+}, { timestamps: true });
+
+const Reward = mongoose.models.Reward || mongoose.model('Reward', RewardSchema);
 
 const rewards = [
     {

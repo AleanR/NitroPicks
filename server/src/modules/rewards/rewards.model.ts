@@ -12,4 +12,7 @@ const RewardSchema = new mongoose.Schema({
     redemptionInstructions: { type: String, default: '' },
 }, { timestamps: true });
 
-const Reward = mongoose.models.Reward || mongoose.model('Reward', RewardSchema);
+export const RewardModel = mongoose.model('Reward', RewardSchema);
+
+export const getActiveRewards = () => RewardModel.find({ isActive: true }).sort({ pointsCost: 1 });
+export const getRewardById = (id: string) => RewardModel.findById(id);

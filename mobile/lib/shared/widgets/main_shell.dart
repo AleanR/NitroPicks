@@ -16,6 +16,7 @@ import '../../modules/admin/presentation/screens/admin_screen.dart';
 import '../../modules/auth/domain/user.dart';
 import '../../modules/bets/presentation/screens/bets_screen.dart';
 import '../../modules/events/presentation/screens/events_screen.dart';
+import '../../modules/rewards/presentation/screens/rewards_screen.dart';
 
 class MainShell extends StatefulWidget {
   final String authToken;
@@ -66,7 +67,12 @@ class _MainShellState extends State<MainShell> {
         knightPointsListenable: _knightPoints,
         refreshTrigger: _betsRefreshTrigger,
       ),
-      _PlaceholderPage(label: 'Rewards', icon: Icons.card_giftcard_rounded),
+      RewardsScreen(
+        authToken: widget.authToken,
+        userId: widget.initialUser?.id ?? '',
+        knightPointsListenable: _knightPoints,
+        onKnightPointsChanged: _setKnightPoints,
+      ),
       AccountScreen(
         authToken: widget.authToken,
         initialUser: widget.initialUser,
@@ -75,7 +81,10 @@ class _MainShellState extends State<MainShell> {
         onSignOut: widget.onSignOut,
       ),
       if (_isAdmin)
-        AdminScreen(authToken: widget.authToken),
+        AdminScreen(
+          authToken: widget.authToken,
+          onGameResolved: () => _betsRefreshTrigger.value++,
+        ),
     ];
 
     _navItems = [

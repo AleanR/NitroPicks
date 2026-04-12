@@ -8,8 +8,9 @@ import '../../../../shared/theme/app_theme.dart';
 
 class AdminScreen extends StatefulWidget {
   final String authToken;
+  final VoidCallback? onGameResolved;
 
-  const AdminScreen({super.key, required this.authToken});
+  const AdminScreen({super.key, required this.authToken, this.onGameResolved});
 
   @override
   State<AdminScreen> createState() => _AdminScreenState();
@@ -86,6 +87,7 @@ class _AdminScreenState extends State<AdminScreen> {
           _resolvingId = null;
           _selectedWinner = '';
         });
+        widget.onGameResolved?.call();
         await _fetchGames();
       } else {
         final body = jsonDecode(res.body) as Map?;
