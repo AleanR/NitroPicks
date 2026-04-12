@@ -88,7 +88,7 @@ class _RewardsScreenState extends State<RewardsScreen> {
         rewardId: reward.id,
       );
       if (!mounted) return;
-      widget.onKnightPointsChanged(result['remainingKnightPoints'] as int);
+      widget.onKnightPointsChanged((result['remainingKnightPoints'] as num).toInt());
       await _VoucherSheet.show(
         context,
         rewardName: reward.name,
@@ -475,8 +475,8 @@ class _ConfirmSheet extends StatelessWidget {
             child: FilledButton(
               onPressed: () => Navigator.pop(context, true),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFFBBF24),
-                foregroundColor: Colors.black,
+                backgroundColor: const Color(0xFF22C55E),
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -487,10 +487,16 @@ class _ConfirmSheet extends StatelessWidget {
           const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
-            child: TextButton(
+            child: FilledButton(
               onPressed: () => Navigator.pop(context, false),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFEF4444),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
               child: Text('Cancel',
-                  style: GoogleFonts.dmSans(fontSize: 14, color: AppColors.textMuted)),
+                  style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w700)),
             ),
           ),
         ],
@@ -522,16 +528,11 @@ class _Row extends StatelessWidget {
 
 // ── Voucher sent bottom sheet ─────────────────────────────────────────────────
 
-class _VoucherSheet extends StatelessWidget {
+class _VoucherSheet extends StatefulWidget {
   final String rewardName;
   final String voucherCode;
-  final String userEmail;
 
-  const _VoucherSheet({
-    required this.rewardName,
-    required this.voucherCode,
-    required this.userEmail,
-  });
+  const _VoucherSheet({required this.rewardName, required this.voucherCode});
 
   static Future<void> show(BuildContext context, {
     required String rewardName,
@@ -543,12 +544,22 @@ class _VoucherSheet extends StatelessWidget {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       isDismissible: false,
-      builder: (_) => _VoucherSheet(
-        rewardName: rewardName,
-        voucherCode: voucherCode,
-        userEmail: userEmail,
-      ),
+      builder: (_) => _VoucherSheet(rewardName: rewardName, voucherCode: voucherCode),
     );
+  }
+
+  @override
+  State<_VoucherSheet> createState() => _VoucherSheetState();
+}
+
+class _VoucherSheetState extends State<_VoucherSheet> {
+  bool _copied = false;
+
+  void _copyCode() async {
+    await Clipboard.setData(ClipboardData(text: widget.voucherCode));
+    setState(() => _copied = true);
+    await Future.delayed(const Duration(seconds: 3));
+    if (mounted) setState(() => _copied = false);
   }
 
   @override
@@ -562,7 +573,6 @@ class _VoucherSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Success icon
           Container(
             width: 64, height: 64,
             decoration: BoxDecoration(
@@ -576,54 +586,66 @@ class _VoucherSheet extends StatelessWidget {
           Text('Voucher sent!',
               style: GoogleFonts.dmSans(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
           const SizedBox(height: 6),
-          Text('Emailed to your UCF address. Show this code at\n${rewardName}.',
+          Text('Emailed to your UCF address. Show this code at\n${widget.rewardName}.',
               textAlign: TextAlign.center,
               style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.textMuted, height: 1.4)),
           const SizedBox(height: 24),
           // Voucher code box
           GestureDetector(
-            onTap: () {
-              Clipboard.setData(ClipboardData(text: voucherCode));
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Code copied!', style: GoogleFonts.dmSans(fontSize: 13)),
-                  backgroundColor: const Color(0xFF1F2937),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            },
-            child: Container(
+            onTap: _copyCode,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 20),
               decoration: BoxDecoration(
-                color: const Color(0xFFFBBF24).withValues(alpha: 0.08),
+                color: _copied
+                    ? const Color(0xFF22C55E).withValues(alpha: 0.08)
+                    : const Color(0xFFFBBF24).withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFFBBF24).withValues(alpha: 0.5), width: 1.5),
+                border: Border.all(
+                  color: _copied
+                      ? const Color(0xFF22C55E).withValues(alpha: 0.5)
+                      : const Color(0xFFFBBF24).withValues(alpha: 0.5),
+                  width: 1.5,
+                ),
               ),
               child: Column(
                 children: [
                   Text('YOUR CODE',
                       style: GoogleFonts.dmSans(
                         fontSize: 11, fontWeight: FontWeight.w700,
-                        color: const Color(0xFFFBBF24).withValues(alpha: 0.6),
+                        color: _copied
+                            ? const Color(0xFF22C55E).withValues(alpha: 0.7)
+                            : const Color(0xFFFBBF24).withValues(alpha: 0.6),
                         letterSpacing: 1.5,
                       )),
                   const SizedBox(height: 6),
-                  Text(voucherCode,
+                  Text(widget.voucherCode,
                       style: GoogleFonts.dmSans(
                         fontSize: 28, fontWeight: FontWeight.w900,
-                        color: const Color(0xFFFBBF24), letterSpacing: 3,
+                        color: _copied ? const Color(0xFF22C55E) : const Color(0xFFFBBF24),
+                        letterSpacing: 3,
                       )),
                   const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.copy_rounded, size: 12, color: Color(0xFFFBBF24)),
+                      Icon(
+                        _copied ? Icons.check_circle_rounded : Icons.copy_rounded,
+                        size: 12,
+                        color: _copied ? const Color(0xFF22C55E) : const Color(0xFFFBBF24),
+                      ),
                       const SizedBox(width: 4),
-                      Text('Tap to copy',
-                          style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFFFBBF24).withValues(alpha: 0.6))),
+                      Text(
+                        _copied ? 'Successfully copied' : 'Tap to copy',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 11,
+                          fontWeight: _copied ? FontWeight.w700 : FontWeight.w500,
+                          color: _copied
+                              ? const Color(0xFF22C55E)
+                              : const Color(0xFFFBBF24).withValues(alpha: 0.6),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -636,16 +658,13 @@ class _VoucherSheet extends StatelessWidget {
             child: FilledButton(
               onPressed: () => Navigator.pop(context),
               style: FilledButton.styleFrom(
-                backgroundColor: AppColors.surfaceElevated,
-                foregroundColor: AppColors.textPrimary,
+                backgroundColor: const Color(0xFFFBBF24),
+                foregroundColor: Colors.black,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: AppColors.border),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: Text('Done',
-                  style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w700)),
+                  style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w800)),
             ),
           ),
         ],
