@@ -10,6 +10,7 @@ type User = {
   ucfID: string
   knightPoints: number
   createdAt: string
+  isVerified: boolean
 }
 
 type Props = {
