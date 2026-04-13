@@ -17,6 +17,7 @@ const UserProfilePage    = lazy(() => import('./pages/UserProfilePage'))
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage  = lazy(() => import('./pages/ResetPasswordPage'))
 const VerifyEmailPage    = lazy(() => import('./pages/VerifyEmailPage'))
+const BetHistoryPage     = lazy(() => import('./pages/BetHistoryPage'))
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
             <Route path="/admin"         element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
             <Route path="/earn-points"   element={<ProtectedRoute><EarnPointsPage /></ProtectedRoute>} />
             <Route path="/redeem-points" element={<ProtectedRoute><RedeemPointsPage /></ProtectedRoute>} />
+            <Route path="/bet-history"   element={<ProtectedRoute><BetHistoryPage /></ProtectedRoute>} />
           </Routes>
         </Suspense>
       </AuthProvider>
