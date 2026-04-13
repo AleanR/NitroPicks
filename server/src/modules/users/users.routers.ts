@@ -4,6 +4,7 @@ import {
     earnPoints,
     getAllUsers,
     getCurrentUser,
+    getLeaderboard,
     getRedemptions,
     searchUsers,
     updateUser,
@@ -20,5 +21,6 @@ export default (router: Router) => {
     router.post('/users/forgot-password', forgotPass);
     router.patch('/users/reset-password/:token', resetPass);
     router.get('/users/search', isAuthenticated, searchUsers);
+    router.get('/users/leaderboard', isAuthenticated, getLeaderboard);
     router.get('/users/:id/redemptions', isAuthenticated, getRedemptions);
 }
