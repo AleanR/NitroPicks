@@ -9,6 +9,7 @@ import '../../../auth/domain/user.dart';
 import '../../data/account_api_service.dart';
 import '../../domain/account.dart';
 import '../controllers/account_controller.dart';
+import 'leaderboard_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   final String authToken;
@@ -165,6 +166,18 @@ class _AccountScreenState extends State<AccountScreen> {
                   ],
                   const SizedBox(height: 22),
                   _StatsSection(controller: _controller),
+                  const SizedBox(height: 14),
+                  _LeaderboardTile(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => LeaderboardScreen(
+                          authToken: widget.authToken,
+                          currentUserId: widget.initialUser?.id ?? '',
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 22),
                   _StudentInfo(account: account),
                   const SizedBox(height: 22),
@@ -1023,6 +1036,55 @@ class _SectionLabel extends StatelessWidget {
         fontWeight: FontWeight.w800,
         color: AppColors.textMuted,
         letterSpacing: 1,
+      ),
+    );
+  }
+}
+
+class _LeaderboardTile extends StatelessWidget {
+  final VoidCallback onTap;
+  const _LeaderboardTile({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceElevated,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 42, height: 42,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFBBF24).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.emoji_events_rounded, color: Color(0xFFFBBF24), size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Leaderboard',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 16, fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                      )),
+                  const SizedBox(height: 3),
+                  Text('See how you rank against other Knights',
+                      style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.textMuted)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted, size: 26),
+          ],
+        ),
       ),
     );
   }
