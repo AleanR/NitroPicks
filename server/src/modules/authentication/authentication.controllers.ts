@@ -3,6 +3,7 @@ import { createUser, getUserByEmail, getUserById, UserModel } from '../users/use
 import { comparePassword, hashPassword } from '../../helpers';
 import { createToken, verifyToken } from '../../helpers/jwt';
 import { sendEmailVerifOTP } from '../services/email.service';
+import { AuthenticatedRequest } from '../../helpers/auth';
 
 export const login = async (req: Request, res: Response) => {
     try {
@@ -135,5 +136,29 @@ export const verifyEmail = async (req: Request, res: Response) => {
     } catch (error) {
         console.log(error);
         return res.status(401).json({ message: "Token expired or invalid" });
+    }
+}
+
+export const resendVerification = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+
+        const user = await getUserById(req.user.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        if (user.isVerified) {
+            return res.status(400).json({ message: "Account is already verified." });
+        }
+
+        const token = await createToken(user._id.toString(), user.email);
+        const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+        const verifyUrl = `${clientUrl}/verify-email?token=${token}`;
+
+        await sendEmailVerifOTP(user.email, verifyUrl);
+
+        return res.status(200).json({ message: "Verification email sent." });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error" });
     }
 }

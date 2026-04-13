@@ -38,7 +38,7 @@ export default function BalancePanel({ knightPoints }: Props) {
         onClick={() => navigate('/redeem-points')}
         className="mt-4 w-full rounded-xl border border-zinc-700 bg-[#181b22] py-3 font-semibold text-yellow-400 transition hover:border-yellow-400"
       >
-        Redeem Rewards →
+        Redeem Points →
       </button>
     </section>
   )
