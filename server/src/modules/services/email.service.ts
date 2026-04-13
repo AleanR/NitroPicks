@@ -1,8 +1,9 @@
 import { createTransport } from "nodemailer";
 import dotenv from 'dotenv';
-
+import dns from 'dns';
 
 dotenv.config();
+dns.setDefaultResultOrder("ipv4first");
 
 const getEmailAuth = () => ({
     user: process.env.USER_EMAIL || process.env.EMAIL_USER,
