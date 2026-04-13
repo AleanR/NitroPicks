@@ -5,6 +5,7 @@ import {
     getAllUsers,
     getCurrentUser,
     getLeaderboard,
+    getPublicUser,
     getRedemptions,
     searchUsers,
     updateUser,
@@ -23,4 +24,5 @@ export default (router: Router) => {
     router.get('/users/search', isAuthenticated, searchUsers);
     router.get('/users/leaderboard', getLeaderboard);                    // public: leaderboard visible without login
     router.get('/users/:id/redemptions', isAuthenticated, getRedemptions);
+    router.get('/users/:id', getPublicUser);                             // public: view profile from leaderboard
 }
