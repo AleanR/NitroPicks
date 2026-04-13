@@ -5,13 +5,13 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const sendPassResetToken = async (userEmail: string, url: string) => {
-    const transporter = createTransport({
-            service: "Gmail",
-            auth: {
-                user: process.env.USER_EMAIL,
-                pass: process.env.USER_PASS,
-            },
-        });
+  const transporter = createTransport({
+    service: "Gmail",
+    auth: {
+      user: process.env.USER_EMAIL,
+      pass: process.env.USER_PASS,
+    },
+  });
 
     await transporter.sendMail({
             from: process.env.USER_EMAIL,
@@ -24,13 +24,15 @@ export const sendPassResetToken = async (userEmail: string, url: string) => {
 
 export const sendEmailVerifOTP = async (userEmail: string, url: string) => {
 
-    const transporter = createTransport({
-            service: "Gmail",
-            auth: {
-                user: process.env.USER_EMAIL,
-                pass: process.env.USER_PASS,
-            },
-        });
+  const transporter = createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: process.env.USER_EMAIL,
+      pass: process.env.USER_PASS,
+    },
+  });
 
     await transporter.sendMail({
             from: process.env.USER_EMAIL,
@@ -39,7 +41,7 @@ export const sendEmailVerifOTP = async (userEmail: string, url: string) => {
             html: `
             <h2>Email Verification</h2>
             <p>Click below to verify your account:</p>
-            <a href=${url}>Verify</a>
+            <a href="${url}">Verify</a>
             `,
     });
 }

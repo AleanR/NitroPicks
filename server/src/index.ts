@@ -9,10 +9,7 @@ import router from './router';
 import dotenv from 'dotenv';
 import path from 'path';
 
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-if (!process.env.MONGO_DB_URL && !process.env.MONGODB_URI) {
-  dotenv.config(); // fallback to server-local .env
-}
+dotenv.config();
 
 const app = express();
 

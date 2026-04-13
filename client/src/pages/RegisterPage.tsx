@@ -14,7 +14,7 @@ function RegisterPage() {
     password: '',
   })
 
-  const [error, setError] = useState('')
+  const [error, setError] = useState('')  
   const [loading, setLoading] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,10 +42,14 @@ function RegisterPage() {
       const data = await response.json().catch(() => null)
 
       if (!response.ok) {
-        throw new Error(data?.message || `Registration failed (${response.status})`)
+      throw new Error(data?.message || `Registration failed (${response.status})`)
       }
 
-      navigate('/')
+      navigate('/login', {
+        state: {
+          message: 'Account created. Please check your email to verify your account.'
+        } 
+        });
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message)

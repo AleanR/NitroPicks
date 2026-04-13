@@ -1,8 +1,11 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 
 function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+
+  const successMessage = location.state?.message
 
   const [formData, setFormData] = useState({
     email: '',
@@ -104,7 +107,11 @@ function LoginPage() {
                 Forgot password?
               </Link>
             </div>
-
+            {successMessage && (
+              <p className="text-sm text-green-400">
+                {successMessage}
+              </p>
+            )}
             {error && <p className="text-sm text-red-400">{error}</p>}
 
             <button
