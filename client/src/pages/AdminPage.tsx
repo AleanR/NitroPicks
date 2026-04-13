@@ -90,7 +90,7 @@ function AdminPage() {
 
   const fetchGames = async () => {
     try {
-      const res = await fetch('/api/games', { credentials: 'include' })
+      const res = await fetch('/api/games/all', { credentials: 'include' })
       if (res.ok) setGames(await res.json())
     } catch {
       // non-critical

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { topUsers } from '../data/mockLeaderboardData'
 import Navigation from '../components/Navigation'
 
 type TopUser = {
@@ -16,13 +15,13 @@ type TopUser = {
 
 function LeaderboardPage() {
   const navigate = useNavigate()
-  const [leaderboardData, setLeaderboardData] = useState<TopUser[]>(topUsers) // fallback to mock data
+  const [leaderboardData, setLeaderboardData] = useState<TopUser[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const res = await fetch('/api/leaderboard')
+        const res = await fetch('/api/users/leaderboard')
         if (res.ok) {
           const data = await res.json()
           setLeaderboardData(data)

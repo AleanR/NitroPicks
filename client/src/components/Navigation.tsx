@@ -23,6 +23,17 @@ function Navigation() {
   }, [])
 
   useEffect(() => {
+    const handleKpUpdate = () => {
+      fetch('/api/users/me', { credentials: 'include' })
+        .then((r) => r.json())
+        .then((data) => { if (data._id) setUser(data) })
+        .catch(() => {})
+    }
+    window.addEventListener('kp-updated', handleKpUpdate)
+    return () => window.removeEventListener('kp-updated', handleKpUpdate)
+  }, [])
+
+  useEffect(() => {
     const fetchUser = async () => {
       try {
         const res = await fetch('/api/users/me', {

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import Navigation from '../components/Navigation'
-import { useParams } from 'react-router-dom'
 
 interface Perk {
   rewardId: string
@@ -9,37 +8,6 @@ interface Perk {
   cost: number
   icon: string
 }
-
-const perks: Perk[] = [
-  {
-    rewardId: 'ucf-dining',
-    name: 'UCF Dining $5 Credit',
-    description: 'Redeem at any on-campus dining location.',
-    cost: 5000,
-    icon: '🍔',
-  },
-  {
-    rewardId: 'ucf-hoodie',
-    name: 'UCF Hoodie',
-    description: 'Official UCF Knights pullover hoodie. Pick up at the campus bookstore.',
-    cost: 8000,
-    icon: '👕',
-  },
-  {
-    rewardId: 'bookstore-voucher',
-    name: 'Campus Bookstore Voucher',
-    description: '$10 off your next purchase at the UCF Bookstore.',
-    cost: 10000,
-    icon: '📚',
-  },
-  {
-    rewardId: 'knights-ticket',
-    name: 'Knights Game Ticket',
-    description: 'One ticket to a UCF Knights home basketball game.',
-    cost: 20000,
-    icon: '🏀',
-  },
-]
 
 interface ConfirmModal {
   perk: Perk
@@ -53,25 +21,46 @@ interface SuccessModal {
 
 export default function RedeemPointsPage() {
   const [balance, setBalance] = useState<number | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [perks, setPerks] = useState<Perk[]>([])
   const [confirmModal, setConfirmModal] = useState<ConfirmModal | null>(null)
   const [successModal, setSuccessModal] = useState<SuccessModal | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const { id } = useParams<{ id: string }>()
-
-  useEffect(() => { fetch('/api/users/me', { credentials: 'include' })
+  useEffect(() => {
+    fetch('/api/users/me', { credentials: 'include' })
       .then((r) => r.json())
-      .then((data) => setBalance(data.pointBalance ?? 0))
+      .then((data) => {
+        setBalance(data.knightPoints ?? 0)
+        setUserId(data._id)
+      })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/rewards', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((data: any[]) => {
+        if (Array.isArray(data)) {
+          setPerks(data.map((r) => ({
+            rewardId: r._id,
+            name: r.name,
+            description: r.description,
+            cost: r.cost,
+            icon: r.icon ?? '🎁',
+          })))
+        }
+      })
       .catch(() => {})
   }, [])
 
   const handleRedeem = async () => {
-    if (!confirmModal) return
+    if (!confirmModal || !userId) return
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`/api/users/${id}/redeem`, {
+      const res = await fetch(`/api/users/${userId}/redeem`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -79,13 +68,14 @@ export default function RedeemPointsPage() {
       })
       const data = await res.json()
       if (res.ok) {
-        setBalance(data.pointBalance)
+        setBalance(data.knightPoints)
         setConfirmModal(null)
         setSuccessModal({
           perkName: confirmModal.perk.name,
           code: data.confirmationCode,
-          newBalance: data.pointBalance,
+          newBalance: data.knightPoints,
         })
+        window.dispatchEvent(new CustomEvent('kp-updated'))
       } else {
         setError(data.message || 'Something went wrong.')
       }

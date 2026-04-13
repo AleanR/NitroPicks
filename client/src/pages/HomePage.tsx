@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { statCards, winners } from '../data/mockHomeData'
+import { statCards } from '../data/mockHomeData'
 import Navigation from '../components/Navigation'
 import { formatDate, formatTime } from '../helper/dateFormat'
 
@@ -10,6 +10,7 @@ function HomePage() {
   const [loading, setLoading] = useState(true)
   const [games, setGames] = useState<any[]>([])
   const [loadingGames, setLoadingGames] = useState(true)
+  const [winners, setWinners] = useState<any[]>([])
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -37,9 +38,16 @@ function HomePage() {
   useEffect(() => {
     fetch('/api/games')
       .then((r) => r.json())
-      .then((data) => setGames(Array.isArray(data) ? data : []))
+      .then((data) => setGames(Array.isArray(data) ? data.slice(0, 3) : []))
       .catch(() => {})
       .finally(() => setLoadingGames(false))
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/users/leaderboard')
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setWinners(data.slice(0, 3)) })
+      .catch(() => {})
   }, [])
 
   const handleGetStarted = () => {
@@ -257,8 +265,10 @@ function HomePage() {
                 <p className="mb-6 text-lg text-zinc-300">Continued by top performers</p>
 
                 <div className="space-y-6">
-                  {winners.map((winner, index) => (
-                    <div key={winner.id}>
+                  {winners.length === 0 ? (
+                    <p className="text-zinc-500 text-sm">No data yet.</p>
+                  ) : winners.map((winner, index) => (
+                    <div key={winner.id ?? index}>
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-yellow-400 font-extrabold text-black">
@@ -267,11 +277,11 @@ function HomePage() {
 
                           <div>
                             <p className="text-2xl font-bold">{winner.name}</p>
-                            <p className="text-base text-zinc-400">{winner.subtitle}</p>
+                            <p className="text-base text-zinc-400">#{winner.rank} on leaderboard</p>
                           </div>
                         </div>
 
-                        <p className="text-2xl font-extrabold text-yellow-400">{winner.points}</p>
+                        <p className="text-2xl font-extrabold text-yellow-400">{winner.points} KP</p>
                       </div>
 
                       {index !== winners.length - 1 && (
