@@ -105,7 +105,7 @@ export default function EarnPointsPage() {
                 <p className="font-semibold text-green-400">{message}</p>
                 {newBalance !== null && (
                   <p className="mt-1 text-sm text-zinc-300">
-                    New balance: <span className="font-bold text-yellow-400">{newBalance.toLocaleString()} KP</span>
+                    New balance: <span className="font-bold text-yellow-400">{Math.round(newBalance).toLocaleString()} KP</span>
                   </p>
                 )}
               </div>

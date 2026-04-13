@@ -222,27 +222,27 @@ function HomePage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center justify-end gap-3">
                     {game.status.toLowerCase() === 'live' ? (
                       <>
-                        <span className="rounded-full border border-green-500/40 bg-green-500/10 px-4 py-2 text-lg font-semibold text-green-400">
+                        <span className="rounded-full border border-green-500/40 bg-green-500/10 px-4 py-2 text-base font-semibold text-green-400 text-center">
                           Market Open
                         </span>
-                        <button 
+                        <button
                           onClick={() => navigate('/markets')}
-                          className="rounded-xl bg-yellow-400 px-5 py-3 text-lg font-bold text-black hover:bg-yellow-500 transition"
+                          className="rounded-xl bg-yellow-400 px-5 py-3 text-base font-bold text-black hover:bg-yellow-500 transition text-center"
                         >
                           View Market
                         </button>
                       </>
                     ) : (
                       <>
-                        <span className="rounded-full border border-zinc-600 bg-zinc-700/20 px-4 py-2 text-lg font-semibold text-zinc-400">
+                        <span className="rounded-full border border-zinc-600 bg-zinc-700/20 px-4 py-2 text-base font-semibold text-zinc-400 text-center">
                           Market Closed
                         </span>
-                        <button 
+                        <button
                           onClick={() => navigate('/markets')}
-                          className="rounded-xl bg-zinc-700 px-5 py-3 text-lg font-bold text-zinc-400 hover:bg-zinc-600 transition"
+                          className="rounded-xl bg-zinc-700 px-5 py-3 text-base font-bold text-zinc-400 hover:bg-zinc-600 transition text-center"
                         >
                           View Market
                         </button>
