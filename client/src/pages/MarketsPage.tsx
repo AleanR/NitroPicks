@@ -8,6 +8,7 @@ interface Bet {
   gameId: string
   matchup: string
   marketType: string
+  team: 'home' | 'away'
   selection: string
   odds: number
 }
@@ -33,17 +34,14 @@ function MarketsPage() {
   const [selectedDateRange, setSelectedDateRange] = useState('')
   const [customDate, setCustomDate] = useState('')
 
-  // Sports filter
-  const [showSports, setShowSports] = useState(false)
-  const [selectedSports, setSelectedSports] = useState<string[]>([])
+  // FIX THIS PLEASE!!!!!!
+  // Custom Sports
+  const [selectedSports, setSelectedSports] = useState('')
+  const [_sports, setSports] = useState<string[]>([])
 
-  // Status filter
-  const [showStatus, setShowStatus] = useState(false)
+  // Custom Status
   const [selectedStatus, setSelectedStatus] = useState('')
-
-  // Pagination
-  const GAMES_PER_PAGE = 5
-  const [currentPage, setCurrentPage] = useState(1)
+  const [_status, setStatus] = useState<string>('')
 
   const [games, setGames] = useState<MarketGame[]>([])
   const [loadinggames, setLoadinggames] = useState(true)
@@ -86,40 +84,52 @@ function MarketsPage() {
       if (formatDate(game.bettingClosesAt) !== converted) return false
     }
 
-    if (selectedSports.length > 0) {
-      if (!selectedSports.includes(game.sport)) return false
-    }
-
-    if (selectedStatus) {
-      if (game.status !== selectedStatus) return false
-    }
-
     return true
   })
 
-  const totalPages = Math.max(1, Math.ceil(filteredGames.length / GAMES_PER_PAGE))
-  const paginatedGames = filteredGames.slice(
-    (currentPage - 1) * GAMES_PER_PAGE,
-    currentPage * GAMES_PER_PAGE
-  )
+  const statusPriority: Record<string, number> = {
+    live: 0,
+    upcoming: 1,
+    finished: 2,
+  }
+
+  const sortedFilteredGames = [...filteredGames].sort((a, b) => {
+    const aPriority = statusPriority[a.status] ?? 99
+    const bPriority = statusPriority[b.status] ?? 99
+
+    if (aPriority !== bPriority) {
+      return aPriority - bPriority
+    }
+
+    return new Date(a.bettingClosesAt).getTime() - new Date(b.bettingClosesAt).getTime()
+  })
 
   const clearFilters = () => {
     setSearchQuery('')
     setSelectedDateRange('')
     setCustomDate('')
-    setShowSports(false)
-    setSelectedSports([])
-    setShowStatus(false)
+
+
+    // FIX THIS PLEASE
+    setSelectedSports('')
+    setSports([])
     setSelectedStatus('')
-    setCurrentPage(1)
+    setStatus('')
   }
 
-  const handleAddToSlip = (game: MarketGame, marketType: string, selection: string, odds: number) => {
+  const handleAddToSlip = (
+    game: MarketGame,
+    marketType: string,
+    team: 'home' | 'away',
+    selection: string,
+    odds: number,
+  ) => {
     const newBet: Bet = {
       id: `${game._id}-${marketType}-${selection}`,
       gameId: game._id,
       matchup: `${game.homeTeam} vs ${game.awayTeam}`,
       marketType,
+      team,
       selection,
       odds
     }
@@ -202,75 +212,89 @@ function MarketsPage() {
 
                 {/* BY SPORTS */}
                 <button
-                  onClick={() => { setShowSports((v) => !v); setCurrentPage(1) }}
+                  onClick={() => {
+                    setSelectedSports('custom')
+                  }}
                   className={`w-full rounded-xl border px-3 py-2 text-left text-sm transition ${
-                    showSports || selectedSports.length > 0
+                    selectedDateRange === 'custom'
                       ? 'border-yellow-400 bg-yellow-400/10 text-yellow-400'
                       : 'border-zinc-700 bg-[#181b22] text-white hover:border-zinc-600'
                   }`}
                 >
-                  By Sports {selectedSports.length > 0 && `(${selectedSports.length})`}
+                  By Sports
                 </button>
 
-                {showSports && (
-                  <div className="flex flex-col gap-1 pl-1">
-                    {['Basketball', 'Football', 'Soccer', 'Baseball', 'Hockey'].map((sport) => (
-                      <label key={sport} className="flex items-center gap-2 p-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          value={sport}
-                          checked={selectedSports.includes(sport)}
-                          onChange={(e) => {
-                            setCurrentPage(1)
-                            setSelectedSports((prev) =>
-                              e.target.checked
-                                ? [...prev, sport]
-                                : prev.filter((s) => s !== sport)
-                            )
-                          }}
-                          className="h-4 w-4 accent-yellow-400"
-                        />
-                        <span className="text-sm text-white">{sport}</span>
-                      </label>
-                    ))}
+                {/* ////////// FIX FOR SPORTS ////////////////////// */}
+                {selectedSports === 'custom' && (
+                  <div className='flex flex-col'>
+                    <label className='p-2'>
+                      <input
+                        type='checkbox'
+                        name='Basketball 🏀'
+                        value="Basketball"
+                        className='w-5 h-5 accent-blue-500'
+                      />
+                      <span>Basketball</span>
+                    </label>
+                    <label className='p-2'>
+                      <input
+                        type='checkbox'
+                        value="Football"
+                        className='w-5 h-5 accent-blue-500'
+                      />
+                      <span>Football</span>
+                    </label>
+                    <label className='p-2'>
+                      <input
+                        type='checkbox'
+                        value="Soccer"
+                        className='w-5 h-5 accent-blue-500'
+                      />
+                      <span>Soccer</span>
+                    </label>
                   </div>
                 )}
-
+                
                 {/* BY STATUS */}
                 <button
-                  onClick={() => { setShowStatus((v) => !v); setCurrentPage(1) }}
+                  onClick={() => {
+                    setSelectedStatus('custom')
+                  }}
                   className={`w-full rounded-xl border px-3 py-2 text-left text-sm transition ${
-                    showStatus || selectedStatus
+                    selectedDateRange === 'custom'
                       ? 'border-yellow-400 bg-yellow-400/10 text-yellow-400'
                       : 'border-zinc-700 bg-[#181b22] text-white hover:border-zinc-600'
                   }`}
                 >
-                  By Status {selectedStatus && `(${selectedStatus})`}
+                  By Status
                 </button>
 
-                {showStatus && (
-                  <div className="flex flex-col gap-1 pl-1">
-                    {['live', 'upcoming', 'finished', 'cancelled'].map((s) => (
-                      <label key={s} className="flex items-center gap-2 p-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          value={s}
-                          name="status"
-                          checked={selectedStatus === s}
-                          onChange={() => { setSelectedStatus(s); setCurrentPage(1) }}
-                          className="h-4 w-4 accent-yellow-400"
-                        />
-                        <span className="text-sm text-white capitalize">{s}</span>
-                      </label>
-                    ))}
-                    {selectedStatus && (
-                      <button
-                        onClick={() => setSelectedStatus('')}
-                        className="mt-1 pl-2 text-left text-xs text-zinc-500 hover:text-zinc-300"
-                      >
-                        Clear status
-                      </button>
-                    )}
+                {selectedStatus === 'custom' && (
+                  <div>
+                    <label>
+                      <input 
+                      type="radio"
+                      value="live"
+                      name='status'
+                      />
+                      <span>Live</span>
+                    </label>
+                    <label>
+                      <input 
+                      type="radio"
+                      value="cancelled"
+                      name='status'
+                      />
+                      <span>Cancelled</span>
+                    </label>
+                    <label>
+                      <input 
+                      type="radio"
+                      value="finished"
+                      name='status'
+                      />
+                      <span>Finished</span>
+                    </label>
                   </div>
                 )}
               </div>
@@ -290,7 +314,7 @@ function MarketsPage() {
             <div>
               <h1 className="text-5xl font-extrabold">Markets</h1>
               <p className="mt-2 text-lg text-zinc-400">
-                Showing {filteredGames.length === 0 ? 0 : (currentPage - 1) * GAMES_PER_PAGE + 1}–{Math.min(currentPage * GAMES_PER_PAGE, filteredGames.length)} of {filteredGames.length} games
+                Showing 1-{Math.min(5, filteredGames.length)} of {filteredGames.length} games
               </p>
             </div>
           </div>
@@ -315,7 +339,7 @@ function MarketsPage() {
               type="text"
               placeholder="Search teams, games, matchups..."
               value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1) }}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-transparent text-lg text-white outline-none placeholder:text-zinc-500"
             />
           </div>
@@ -330,9 +354,9 @@ function MarketsPage() {
                   />
                 ))}
               </div>
-            ) : filteredGames.length === 0 ? (
+            ) : sortedFilteredGames.length === 0 ? (
               <p className="text-zinc-400">No games found.</p>
-            ) : paginatedGames.map((game) => (
+            ) : sortedFilteredGames.map((game) => (
               <div
                 key={game._id}
                 className="rounded-3xl border border-zinc-800 bg-[#14161d] p-6"
@@ -369,6 +393,7 @@ function MarketsPage() {
                         handleAddToSlip(
                           game,
                           'moneyline',
+                          'home',
                           game.homeWin.label,
                           game.homeWin.odds
                         )
@@ -406,6 +431,7 @@ function MarketsPage() {
                         handleAddToSlip(
                           game,
                           'moneyline',
+                          'away',
                           game.awayWin.label,
                           game.awayWin.odds
                         )
@@ -444,28 +470,6 @@ function MarketsPage() {
               </div>
             ))}
           </div>
-
-          {totalPages > 1 && (
-            <div className="mt-6 flex items-center justify-center gap-3">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="rounded-xl border border-zinc-700 bg-[#14161d] px-4 py-2 text-sm font-semibold text-white transition hover:border-yellow-400 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                ← Prev
-              </button>
-              <span className="text-sm text-zinc-400">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="rounded-xl border border-zinc-700 bg-[#14161d] px-4 py-2 text-sm font-semibold text-white transition hover:border-yellow-400 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Next →
-              </button>
-            </div>
-          )}
         </section>
 
         <aside className="space-y-5 min-h-[500px]">
@@ -519,7 +523,12 @@ function MarketsPage() {
               </div>
             )}
 
-            {activeBets.length > 0 && <StakeHandler activeBets={activeBets} />}
+            {activeBets.length > 0 && (
+              <StakeHandler
+                activeBets={activeBets}
+                onBetPlaced={() => setActiveBets([])}
+              />
+            )}
           </div>
 
           <div className="rounded-3xl border border-zinc-800 bg-[#14161d] p-6">

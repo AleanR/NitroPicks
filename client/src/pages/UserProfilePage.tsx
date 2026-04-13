@@ -12,24 +12,88 @@ interface PublicUser {
   createdAt: string
 }
 
+interface ProfileBetLeg {
+  team: 'home' | 'away'
+  odds: number
+  gameId:
+    | string
+    | {
+        homeTeam?: string
+        awayTeam?: string
+      }
+}
+
+interface ProfileBet {
+  _id: string
+  stake: number
+  status: 'active' | 'win' | 'lose' | 'refunded'
+  betType: 'single' | 'parlay'
+  totalOdds: number
+  expectedPayout: number
+  createdAt: string
+  legs: ProfileBetLeg[]
+}
+
 export default function UserProfilePage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [user, setUser] = useState<PublicUser | null>(null)
+  const [recentBets, setRecentBets] = useState<ProfileBet[]>([])
+  const [betsLoading, setBetsLoading] = useState(true)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
   useEffect(() => {
     if (!id) return
-    fetch(`/api/users/${id}`)
-      .then((r) => {
-        if (r.status === 404) { setNotFound(true); return null }
-        return r.json()
-      })
-      .then((data) => { if (data) setUser(data) })
-      .catch(() => setNotFound(true))
-      .finally(() => setLoading(false))
+
+    const fetchData = async () => {
+      try {
+        const userRes = await fetch(`/api/users/${id}`)
+
+        if (userRes.status === 404) {
+          setNotFound(true)
+          return
+        }
+
+        if (!userRes.ok) {
+          setNotFound(true)
+          return
+        }
+
+        const userData = await userRes.json()
+        setUser(userData)
+
+        const betsRes = await fetch(`/api/bets/user/${id}/list`)
+        if (betsRes.ok) {
+          const betsData = await betsRes.json()
+          setRecentBets(Array.isArray(betsData) ? betsData : [])
+        }
+      } catch {
+        setNotFound(true)
+      } finally {
+        setBetsLoading(false)
+        setLoading(false)
+      }
+    }
+
+    fetchData()
   }, [id])
+
+  const getStatusPillClass = (status: ProfileBet['status']) => {
+    if (status === 'win') return 'border-green-500/40 bg-green-500/10 text-green-400'
+    if (status === 'lose') return 'border-red-500/40 bg-red-500/10 text-red-400'
+    if (status === 'refunded') return 'border-blue-500/40 bg-blue-500/10 text-blue-300'
+    return 'border-zinc-700 bg-zinc-800/50 text-zinc-300'
+  }
+
+  const getLegText = (leg: ProfileBetLeg) => {
+    if (typeof leg.gameId === 'object' && leg.gameId?.homeTeam && leg.gameId?.awayTeam) {
+      const side = leg.team === 'home' ? leg.gameId.homeTeam : leg.gameId.awayTeam
+      return `${leg.gameId.homeTeam} vs ${leg.gameId.awayTeam} • ${side}`
+    }
+
+    return `${leg.team.toUpperCase()} side`
+  }
 
   const memberSince = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
@@ -137,10 +201,45 @@ export default function UserProfilePage() {
             <h2 className="mb-2 text-3xl font-extrabold">Recent Bets</h2>
             <p className="mb-6 text-sm text-zinc-400">Showing last 5 entries</p>
 
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <p className="text-xl text-zinc-300">No bet history yet</p>
-              <p className="mt-2 text-sm text-zinc-500">Bet history will appear here once available.</p>
-            </div>
+            {betsLoading ? (
+              <p className="text-sm text-zinc-400">Loading bets...</p>
+            ) : recentBets.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <p className="text-xl text-zinc-300">No bet history yet</p>
+                <p className="mt-2 text-sm text-zinc-500">Bet history will appear here once available.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentBets.slice(0, 5).map((bet) => (
+                  <div key={bet._id} className="rounded-2xl bg-black p-4">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-white">
+                          {bet.betType === 'parlay' ? 'Parlay' : 'Single'} • {bet.stake} KP
+                        </p>
+                        <p className="text-sm text-zinc-400">
+                          {new Date(bet.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <span
+                        className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase ${getStatusPillClass(bet.status)}`}
+                      >
+                        {bet.status}
+                      </span>
+                    </div>
+
+                    <p className="text-sm text-zinc-300">Odds: {bet.totalOdds.toFixed(2)}x</p>
+                    <p className="mt-1 text-sm text-zinc-300">Potential payout: {Math.round(bet.expectedPayout)} KP</p>
+
+                    <div className="mt-3 space-y-1 text-sm text-zinc-400">
+                      {bet.legs.map((leg, idx) => (
+                        <p key={`${bet._id}-leg-${idx}`}>• {getLegText(leg)} ({leg.odds.toFixed(2)}x)</p>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         </div>
       </main>
