@@ -7,6 +7,7 @@ import StatsPanel from './components/StatsPanel'
 import UCFInfoPanel from './components/UCFInfoPanel'
 import SecurityPanel from './components/SecurityPanel'
 import EditProfileModal from './components/EditProfileModal'
+import VoucherHistoryPanel from './components/VoucherHistoryPanel'
 
 type User = {
   _id: string
@@ -27,7 +28,7 @@ type BetStats = {
   lost: number
 }
 
-type ProfileTab = 'info' | 'ucf' | 'security'
+type ProfileTab = 'info' | 'ucf' | 'security' | 'vouchers'
 
 function LoadingSkeleton() {
   return (
@@ -151,6 +152,9 @@ export default function ProfilePage() {
             <button className={tabClass('security')} onClick={() => setActiveTab('security')}>
               Security
             </button>
+            <button className={tabClass('vouchers')} onClick={() => setActiveTab('vouchers')}>
+              Vouchers
+            </button>
           </div>
 
           {activeTab === 'info' && (
@@ -182,6 +186,7 @@ export default function ProfilePage() {
 
           {activeTab === 'ucf' && <UCFInfoPanel user={user} />}
           {activeTab === 'security' && <SecurityPanel isVerified={user.isVerified} />}
+          {activeTab === 'vouchers' && <VoucherHistoryPanel userId={user._id} />}
         </div>
       </main>
 
