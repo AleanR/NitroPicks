@@ -47,7 +47,7 @@ export default function RedeemPointsPage() {
             rewardId: r._id,
             name: r.name,
             description: r.description,
-            cost: r.pointsCost,
+            cost: r.pointsCost ?? r.cost ?? 0,
             icon: r.icon ?? '🎁',
           })))
         }
