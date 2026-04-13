@@ -126,7 +126,7 @@ export default function UserProfilePage() {
                 >
                   <path d="M13 2L3 14h7v8l10-12h-7z" />
                 </svg>
-                <p className="text-4xl font-extrabold">{user.knightPoints.toLocaleString()}</p>
+                <p className="text-4xl font-extrabold">{Math.round(user.knightPoints).toLocaleString()}</p>
                 <span className="text-xl text-zinc-300">KP</span>
               </div>
             </div>

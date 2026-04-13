@@ -102,7 +102,7 @@ export default function RedeemPointsPage() {
           <p className="mt-2 text-zinc-400">Spend your Knights Points on exclusive UCF campus perks.</p>
           {balance !== null ? (
             <p className="mt-3 text-sm font-semibold text-yellow-400">
-              Your balance: {balance.toLocaleString()} KP
+              Your balance: {Math.round(balance).toLocaleString()} KP
             </p>
           ) : (
             <div className="mx-auto mt-3 h-5 w-40 animate-pulse rounded-lg bg-zinc-800" />

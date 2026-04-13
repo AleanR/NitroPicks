@@ -53,7 +53,7 @@ export async function gameOver(gameId: string, winner?: 'home' | 'away' | 'tie')
                     bet.status = 'win';
                     const user = await getUserById(bet.userId.toString()).session(session);
                     if (!user) throw new Error('User not found');
-                    user.knightPoints += bet.expectedPayout;
+                    user.knightPoints += Math.round(bet.expectedPayout);
                     await user.save({ session });
                 } else {
                     bet.legs[0].result = 'lose';
@@ -80,7 +80,7 @@ export async function gameOver(gameId: string, winner?: 'home' | 'away' | 'tie')
                         bet.status = 'win';
                         const user = await getUserById(bet.userId.toString()).session(session);
                         if (!user) throw new Error('User not found');
-                        user.knightPoints += bet.expectedPayout;
+                        user.knightPoints += Math.round(bet.expectedPayout);
                         await user.save({ session });
                     }
                     // else: still waiting on other games in this parlay — leave as active

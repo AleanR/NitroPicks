@@ -190,7 +190,7 @@ function Navigation() {
                 </svg>
 
                 <span className="min-w-[5ch] text-xl font-bold tabular-nums text-white">
-                  {user?.knightPoints ?? 0}
+                  {Math.round(user?.knightPoints ?? 0).toLocaleString()}
                 </span>
 
                 <span className="text-sm text-zinc-300">KP</span>
