@@ -47,7 +47,7 @@ export default function RedeemPointsPage() {
             rewardId: r._id,
             name: r.name,
             description: r.description,
-            cost: r.cost,
+            cost: r.pointsCost,
             icon: r.icon ?? '🎁',
           })))
         }
@@ -68,12 +68,12 @@ export default function RedeemPointsPage() {
       })
       const data = await res.json()
       if (res.ok) {
-        setBalance(data.knightPoints)
+        setBalance(data.remainingKnightPoints)
         setConfirmModal(null)
         setSuccessModal({
           perkName: confirmModal.perk.name,
-          code: data.confirmationCode,
-          newBalance: data.knightPoints,
+          code: data.voucherCode,
+          newBalance: data.remainingKnightPoints,
         })
         window.dispatchEvent(new CustomEvent('kp-updated'))
       } else {
