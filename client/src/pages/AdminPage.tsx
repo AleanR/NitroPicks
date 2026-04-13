@@ -208,7 +208,7 @@ function AdminPage() {
     }
   }
 
-  const handleStatusToggle = async (event: any) => {
+  const _handleStatusToggle = async (event: any) => {
     const nextStatus = event.status === '🏀' ? '🏈' : '⚽'
     try {
       await fetch(`/api/admin/events/${event._id}`, {

@@ -36,11 +36,11 @@ function MarketsPage() {
   // FIX THIS PLEASE!!!!!!
   // Custom Sports
   const [selectedSports, setSelectedSports] = useState('')
-  const [sports, setSports] = useState<string[]>([])
+  const [_sports, setSports] = useState<string[]>([])
 
   // Custom Status
   const [selectedStatus, setSelectedStatus] = useState('')
-  const [status, setStatus] = useState<string>('')
+  const [_status, setStatus] = useState<string>('')
 
   const [games, setGames] = useState<MarketGame[]>([])
   const [loadinggames, setLoadinggames] = useState(true)
