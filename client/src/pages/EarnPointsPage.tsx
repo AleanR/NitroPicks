@@ -1,25 +1,31 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Navigation from '../components/Navigation'
-import { useParams } from 'react-router-dom'
 
 export default function EarnPointsPage() {
   const [code, setCode] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
   const [newBalance, setNewBalance] = useState<number | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
 
-  const { id } = useParams<{ id: string }>()
+  useEffect(() => {
+    fetch('/api/users/me', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((data) => setUserId(data._id))
+      .catch(() => {})
+  }, [])
+
   const isValidCode = /^\d{16}$/.test(code)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isValidCode) return
+    if (!isValidCode || !userId) return
 
     setStatus('loading')
     setMessage('')
 
     try {
-      const res = await fetch(`/api/users/${id}/earn-points`, {
+      const res = await fetch(`/api/users/${userId}/earn-points`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -32,6 +38,7 @@ export default function EarnPointsPage() {
         setMessage(data.message)
         setNewBalance(data.knightPoints)
         setCode('')
+        window.dispatchEvent(new CustomEvent('kp-updated'))
       } else {
         setStatus('error')
         setMessage(data.message || 'Something went wrong.')

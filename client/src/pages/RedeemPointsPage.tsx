@@ -75,6 +75,7 @@ export default function RedeemPointsPage() {
           code: data.confirmationCode,
           newBalance: data.knightPoints,
         })
+        window.dispatchEvent(new CustomEvent('kp-updated'))
       } else {
         setError(data.message || 'Something went wrong.')
       }
