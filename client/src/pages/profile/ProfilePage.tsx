@@ -18,6 +18,7 @@ type User = {
   ucfID: string
   knightPoints: number
   createdAt: string
+  isVerified: boolean
 }
 
 type BetStats = {
@@ -180,7 +181,7 @@ export default function ProfilePage() {
           )}
 
           {activeTab === 'ucf' && <UCFInfoPanel user={user} />}
-          {activeTab === 'security' && <SecurityPanel />}
+          {activeTab === 'security' && <SecurityPanel isVerified={user.isVerified} />}
         </div>
       </main>
 
