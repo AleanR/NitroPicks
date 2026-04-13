@@ -5,6 +5,7 @@ import {
     getAllUsers,
     getCurrentUser,
     getLeaderboard,
+    getPublicUser,
     getRedemptions,
     searchUsers,
     updateUser,
@@ -22,5 +23,6 @@ export default (router: Router) => {
     router.patch('/users/reset-password/:token', resetPass);
     router.get('/users/search', isAuthenticated, searchUsers);
     router.get('/users/leaderboard', getLeaderboard);                    // public: leaderboard visible without login
+    router.get('/users/:id', getPublicUser);                             // public: user profile for leaderboard View Profile
     router.get('/users/:id/redemptions', isAuthenticated, getRedemptions);
 }

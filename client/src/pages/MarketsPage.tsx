@@ -8,6 +8,7 @@ interface Bet {
   gameId: string
   matchup: string
   marketType: string
+  team: 'home' | 'away'
   selection: string
   odds: number
 }
@@ -86,6 +87,23 @@ function MarketsPage() {
     return true
   })
 
+  const statusPriority: Record<string, number> = {
+    live: 0,
+    upcoming: 1,
+    finished: 2,
+  }
+
+  const sortedFilteredGames = [...filteredGames].sort((a, b) => {
+    const aPriority = statusPriority[a.status] ?? 99
+    const bPriority = statusPriority[b.status] ?? 99
+
+    if (aPriority !== bPriority) {
+      return aPriority - bPriority
+    }
+
+    return new Date(a.bettingClosesAt).getTime() - new Date(b.bettingClosesAt).getTime()
+  })
+
   const clearFilters = () => {
     setSearchQuery('')
     setSelectedDateRange('')
@@ -99,12 +117,19 @@ function MarketsPage() {
     setStatus('')
   }
 
-  const handleAddToSlip = (game: MarketGame, marketType: string, selection: string, odds: number) => {
+  const handleAddToSlip = (
+    game: MarketGame,
+    marketType: string,
+    team: 'home' | 'away',
+    selection: string,
+    odds: number,
+  ) => {
     const newBet: Bet = {
       id: `${game._id}-${marketType}-${selection}`,
       gameId: game._id,
       matchup: `${game.homeTeam} vs ${game.awayTeam}`,
       marketType,
+      team,
       selection,
       odds
     }
@@ -329,9 +354,9 @@ function MarketsPage() {
                   />
                 ))}
               </div>
-            ) : filteredGames.length === 0 ? (
+            ) : sortedFilteredGames.length === 0 ? (
               <p className="text-zinc-400">No games found.</p>
-            ) : filteredGames.map((game) => (
+            ) : sortedFilteredGames.map((game) => (
               <div
                 key={game._id}
                 className="rounded-3xl border border-zinc-800 bg-[#14161d] p-6"
@@ -368,6 +393,7 @@ function MarketsPage() {
                         handleAddToSlip(
                           game,
                           'moneyline',
+                          'home',
                           game.homeWin.label,
                           game.homeWin.odds
                         )
@@ -405,6 +431,7 @@ function MarketsPage() {
                         handleAddToSlip(
                           game,
                           'moneyline',
+                          'away',
                           game.awayWin.label,
                           game.awayWin.odds
                         )
@@ -496,7 +523,12 @@ function MarketsPage() {
               </div>
             )}
 
-            {activeBets.length > 0 && <StakeHandler activeBets={activeBets} />}
+            {activeBets.length > 0 && (
+              <StakeHandler
+                activeBets={activeBets}
+                onBetPlaced={() => setActiveBets([])}
+              />
+            )}
           </div>
 
           <div className="rounded-3xl border border-zinc-800 bg-[#14161d] p-6">

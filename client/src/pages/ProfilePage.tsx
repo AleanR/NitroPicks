@@ -1,20 +1,46 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navigation from '../components/Navigation'
-import {
-  weeklyProgress,
-  recentTransactions,
-} from '../data/mockProfileData'
 
 type ProfileTab = 'profile' | 'security'
+
+interface BetStats {
+  total: number
+  won: number
+  lost: number
+}
+
+interface ProfileBetLeg {
+  team: 'home' | 'away'
+  odds: number
+  gameId:
+    | string
+    | {
+        homeTeam?: string
+        awayTeam?: string
+      }
+}
+
+interface ProfileBet {
+  _id: string
+  stake: number
+  status: 'active' | 'win' | 'lose' | 'refunded'
+  betType: 'single' | 'parlay'
+  totalOdds: number
+  expectedPayout: number
+  createdAt: string
+  legs: ProfileBetLeg[]
+}
 
 function ProfilePage() {
   const [activeTab, setActiveTab] = useState<ProfileTab>('profile')
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [betsLoading, setBetsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [betStats, setBetStats] = useState<BetStats>({ total: 0, won: 0, lost: 0 })
+  const [recentBets, setRecentBets] = useState<ProfileBet[]>([])
   const navigate = useNavigate()
-  const maxValue = 600
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -26,17 +52,42 @@ function ProfilePage() {
         if (response.ok) {
           const userData = await response.json()
           setUser(userData)
-          setLoading(false)
         } else if (response.status === 401) {
           navigate('/login')
+          return
         } else {
           const errorText = await response.text()
           setError(`Error fetching user: ${response.status} ${errorText}`)
-          setLoading(false)
+          return
         }
-      } catch (fetchError) {
+      } catch {
         setError('Unable to load profile. Please check your connection.')
+        return
+      } finally {
         setLoading(false)
+      }
+
+      try {
+        const [statsRes, listRes] = await Promise.all([
+          fetch('/api/bets/my', { credentials: 'include' }),
+          fetch('/api/bets/my/list', { credentials: 'include' }),
+        ])
+
+        if (statsRes.ok) {
+          const statsData = await statsRes.json()
+          setBetStats({
+            total: statsData.total ?? 0,
+            won: statsData.won ?? 0,
+            lost: statsData.lost ?? 0,
+          })
+        }
+
+        if (listRes.ok) {
+          const listData = await listRes.json()
+          setRecentBets(Array.isArray(listData) ? listData : [])
+        }
+      } finally {
+        setBetsLoading(false)
       }
     }
 
@@ -54,6 +105,88 @@ function ProfilePage() {
   const memberSince = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
     : 'Unknown'
+  const parsedBalance = Number(String(user?.knightPoints ?? 0).replace(/,/g, ''))
+  const currentBalance = Number.isFinite(parsedBalance) ? parsedBalance : 0
+  const settledBets = betStats.won + betStats.lost
+  const winRate = settledBets > 0 ? Math.round((betStats.won / settledBets) * 100) : 0
+
+  const toDayKey = (date: Date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const getBetDelta = (bet: ProfileBet) => {
+    const stake = Number(bet.stake)
+    const expectedPayout = Number(bet.expectedPayout)
+
+    if (!Number.isFinite(stake) || !Number.isFinite(expectedPayout)) return 0
+
+    if (bet.status === 'win') return expectedPayout - stake
+    if (bet.status === 'lose') return -stake
+    if (bet.status === 'refunded') return 0
+    return -stake
+  }
+
+  const weeklyBalanceProgress = (() => {
+    const now = new Date()
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(now)
+      d.setHours(0, 0, 0, 0)
+      d.setDate(d.getDate() - (6 - i))
+      return d
+    })
+
+    const dayMap = new Map<string, number>()
+    days.forEach((day) => dayMap.set(toDayKey(day), 0))
+
+    recentBets.forEach((bet) => {
+      const betDate = new Date(bet.createdAt)
+      const key = toDayKey(betDate)
+      if (!dayMap.has(key)) return
+      dayMap.set(key, (dayMap.get(key) ?? 0) + getBetDelta(bet))
+    })
+
+    const totalWeekDelta = Array.from(dayMap.values()).reduce((sum, delta) => sum + delta, 0)
+    let runningBalance = currentBalance - totalWeekDelta
+
+    return days.map((day) => {
+      const key = toDayKey(day)
+      const delta = dayMap.get(key) ?? 0
+      runningBalance += delta
+      const safeBalance = Number.isFinite(runningBalance) ? runningBalance : 0
+
+      return {
+        day: day.toLocaleDateString('en-US', { weekday: 'short' }),
+        value: Math.max(0, Math.round(safeBalance)),
+      }
+    })
+  })()
+
+  const maxChartValue = Math.max(
+    ...weeklyBalanceProgress.map((item) =>
+      Number.isFinite(item.value) ? item.value : 0,
+    ),
+    1,
+  )
+  const chartBarMaxHeight = 220
+
+  const getStatusPillClass = (status: ProfileBet['status']) => {
+    if (status === 'win') return 'border-green-500/40 bg-green-500/10 text-green-400'
+    if (status === 'lose') return 'border-red-500/40 bg-red-500/10 text-red-400'
+    if (status === 'refunded') return 'border-blue-500/40 bg-blue-500/10 text-blue-300'
+    return 'border-zinc-700 bg-zinc-800/50 text-zinc-300'
+  }
+
+  const getLegText = (leg: ProfileBetLeg) => {
+    if (typeof leg.gameId === 'object' && leg.gameId?.homeTeam && leg.gameId?.awayTeam) {
+      const side = leg.team === 'home' ? leg.gameId.homeTeam : leg.gameId.awayTeam
+      return `${leg.gameId.homeTeam} vs ${leg.gameId.awayTeam} • ${side}`
+    }
+
+    return `${leg.team.toUpperCase()} side`
+  }
 
   if (loading) {
     return (
@@ -144,13 +277,13 @@ function ProfilePage() {
             <div className="mt-4 grid grid-cols-2 gap-4">
               <div className="rounded-2xl bg-black p-4">
                 <p className="text-base text-zinc-400">Total Bets</p>
-                <p className="mt-2 text-4xl font-extrabold">{user?.totalBets ?? 0}</p>
+                <p className="mt-2 text-4xl font-extrabold">{betStats.total}</p>
               </div>
 
               <div className="rounded-2xl bg-black p-4">
-                <p className="text-base text-zinc-400">Win Rate</p>
+                <p className="text-base text-zinc-400">Settled Bet Win Rate</p>
                 <p className="mt-2 text-4xl font-extrabold text-green-400">
-                  {user?.winRate ?? 0}%
+                  {winRate}%
                 </p>
               </div>
             </div>
@@ -179,38 +312,44 @@ function ProfilePage() {
             </button>
 
             <div className="mt-6 border-t border-zinc-800 pt-6">
-              <h3 className="text-xl font-bold">Recent Transactions</h3>
-              <p className="mt-2 text-sm text-zinc-400">Showing last 4 entries</p>
+              <h3 className="text-xl font-bold">Recent Bets</h3>
+              <p className="mt-2 text-sm text-zinc-400">Showing last 5 entries</p>
 
               <div className="mt-6 space-y-5">
-                {recentTransactions.map((transaction) => (
-                  <div key={transaction.id} className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`mt-1 flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
-                          transaction.type === 'positive'
-                            ? 'bg-green-500/10 text-green-400'
-                            : 'bg-red-500/10 text-red-400'
-                        }`}
-                      >
-                        {transaction.type === 'positive' ? '↑' : '↓'}
+                {betsLoading ? (
+                  <p className="text-sm text-zinc-400">Loading bets...</p>
+                ) : recentBets.length === 0 ? (
+                  <p className="text-sm text-zinc-400">No bets yet. Place a bet in Markets to see it here.</p>
+                ) : (
+                  recentBets.slice(0, 5).map((bet) => (
+                    <div key={bet._id} className="rounded-2xl bg-black p-4">
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-white">
+                            {bet.betType === 'parlay' ? 'Parlay' : 'Single'} • {bet.stake} KP
+                          </p>
+                          <p className="text-sm text-zinc-400">
+                            {new Date(bet.createdAt).toLocaleString()}
+                          </p>
+                        </div>
+                        <span
+                          className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase ${getStatusPillClass(bet.status)}`}
+                        >
+                          {bet.status}
+                        </span>
                       </div>
 
-                      <div>
-                        <p className="font-semibold text-white">{transaction.title}</p>
-                        <p className="text-sm text-zinc-400">{transaction.date}</p>
+                      <p className="text-sm text-zinc-300">Odds: {bet.totalOdds.toFixed(2)}x</p>
+                      <p className="mt-1 text-sm text-zinc-300">Potential payout: {Math.round(bet.expectedPayout)} KP</p>
+
+                      <div className="mt-3 space-y-1 text-sm text-zinc-400">
+                        {bet.legs.map((leg, idx) => (
+                          <p key={`${bet._id}-leg-${idx}`}>• {getLegText(leg)} ({leg.odds.toFixed(2)}x)</p>
+                        ))}
                       </div>
                     </div>
-
-                    <p
-                      className={`font-bold ${
-                        transaction.type === 'positive' ? 'text-green-400' : 'text-red-400'
-                      }`}
-                    >
-                      {transaction.amount}
-                    </p>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </section>
@@ -284,14 +423,17 @@ function ProfilePage() {
 
                 <div className="rounded-2xl bg-[#181b22] p-6">
                   <div className="flex h-[320px] items-end gap-5 border-b-2 border-l-2 border-zinc-600 px-4 pt-2">
-                    {weeklyProgress.map((item) => (
+                    {weeklyBalanceProgress.map((item) => (
                       <div
                         key={item.day}
-                        className="flex flex-1 flex-col items-center justify-end gap-3"
+                        className="flex h-full flex-1 flex-col items-center justify-end gap-3"
                       >
+                        <span className="text-xs font-semibold text-zinc-300">{item.value} KP</span>
                         <div
                           className="w-full max-w-[80px] rounded-t-xl bg-yellow-400"
-                          style={{ height: `${(item.value / maxValue) * 100}%` }}
+                          style={{
+                            height: `${Math.max(12, (item.value / maxChartValue) * chartBarMaxHeight)}px`,
+                          }}
                         />
                         <span className="pb-2 text-lg text-slate-400">{item.day}</span>
                       </div>

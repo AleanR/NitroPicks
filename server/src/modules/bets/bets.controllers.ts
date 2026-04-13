@@ -28,6 +28,21 @@ export const getMyBetsList = async (req: AuthenticatedRequest, res: Response) =>
     }
 };
 
+export const getUserBetsList = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        if (!id || Array.isArray(id)) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
+
+        const bets = await getBetsByUserWithGames(id);
+        return res.status(200).json(bets);
+    } catch (error) {
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 export const getAllBets = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const bets = await getBets();

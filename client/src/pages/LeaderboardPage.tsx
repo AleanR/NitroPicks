@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Navigation from '../components/Navigation'
 
 type TopUser = {
-  id: number
+  id: string
   name: string
   initials: string
   rank: number
