@@ -9,6 +9,8 @@ import UCFInfoPanel from './components/UCFInfoPanel'
 import SecurityPanel from './components/SecurityPanel'
 import EditProfileModal from './components/EditProfileModal'
 import VoucherHistoryPanel from './components/VoucherHistoryPanel'
+import WeeklyProgressChart from './components/WeeklyProgressChart'
+import RecentBetsPanel from './components/RecentBetsPanel'
 
 type User = {
   _id: string
@@ -52,6 +54,7 @@ export default function ProfilePage() {
   const { refetch } = useAuth()
   const [user, setUser] = useState<User | null>(null)
   const [stats, setStats] = useState<BetStats>({ total: 0, won: 0, lost: 0 })
+  const [bets, setBets] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<ProfileTab>('info')
@@ -71,10 +74,11 @@ export default function ProfilePage() {
         try {
           const betsRes = await fetch('/api/bets/my/list', { credentials: 'include' })
           if (betsRes.ok) {
-            const bets: any[] = await betsRes.json()
-            const won  = bets.filter((b) => b.status === 'win').length
-            const lost = bets.filter((b) => b.status === 'lose').length
-            setStats({ total: bets.length, won, lost })
+            const betsData: any[] = await betsRes.json()
+            const won  = betsData.filter((b) => b.status === 'win').length
+            const lost = betsData.filter((b) => b.status === 'lose').length
+            setStats({ total: betsData.length, won, lost })
+            setBets(betsData)
           }
         } catch {
           // Non-critical — stats just show 0
@@ -140,6 +144,7 @@ export default function ProfilePage() {
           />
           <BalancePanel knightPoints={user.knightPoints} />
           <StatsPanel totalBets={stats.total} won={stats.won} lost={stats.lost} />
+          <RecentBetsPanel bets={bets} />
         </div>
 
         {/* ── RIGHT COLUMN ── */}
@@ -160,30 +165,34 @@ export default function ProfilePage() {
             </button>
           </div>
           {activeTab === 'info' && (
-            <section className="rounded-3xl border border-zinc-800 bg-[#14161d] p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="text-2xl font-extrabold text-white">Profile Information</h2>
-                  <p className="mt-1 text-sm text-zinc-500">Your public-facing account details</p>
+            <div className="space-y-5">
+              <section className="rounded-3xl border border-zinc-800 bg-[#14161d] p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-2xl font-extrabold text-white">Profile Information</h2>
+                    <p className="mt-1 text-sm text-zinc-500">Your public-facing account details</p>
+                  </div>
+                  <button
+                    onClick={() => setEditOpen(true)}
+                    className="flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-[#181b22] px-4 py-2 text-sm font-semibold text-white transition hover:border-yellow-400 hover:text-yellow-400"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+                    </svg>
+                    Edit
+                  </button>
                 </div>
-                <button
-                  onClick={() => setEditOpen(true)}
-                  className="flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-[#181b22] px-4 py-2 text-sm font-semibold text-white transition hover:border-yellow-400 hover:text-yellow-400"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-3.5 w-3.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
-                  </svg>
-                  Edit
-                </button>
-              </div>
 
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
-                <Field label="First Name"  value={user.firstname} />
-                <Field label="Last Name"   value={user.lastname} />
-                <Field label="Username"    value={user.username} />
-                <Field label="UCF Email"   value={user.email} />
-              </div>
-            </section>
+                <div className="mt-6 grid gap-4 md:grid-cols-2">
+                  <Field label="First Name"  value={user.firstname} />
+                  <Field label="Last Name"   value={user.lastname} />
+                  <Field label="Username"    value={user.username} />
+                  <Field label="UCF Email"   value={user.email} />
+                </div>
+              </section>
+
+              <WeeklyProgressChart bets={bets} />
+            </div>
           )}
 
           {activeTab === 'ucf' && <UCFInfoPanel user={user} />}

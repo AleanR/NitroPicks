@@ -7,6 +7,7 @@ function ForgotPasswordPage() {
   const [serverError, setServerError] = useState('')
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [resetURL, setResetURL] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -31,6 +32,7 @@ function ForgotPasswordPage() {
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.message || 'Something went wrong.')
+      setResetURL(data.resetURL ?? null)
       setSubmitted(true)
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -61,20 +63,21 @@ function ForgotPasswordPage() {
             /* ── Success state ── */
             <div className="flex flex-col items-center gap-4 py-2 text-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-yellow-400/10">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7 text-yellow-400">
-                  <path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.162V6a2 2 0 00-2-2H3z" />
-                  <path d="M19 8.839l-7.77 3.885a2.75 2.75 0 01-2.46 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z" />
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-7 w-7 text-yellow-400">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
                 </svg>
               </div>
-              <h2 className="text-lg font-bold text-white">Check your email</h2>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                If an account exists for <span className="font-semibold text-white">{email}</span>, a reset link has been sent. It expires in 15 minutes.
-              </p>
-              <p className="text-xs text-zinc-500">Didn't get it? Check your spam folder.</p>
-              <Link
-                to="/login"
-                className="mt-2 w-full rounded-xl bg-yellow-400 py-3 text-center font-bold text-black hover:bg-yellow-300 transition block"
-              >
+              <h2 className="text-lg font-bold text-white">Reset link ready</h2>
+              <p className="text-sm text-zinc-400">Click the link below to reset your password. It expires in 15 minutes.</p>
+              {resetURL && (
+                <a
+                  href={resetURL}
+                  className="mt-1 w-full rounded-xl bg-yellow-400 py-3 text-center font-bold text-black hover:bg-yellow-300 transition block"
+                >
+                  Reset My Password
+                </a>
+              )}
+              <Link to="/login" className="text-sm text-zinc-400 hover:text-white transition">
                 Back to Sign In
               </Link>
             </div>
