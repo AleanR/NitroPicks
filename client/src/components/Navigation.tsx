@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 type NotificationBetLeg = {
   team: 'home' | 'away'
@@ -25,6 +26,7 @@ type BetNotification = {
 function Navigation() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { refetch } = useAuth()
 
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -265,7 +267,8 @@ function Navigation() {
       console.warn('Logout failed', err)
     } finally {
       setUser(null)
-      navigate('/')
+      await refetch()
+      navigate('/login')
     }
   }
 

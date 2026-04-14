@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { refetch } = useAuth()
   const successMessage = location.state?.message
 
   const [formData, setFormData] = useState({ email: '', password: '' })
@@ -56,6 +58,7 @@ function LoginPage() {
         throw new Error(data?.message || `Login failed (${response.status})`)
       }
 
+      await refetch()
       navigate('/')
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Something went wrong.')

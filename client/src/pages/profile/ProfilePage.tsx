@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 import Navigation from '../../components/Navigation'
 import ProfileHeader from './components/ProfileHeader'
 import BalancePanel from './components/BalancePanel'
@@ -48,6 +49,7 @@ function LoadingSkeleton() {
 
 export default function ProfilePage() {
   const navigate = useNavigate()
+  const { refetch } = useAuth()
   const [user, setUser] = useState<User | null>(null)
   const [stats, setStats] = useState<BetStats>({ total: 0, won: 0, lost: 0 })
   const [loading, setLoading] = useState(true)
@@ -90,7 +92,8 @@ export default function ProfilePage() {
     try {
       await fetch('/api/users/auth/logout', { method: 'POST', credentials: 'include' })
     } catch { /* ignore */ }
-    navigate('/')
+    await refetch()
+    navigate('/login')
   }
 
   const tabClass = (tab: ProfileTab) =>
