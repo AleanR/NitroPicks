@@ -282,14 +282,28 @@ export const deleteGame = async (req: AuthenticatedRequest, res: Response) => {
 export const getPublicGames = async (req: Request, res: Response) => {
     try {
         const now = new Date();
-        // Include all open games plus games closed within the last 24 h (so the Closed tab has data)
         const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         const games = await GameModel.find({
             bettingClosesAt: { $gt: oneDayAgo },
         })
             .select('sport homeTeam awayTeam homeWin awayWin scoreHome scoreAway emoji betPool numBettorsHome numBettorsAway totalBetAmountHome totalBetAmountAway bettingOpensAt bettingClosesAt status')
             .sort({ bettingOpensAt: 1 });
-        return res.status(200).json(games);
+
+        const todayStr = now.toDateString();
+        const computed = games.map((g: any) => {
+            const obj = g.toObject();
+            if (obj.status === 'cancelled' || obj.status === 'finished') return obj;
+            if (now > g.bettingClosesAt) {
+                obj.status = 'finished';
+            } else if (g.bettingClosesAt.toDateString() === todayStr) {
+                obj.status = 'live';
+            } else {
+                obj.status = 'upcoming';
+            }
+            return obj;
+        });
+
+        return res.status(200).json(computed);
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" });
     }
