@@ -3,31 +3,37 @@ import { Link } from 'react-router-dom'
 
 function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
+  const [emailError, setEmailError] = useState('')
+  const [serverError, setServerError] = useState('')
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setError('')
-    setLoading(true)
+    setEmailError('')
+    setServerError('')
 
+    if (!email.trim()) {
+      setEmailError('Email is required.')
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setEmailError('Enter a valid email address.')
+      return
+    }
+
+    setLoading(true)
     try {
       const res = await fetch('/api/users/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: email.trim() }),
       })
-
       const data = await res.json().catch(() => null)
-
-      if (!res.ok) {
-        throw new Error(data?.message || 'Something went wrong.')
-      }
-
+      if (!res.ok) throw new Error(data?.message || 'Something went wrong.')
       setSubmitted(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.')
+      setServerError(err instanceof Error ? err.message : 'Something went wrong.')
     } finally {
       setLoading(false)
     }
@@ -36,6 +42,8 @@ function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
       <div className="w-full max-w-md">
+
+        {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 rounded-full bg-yellow-400 flex items-center justify-center">
@@ -45,54 +53,78 @@ function ForgotPasswordPage() {
             </div>
             <h1 className="text-5xl font-extrabold">NitroPicks</h1>
           </div>
-          <p className="text-gray-400 text-center">Reset your password</p>
+          <p className="text-zinc-400 text-center text-sm">Reset your password</p>
         </div>
 
         <div className="bg-zinc-900/95 border border-zinc-800 rounded-2xl p-8 shadow-2xl">
           {submitted ? (
-            <div className="text-center space-y-4">
-              <div className="flex justify-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-yellow-400/10">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="h-7 w-7 text-yellow-400">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                  </svg>
-                </div>
+            /* ── Success state ── */
+            <div className="flex flex-col items-center gap-4 py-2 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-yellow-400/10">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-7 w-7 text-yellow-400">
+                  <path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.162V6a2 2 0 00-2-2H3z" />
+                  <path d="M19 8.839l-7.77 3.885a2.75 2.75 0 01-2.46 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z" />
+                </svg>
               </div>
-              <p className="text-white font-semibold text-lg">Check your email</p>
-              <p className="text-zinc-400 text-sm">
-                If an account exists for <span className="text-white">{email}</span>, a reset link has been sent.
+              <h2 className="text-lg font-bold text-white">Check your email</h2>
+              <p className="text-sm text-zinc-400 leading-relaxed">
+                If an account exists for <span className="font-semibold text-white">{email}</span>, a reset link has been sent. It expires in 15 minutes.
               </p>
-              <Link to="/login" className="block mt-4 text-yellow-400 font-semibold hover:underline text-sm">
+              <p className="text-xs text-zinc-500">Didn't get it? Check your spam folder.</p>
+              <Link
+                to="/login"
+                className="mt-2 w-full rounded-xl bg-yellow-400 py-3 text-center font-bold text-black hover:bg-yellow-300 transition block"
+              >
                 Back to Sign In
               </Link>
             </div>
           ) : (
-            <form className="space-y-6" onSubmit={handleSubmit}>
-              <p className="text-zinc-400 text-sm">
-                Enter your UCF email and we'll send you a link to reset your password.
-              </p>
-
+            /* ── Form ── */
+            <form className="space-y-5" onSubmit={handleSubmit} noValidate>
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold mb-2">UCF Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="knights@ucf.edu"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-white placeholder:text-zinc-500 outline-none focus:border-yellow-400"
-                />
+                <h2 className="text-xl font-bold text-white mb-1">Forgot Password</h2>
+                <p className="text-sm text-zinc-400">
+                  Enter your email and we'll send you a reset link.
+                </p>
               </div>
 
-              {error && <p className="text-sm text-red-400">{error}</p>}
+              {serverError && (
+                <div className="flex items-start gap-2.5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-4 w-4 shrink-0 text-red-400">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-sm text-red-400">{serverError}</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-semibold mb-1.5">Email</label>
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setEmailError('') }}
+                  className={`w-full rounded-xl border px-4 py-3 text-white placeholder:text-zinc-500 outline-none transition focus:border-yellow-400 ${
+                    emailError ? 'border-red-500/60 bg-red-500/5' : 'border-zinc-700 bg-zinc-900'
+                  }`}
+                />
+                {emailError && <p className="mt-1.5 text-xs text-red-400">{emailError}</p>}
+              </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-yellow-400 text-black font-semibold py-3 hover:brightness-95 transition disabled:opacity-60"
+                className="w-full rounded-xl bg-yellow-400 text-black font-bold py-3 hover:bg-yellow-300 transition disabled:opacity-60"
               >
-                {loading ? 'Sending...' : 'Send Reset Link'}
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    Sending…
+                  </span>
+                ) : 'Send Reset Link'}
               </button>
 
               <div className="text-center">
