@@ -13,10 +13,15 @@ type TopUser = {
   medal: 'gold' | 'silver' | 'bronze' | 'none'
 }
 
+type SortKey = 'rank' | 'name' | 'points' | 'winRate' | 'bets'
+type SortDir = 'asc' | 'desc'
+
 function LeaderboardPage() {
   const navigate = useNavigate()
   const [leaderboardData, setLeaderboardData] = useState<TopUser[]>([])
   const [loading, setLoading] = useState(true)
+  const [sortKey, setSortKey] = useState<SortKey>('rank')
+  const [sortDir, setSortDir] = useState<SortDir>('asc')
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -37,6 +42,30 @@ function LeaderboardPage() {
   }, [])
 
   const topThree = leaderboardData.slice(0, 3)
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir(key === 'name' ? 'asc' : 'desc')
+    }
+  }
+
+  const sortedData = [...leaderboardData].sort((a, b) => {
+    let cmp = 0
+    if (sortKey === 'rank')    cmp = a.rank - b.rank
+    else if (sortKey === 'name')    cmp = a.name.localeCompare(b.name)
+    else if (sortKey === 'points')  cmp = parseInt(a.points.replace(/,/g, '')) - parseInt(b.points.replace(/,/g, ''))
+    else if (sortKey === 'winRate') cmp = a.winRate - b.winRate
+    else if (sortKey === 'bets')    cmp = a.bets - b.bets
+    return sortDir === 'asc' ? cmp : -cmp
+  })
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col) return <span className="ml-1 text-zinc-600">↕</span>
+    return <span className="ml-1 text-yellow-400">{sortDir === 'asc' ? '↑' : '↓'}</span>
+  }
 
   const getMedalIcon = (medal: 'gold' | 'silver' | 'bronze' | 'none') => {
     if (medal === 'gold') {
@@ -150,15 +179,20 @@ function LeaderboardPage() {
 
         <section className="mt-8 overflow-hidden rounded-3xl border border-zinc-800 bg-[#14161d]">
           <div className="grid grid-cols-[125px_1.6fr_1fr_1fr_1fr_1fr] border-b border-zinc-800 px-6 py-5 text-sm font-semibold uppercase tracking-wide text-slate-300">
-            <div>Rank</div>
-            <div>User</div>
-            <div>Points</div>
-            <div>Win Rate</div>
-            <div>Total Bets</div>
+            {(['rank', 'name', 'points', 'winRate', 'bets'] as SortKey[]).map((col) => (
+              <button
+                key={col}
+                onClick={() => handleSort(col)}
+                className="flex items-center text-left hover:text-yellow-400 transition"
+              >
+                {col === 'rank' ? 'Rank' : col === 'name' ? 'User' : col === 'points' ? 'Points' : col === 'winRate' ? 'Win Rate' : 'Total Bets'}
+                <SortIcon col={col} />
+              </button>
+            ))}
             <div>Action</div>
           </div>
 
-          {leaderboardData.map((user) => (
+          {sortedData.map((user) => (
             <div
               key={user.id}
               className="grid grid-cols-[125px_1.6fr_1fr_1fr_1fr_1fr] items-center border-b border-zinc-800 px-6 py-5 last:border-b-0"

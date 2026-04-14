@@ -8,6 +8,7 @@ import {
     getLeaderboard,
     getPublicUser,
     getRedemptions,
+    getTicketRedemptions,
     searchUsers,
     updateUser,
 } from './users.controllers';
@@ -25,6 +26,7 @@ export default (router: Router) => {
     router.get('/users/search', isAuthenticated, searchUsers);
     router.get('/users/leaderboard', getLeaderboard);                    // public: leaderboard visible without login
     router.get('/users/:id/redemptions', isAuthenticated, getRedemptions);
+    router.get('/users/:id/ticket-redemptions', isAuthenticated, getTicketRedemptions);
     router.post('/users/support/contact', isAuthenticated, contactSupport);
     router.get('/users/:id', getPublicUser);                             // public: view profile from leaderboard
 }
