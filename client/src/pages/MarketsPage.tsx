@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import Navigation from '../components/Navigation'
 import StakeHandler from '../components/StakeHandler'
-import { formatDate, formatTime } from '../helper/dateFormat'
+import { formatDate, formatTime, gameStarted } from '../helper/dateTimeFormat'
+import GameTimer from '../components/Timer'
 
 interface Bet {
   id: string
@@ -20,8 +21,8 @@ interface MarketGame {
   homeTeam: string
   awayTeam: string
   status: string
-  homeEmoji: string
-  awayEmoji: string
+  scoreHome: number
+  scoreAway: number
   homeWin: { label: string, odds: number }
   awayWin: { label: string, odds: number }
   bettingClosesAt: string
@@ -363,25 +364,34 @@ function MarketsPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-5">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-10">
                         <h3 className="text-2xl font-bold">{game.emoji}  {game.homeTeam}</h3>
+                        {game.status === 'finished'
+                        ? <span className='text-3xl font-bold'>{game.scoreHome}</span>
+                        : ""}
                     </div>
                     <p className="text-base text-zinc-400">
                         {formatDate(game.bettingClosesAt)} • {formatTime(game.bettingClosesAt)}
                     </p>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-10">
                       <h3 className="text-2xl font-bold">{game.emoji}   {game.awayTeam}</h3>
+                      {game.status === 'finished'
+                        ? <span className='text-3xl font-bold'>{game.scoreAway}</span>
+                        : ""}
                     </div>
                   </div>
 
                   <span className={`rounded-full border border-green-500/40 bg-green-500/10 px-4 py-2 text-base font-semibold text-green-400 ${
-                    game.status === 'live'
-                    ? 'border-green-500/40 bg-green-500/10 text-green-400 animate-pulse'
-                    : game.status === 'finished'
+                    game.status === 'upcoming'
                     ? 'border-green-500/40 bg-green-500/10 text-green-400'
+                    : game.status === 'live' 
+                    ? 'border-yellow-500/40 bg-yellow-500/10 text-yellow-400 animate-pulse'
                     : 'border-zinc-600 bg-zinc-700/20 text-zinc-400'
                   }`}>
-                    {game.status.toUpperCase()}
+                    {game.status === 'live' && gameStarted(game.bettingClosesAt)
+                    ? <GameTimer startTime={game.bettingClosesAt}></GameTimer>
+                    : game.status.toUpperCase()
+                    }
                   </span>
                 </div>
 

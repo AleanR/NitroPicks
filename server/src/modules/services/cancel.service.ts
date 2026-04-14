@@ -28,7 +28,7 @@ export async function refund (gameId: string) {
 
                 if (bet.betType === 'parlay') {
                     for (const leg of bet.legs) {
-                        if (leg.gameId.toString() === gameId) {
+                        if (leg.gameId.toString() === gameId && leg.result === 'pending') {
                             leg.result = 'cancelled';
                             break;
                         }

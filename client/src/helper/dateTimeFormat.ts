@@ -1,5 +1,3 @@
-
-
 // Format ISO time string into yyyy-mm-dd
 export function formatEditDate (time: string) : string {
 
@@ -35,3 +33,12 @@ export function formatTime (dateString: string) : string {
 
     return formattedTime;
 }
+
+
+export function gameStarted (startTime: string): boolean {
+    const now = new Date(Date.now());
+    const start = new Date(startTime);
+
+    if (now >= start) return true;
+    return false; 
+  }

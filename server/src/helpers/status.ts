@@ -2,11 +2,10 @@ import cron from 'node-cron';
 import { GameModel } from '../modules/games/games.model';
 
 
-export function getGameStatus (game: any, now = new Date()): 'upcoming' | 'live' | 'finished' | 'cancelled' {
+export function getGameStatus (game: any, now = new Date(Date.now())): 'upcoming' | 'live' | 'finished' | 'cancelled' {
     if (game.status === 'cancelled') return 'cancelled';
-    // Bettable from creation until bettingClosesAt (game start).
-    // 'upcoming' is no longer used — all non-finished games are 'live' (open for bets).
-    if (now >= new Date(game.bettingClosesAt)) return 'finished';
+    if (game.status === 'finished') return 'finished';
+    if (now < game.bettingClosesAt) return 'upcoming';
     return 'live';
 }
 

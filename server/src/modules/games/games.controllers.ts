@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { getGames, getGameById, createGame, updateGameById, deleteGameById, GameModel } from './games.model';
 import { AuthenticatedRequest } from '../../helpers/auth';
-import { refundPlayersByBets } from '../bets/bets.model';
 import { refund } from '../services/cancel.service';
 import { gameOver } from '../services/results.service';
 import { formatTime } from '../../helpers/time';
@@ -113,7 +112,8 @@ export const addGame = async (req: AuthenticatedRequest, res: Response) => {
             awayWin: awayWin,
             bettingOpensAt: betStart,
             bettingClosesAt: betClose,
-            emoji: emoji.split(' ')[1]
+            emoji: emoji.split(' ')[1],
+            status: 'upcoming'
         });
 
         return res.status(201).json({
@@ -172,6 +172,45 @@ export const updateGame = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 
+// UPDATE GAME SCORES
+export const updateScore = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { team, score } = req.body;
+
+        if (!id || Array.isArray(id)) {
+            return res.status(400).json({ message: "Game ID is required" });
+        }
+
+        if (!team || !score) {
+            return res.status(400).json({ message: "Missing required field(s)"});
+        }
+
+        console.log(team, score); 
+        const numScore = Number(score);
+        const game = await getGameById(id);
+
+        if (!game) {
+            return res.status(400).json({ message: "Game not found" });
+        }
+
+        if (team === 'home') {
+            game.scoreHome += numScore;
+        }
+        else {
+            game.scoreAway += numScore;
+        }
+
+        await game.save();
+
+        return res.status(200).json({ message: "Score updated successfully" });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 export const endGame = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { id } = req.params;
@@ -183,12 +222,7 @@ export const endGame = async (req: AuthenticatedRequest, res: Response) => {
             return res.status(400).json({ message: "Game ID is required" });
         }
 
-        const { winner } = req.body as { winner?: string };
-        if (!winner || !['home', 'away', 'tie'].includes(winner)) {
-            return res.status(400).json({ message: "winner is required: 'home', 'away', or 'tie'" });
-        }
-
-        await gameOver(id, winner as 'home' | 'away' | 'tie');
+        await gameOver(id);
 
         return res.status(200).json({ message: "Game ended successfully" });
 
@@ -251,10 +285,9 @@ export const getPublicGames = async (req: Request, res: Response) => {
         // Include all open games plus games closed within the last 24 h (so the Closed tab has data)
         const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         const games = await GameModel.find({
-            status: { $ne: 'cancelled' },
             bettingClosesAt: { $gt: oneDayAgo },
         })
-            .select('sport homeTeam awayTeam homeWin awayWin betPool numBettorsHome numBettorsAway totalBetAmountHome totalBetAmountAway bettingOpensAt bettingClosesAt status')
+            .select('sport homeTeam awayTeam homeWin awayWin scoreHome scoreAway emoji betPool numBettorsHome numBettorsAway totalBetAmountHome totalBetAmountAway bettingOpensAt bettingClosesAt status')
             .sort({ bettingOpensAt: 1 });
         return res.status(200).json(games);
     } catch (error) {

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { statCards } from '../data/mockHomeData'
 import Navigation from '../components/Navigation'
-import { formatDate, formatTime } from '../helper/dateFormat'
+import { formatDate, formatTime } from '../helper/dateTimeFormat'
 
 function HomePage() {
   const navigate = useNavigate()

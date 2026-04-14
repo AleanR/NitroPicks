@@ -159,7 +159,6 @@ export default function ProfilePage() {
               Vouchers
             </button>
           </div>
-
           {activeTab === 'info' && (
             <section className="rounded-3xl border border-zinc-800 bg-[#14161d] p-6">
               <div className="flex items-start justify-between">
