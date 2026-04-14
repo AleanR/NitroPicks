@@ -243,7 +243,7 @@ function MarketsPage() {
 
                 {showSportsFilter && (
                   <div className="flex flex-col gap-1 rounded-xl border border-zinc-700 bg-[#181b22] p-3">
-                    {['Basketball', 'Football', 'Soccer', 'Baseball', 'Hockey'].map((sport) => (
+                    {['Basketball', 'Football', 'Soccer', 'Baseball', 'Softball', 'Volleyball', 'Hockey'].map((sport) => (
                       <label key={sport} className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-zinc-800">
                         <input
                           type="checkbox"
@@ -386,10 +386,10 @@ function MarketsPage() {
                     </div>
                   </div>
 
-                  <span className={`rounded-full border border-green-500/40 bg-green-500/10 px-4 py-2 text-base font-semibold text-green-400 ${
+                  <span className={`rounded-full border px-4 py-2 text-base font-semibold ${
                     game.status === 'upcoming'
-                    ? 'border-green-500/40 bg-green-500/10 text-green-400'
-                    : game.status === 'live' 
+                    ? 'border-blue-500/40 bg-blue-500/10 text-blue-400'
+                    : game.status === 'live'
                     ? 'border-yellow-500/40 bg-yellow-500/10 text-yellow-400 animate-pulse'
                     : 'border-zinc-600 bg-zinc-700/20 text-zinc-400'
                   }`}>

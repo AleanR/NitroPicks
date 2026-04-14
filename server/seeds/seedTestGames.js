@@ -22,6 +22,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const GameSchema = new mongoose.Schema({
     sport:              { type: String, default: '' },
+    emoji:              { type: String, default: '🏅' },
     homeTeam:           { type: String, required: true },
     awayTeam:           { type: String, required: true },
     numBettorsHome:     { type: Number, default: 0 },
@@ -45,18 +46,38 @@ const mins  = m => m * 60 * 1000;
 const hours = h => h * 60 * 60 * 1000;
 const days  = d => d * 24 * 60 * 60 * 1000;
 
+const SPORT_EMOJI = {
+    'Basketball': '🏀',
+    'Football':   '🏈',
+    'Soccer':     '⚽',
+    'Baseball':   '⚾',
+    'Softball':   '🥎',
+    'Volleyball': '🏐',
+    'Hockey':     '🏒',
+    'Tennis':     '🎾',
+    'Golf':       '⛳',
+};
+
+function getStatus(closesFromNow) {
+    const now = new Date();
+    const closeTime = new Date(Date.now() + closesFromNow);
+    if (closesFromNow < 0) return 'finished';
+    // same calendar day = live
+    if (closeTime.toDateString() === now.toDateString()) return 'live';
+    return 'upcoming';
+}
+
 function game(sport, home, away, closesFromNow) {
-    const now           = Date.now();
-    const bettingClosesAt = new Date(now + closesFromNow);
+    const bettingClosesAt = new Date(Date.now() + closesFromNow);
     const bettingOpensAt  = new Date(bettingClosesAt.getTime() - days(2));
-    const isClosed        = closesFromNow < 0;
     return {
         sport,
+        emoji: SPORT_EMOJI[sport] ?? '🏅',
         homeTeam: home,
         awayTeam: away,
         bettingOpensAt,
         bettingClosesAt,
-        status: isClosed ? 'finished' : 'live',
+        status: getStatus(closesFromNow),
         homeWin: { label: `${home} Win`, odds: 1.8 },
         awayWin: { label: `${away} Win`, odds: 1.8 },
         betPool: 200,
@@ -66,29 +87,30 @@ function game(sport, home, away, closesFromNow) {
 }
 
 const testGames = [
-    // ── Upcoming (tomorrow / day after) ──────────────────────────────────────
-    game('Basketball', 'UCF Knights', 'Florida Gators',       days(1) + hours(6)),
-    game('Baseball',   'UCF Knights', 'FSU Seminoles',        days(2) + hours(2)),
-    game('Soccer',     'UCF Knights', 'FIU Panthers',         days(1) + hours(10)),
+    // ── Upcoming (future days) ────────────────────────────────────────────────
+    game('Basketball', 'UCF Knights', 'Florida Gators',        days(1) + hours(6)),
+    game('Football',   'UCF Knights', 'FSU Seminoles',         days(2) + hours(2)),
+    game('Soccer',     'UCF Knights', 'FIU Panthers',          days(1) + hours(10)),
+    game('Hockey',     'UCF Knights', 'Miami Hurricanes',      days(3) + hours(4)),
+    game('Volleyball', 'UCF Knights', 'Florida Atlantic',      days(2) + hours(8)),
 
-    // ── Open today ────────────────────────────────────────────────────────────
-    game('Softball',   'UCF Knights', 'Miami Hurricanes',     hours(5)),
-    game('Basketball', 'UCF Knights', 'Stetson Hatters',      hours(8)),
-    game('Baseball',   'UCF Knights', 'Bethune-Cookman',      hours(4)),
-    game('Soccer',     'UCF Knights', 'Florida Atlantic',     hours(6)),
-    game('Volleyball', 'UCF Knights', 'Tulane Green Wave',    hours(3)),
+    // ── Live today ────────────────────────────────────────────────────────────
+    game('Softball',   'UCF Knights', 'Stetson Hatters',       hours(5)),
+    game('Basketball', 'UCF Knights', 'Bethune-Cookman',       hours(8)),
+    game('Baseball',   'UCF Knights', 'South Florida Bulls',   hours(4)),
+    game('Soccer',     'UCF Knights', 'Tulane Green Wave',     hours(6)),
+    game('Hockey',     'UCF Knights', 'Cincinnati Bearcats',   hours(3)),
 
-    // ── Closing (within 10 min) ───────────────────────────────────────────────
-    game('Baseball',   'UCF Knights', 'South Florida Bulls',  mins(7)),
+    // ── Closing soon (within 10 min) ─────────────────────────────────────────
+    game('Baseball',   'UCF Knights', 'Baylor Bears',          mins(7)),
 
-    // ── Already closed — resolvable via Admin tab ─────────────────────────────
-    game('Basketball', 'UCF Knights', 'Cincinnati Bearcats',  -hours(1)),
-    game('Softball',   'UCF Knights', 'Kansas Jayhawks',      -hours(3)),
-    game('Baseball',   'UCF Knights', 'Baylor Bears',         -hours(5)),
-    game('Soccer',     'UCF Knights', 'Memphis Tigers',       -hours(2)),
-    game('Volleyball', 'UCF Knights', 'East Carolina Pirates',-hours(4)),
-    game('Basketball', 'UCF Knights', 'Temple Owls',          -hours(6)),
-    game('Baseball',   'UCF Knights', 'Wichita State Shockers',-hours(8)),
+    // ── Finished — resolvable via Admin tab ───────────────────────────────────
+    game('Basketball', 'UCF Knights', 'Kansas Jayhawks',       -hours(1)),
+    game('Football',   'UCF Knights', 'Memphis Tigers',        -hours(3)),
+    game('Baseball',   'UCF Knights', 'East Carolina Pirates', -hours(5)),
+    game('Soccer',     'UCF Knights', 'Temple Owls',           -hours(2)),
+    game('Volleyball', 'UCF Knights', 'Wichita State Shockers',-hours(4)),
+    game('Hockey',     'UCF Knights', 'Baylor Bears',          -hours(6)),
 ];
 
 async function seed() {
