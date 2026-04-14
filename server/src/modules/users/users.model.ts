@@ -8,6 +8,11 @@ const RedemptionSchema = new mongoose.Schema({
     redeemedAt:  { type: Date, default: Date.now },
 });
 
+const TicketRedemptionSchema = new mongoose.Schema({
+    pointsAdded: { type: Number, required: true },
+    redeemedAt:  { type: Date, default: Date.now },
+});
+
 const UserSchema = new mongoose.Schema({
     firstname: { type: String, required: true },
     lastname: { type: String, required: true },
@@ -26,7 +31,8 @@ const UserSchema = new mongoose.Schema({
         required: true,
     },
     role: { type: String, enum: ["user", "admin"], default: "user"},
-    redemptions: { type: [RedemptionSchema], default: [] },
+    redemptions:       { type: [RedemptionSchema], default: [] },
+    ticketRedemptions: { type: [TicketRedemptionSchema], default: [] },
 }, { timestamps: true });
 
 export const UserModel = mongoose.model('User', UserSchema);

@@ -3,6 +3,7 @@ import { deleteUserById, getUsers, updateUserById, UserModel, getUserById } from
 import { Request, Response } from 'express';
 import { sendSupportEmail } from '../services/email.service';
 import mongoose from 'mongoose';
+import { BetModel } from '../bets/bets.model';
 
 
 export const getPublicUser = async (req: Request, res: Response) => {
@@ -57,21 +58,43 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
 export const getLeaderboard = async (req: Request, res: Response) => {
     try {
-        const users = await getUsers();
+        const [users, betStats] = await Promise.all([
+            getUsers(),
+            BetModel.aggregate([
+                { $match: { status: { $in: ['win', 'lose', 'active', 'refunded'] } } },
+                {
+                    $group: {
+                        _id: '$userId',
+                        total: { $sum: 1 },
+                        wins: { $sum: { $cond: [{ $eq: ['$status', 'win'] }, 1, 0] } },
+                    }
+                }
+            ])
+        ]);
+
+        const statsMap = new Map<string, { total: number; wins: number }>();
+        for (const s of betStats) {
+            statsMap.set(s._id.toString(), { total: s.total, wins: s.wins });
+        }
+
         const leaderboard = users
             .filter((u: any) => u.username !== 'admin')
             .sort((a: any, b: any) => (b.knightPoints || 0) - (a.knightPoints || 0))
             .slice(0, 10)
-            .map((user: any, index: number) => ({
-                id: user._id,
-                name: `${user.firstname || user.firstName} ${user.lastname || user.lastName}`,
-                initials: `${(user.firstname || user.firstName || '').charAt(0)}${(user.lastname || user.lastName || '').charAt(0)}`,
-                rank: index + 1,
-                points: (user.knightPoints || 0).toLocaleString(),
-                winRate: Math.floor(Math.random() * 30) + 50, // Placeholder
-                bets: Math.floor(Math.random() * 50) + 20, // Placeholder
-                medal: index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : 'none'
-            }));
+            .map((user: any, index: number) => {
+                const stats = statsMap.get(user._id.toString()) ?? { total: 0, wins: 0 };
+                const winRate = stats.total > 0 ? Math.round((stats.wins / stats.total) * 100) : 0;
+                return {
+                    id: user._id,
+                    name: `${user.firstname || user.firstName} ${user.lastname || user.lastName}`,
+                    initials: `${(user.firstname || user.firstName || '').charAt(0)}${(user.lastname || user.lastName || '').charAt(0)}`,
+                    rank: index + 1,
+                    points: (user.knightPoints || 0).toLocaleString(),
+                    winRate,
+                    bets: stats.total,
+                    medal: index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : 'none'
+                };
+            });
 
         return res.status(200).json(leaderboard);
     } catch (error) {
@@ -258,7 +281,10 @@ export const earnPoints = async (req: AuthenticatedRequest, res: Response) => {
             return res.status(400).json({ message: "Code must be exactly 16 digits" });
         }
 
-        const updated = await updateUserById(req.user.id, { $inc: { knightPoints: 1000 } });
+        const updated = await updateUserById(req.user.id, {
+            $inc: { knightPoints: 1000 },
+            $push: { ticketRedemptions: { pointsAdded: 1000, redeemedAt: new Date() } },
+        });
 
         if (!updated) return res.status(404).json({ message: "User not found" });
 
@@ -266,6 +292,22 @@ export const earnPoints = async (req: AuthenticatedRequest, res: Response) => {
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const getTicketRedemptions = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+        const id = req.params.id as string;
+        const user = await getUserById(id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        const history = ((user as any).ticketRedemptions ?? [])
+            .slice()
+            .sort((a: any, b: any) => new Date(b.redeemedAt).getTime() - new Date(a.redeemedAt).getTime());
+        return res.status(200).json(history);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: 'Internal server error' });
     }
 }
 
