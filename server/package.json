@@ -7,7 +7,8 @@
     "start": "nodemon",
     "seed:games": "node seeds/seedGames.js",
     "seed:rewards": "node seeds/seedRewards.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "repository": {
     "type": "git",
@@ -53,9 +54,12 @@
     "@types/nodemailer": "^7.0.11",
     "@types/react": "^19.2.14",
     "@types/react-router-dom": "^5.3.3",
+    "@types/supertest": "^7.2.0",
     "node-cron": "^4.2.1",
     "nodemon": "^3.1.14",
+    "supertest": "^7.2.2",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.4"
   }
 }
