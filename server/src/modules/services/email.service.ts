@@ -3,12 +3,12 @@ import { Resend } from "resend";
 
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => new Resend(process.env.RESEND_API_KEY || 'no-key');
 const from = process.env.EMAIL_FROM || "NitroPicks <onboarding@resend.dev>";
 
 export const sendPassResetToken = async (userEmail: string, url: string) => {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await getResend().emails.send({
       from,
       to: [userEmail],
       subject: "Password Reset Token",
@@ -32,7 +32,7 @@ export const sendPassResetToken = async (userEmail: string, url: string) => {
 
 export const sendEmailVerifOTP = async (userEmail: string, url: string) => {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await getResend().emails.send({
       from,
       to: [userEmail],
       subject: "Email Verification",
@@ -56,7 +56,7 @@ export const sendEmailVerifOTP = async (userEmail: string, url: string) => {
 export const sendSupportEmail = async (fromName: string, replyTo: string, subject: string, message: string) => {
   try {
     const supportEmail = process.env.SUPPORT_EMAIL || process.env.EMAIL_FROM || "support@nitropicks.xyz";
-    const { error } = await resend.emails.send({
+    const { error } = await getResend().emails.send({
       from,
       to: [supportEmail],
       replyTo: replyTo,

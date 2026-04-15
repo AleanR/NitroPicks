@@ -31,10 +31,7 @@ export const forgotPass = async (req: AuthenticatedRequest, res: Response) => {
 
         await sendPassResetToken(user.email, resetURL);
 
-        return res.json({
-            message: "Reset token generated",
-            resetURL,
-        });
+        return res.json({ message: "Reset link sent to your email." });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal server error"});

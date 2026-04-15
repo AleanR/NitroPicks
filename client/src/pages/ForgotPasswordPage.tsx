@@ -7,7 +7,6 @@ function ForgotPasswordPage() {
   const [serverError, setServerError] = useState('')
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [resetURL, setResetURL] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -32,7 +31,6 @@ function ForgotPasswordPage() {
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.message || 'Something went wrong.')
-      setResetURL(data.resetURL ?? null)
       setSubmitted(true)
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -67,16 +65,8 @@ function ForgotPasswordPage() {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
                 </svg>
               </div>
-              <h2 className="text-lg font-bold text-white">Reset link ready</h2>
-              <p className="text-sm text-zinc-400">Click the link below to reset your password. It expires in 15 minutes.</p>
-              {resetURL && (
-                <a
-                  href={resetURL}
-                  className="mt-1 w-full rounded-xl bg-yellow-400 py-3 text-center font-bold text-black hover:bg-yellow-300 transition block"
-                >
-                  Reset My Password
-                </a>
-              )}
+              <h2 className="text-lg font-bold text-white">Check your inbox</h2>
+              <p className="text-sm text-zinc-400">We sent a reset link to <span className="text-white font-semibold">{email}</span>. It expires in 15 minutes.</p>
               <Link to="/login" className="text-sm text-zinc-400 hover:text-white transition">
                 Back to Sign In
               </Link>
