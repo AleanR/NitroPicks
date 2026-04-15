@@ -1,22 +1,54 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
+import { Resend } from "resend";
+
 dotenv.config();
 
-// Email sending is disabled — reset links are returned directly in the API response.
-// To enable email, integrate an SMTP or API-based email provider here.
+const resend = new Resend(process.env.RESEND_API_KEY);
+const from = process.env.EMAIL_FROM || "NitroPicks <onboarding@resend.dev>";
 
-export const sendPassResetToken = async (_userEmail: string, _url: string) => {
-  // no-op: link is returned in API response instead
+export const sendPassResetToken = async (userEmail: string, url: string) => {
+  try {
+    const { error } = await resend.emails.send({
+      from,
+      to: [userEmail],
+      subject: "Password Reset Token",
+      html: `
+        <p>
+          Please click this <a href="${url}">reset link</a>
+          to reset your password. This link is valid for 15 minutes.
+        </p>
+      `,
+    });
+
+    if (error) {
+      console.error("Password reset email failed:", error);
+    } else {
+      console.log("Password reset email sent to:", userEmail);
+    }
+  } catch (err) {
+    console.error("Password reset email failed:", err);
+  }
 };
 
-export const sendSupportEmail = async (
-  _fromName: string,
-  _fromEmail: string,
-  _subject: string,
-  _message: string,
-) => {
-  // no-op: email delivery not available on this host
-};
+export const sendEmailVerifOTP = async (userEmail: string, url: string) => {
+  try {
+    const { error } = await resend.emails.send({
+      from,
+      to: [userEmail],
+      subject: "Email Verification",
+      html: `
+        <h2>Email Verification</h2>
+        <p>Click below to verify your account:</p>
+        <a href="${url}">Verify</a>
+      `,
+    });
 
-export const sendEmailVerifOTP = async (_userEmail: string, _url: string) => {
-  // no-op: link is returned in API response instead
+    if (error) {
+      console.error("Verification email failed:", error);
+    } else {
+      console.log("Verification email sent to:", userEmail);
+    }
+  } catch (err) {
+    console.error("Verification email failed:", err);
+  }
 };
