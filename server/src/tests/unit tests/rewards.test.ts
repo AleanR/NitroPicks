@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getRewards, redeemReward } from './modules/rewards/rewards.controllers';
-import { getActiveRewards, getRewardById } from './modules/rewards/rewards.model';
-import { UserModel } from './modules/users/users.model';
+import { getRewards, redeemReward } from '../../modules/rewards/rewards.controllers';
+import { getActiveRewards, getRewardById } from '../../modules/rewards/rewards.model';
+import { UserModel } from '../../modules/users/users.model';
 import { createTransport } from 'nodemailer';
 
 // Mock reward model

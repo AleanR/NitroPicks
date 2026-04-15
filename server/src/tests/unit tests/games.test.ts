@@ -8,17 +8,17 @@ import {
   cancelGame,
   deleteGame,
   getPublicGames,
-} from './modules/games/games.controllers';
+} from '../../modules/games/games.controllers';
 import {
   getGames,
   getGameById,
   createGame,
   deleteGameById,
   GameModel,
-} from './modules/games/games.model';
-import { refund } from './modules/services/cancel.service';
-import { gameOver } from './modules/services/results.service';
-import { formatTime } from './helpers/time';
+} from '../../modules/games/games.model';
+import { refund } from '../../modules/services/cancel.service';
+import { gameOver } from '../../modules/services/results.service';
+import { formatTime } from '../../helpers/time';
 
 vi.mock('./modules/games/games.model', () => ({
   getGames: vi.fn(),

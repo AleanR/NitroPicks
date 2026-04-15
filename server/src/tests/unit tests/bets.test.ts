@@ -6,15 +6,15 @@ import {
   getAllBets,
   addBet,
   removeBet,
-} from './modules/bets/bets.controllers';
+} from '../../modules/bets/bets.controllers';
 import {
   getBetById,
   deleteBetById,
   getBets,
   getBetsByUser,
   getBetsByUserWithGames,
-} from './modules/bets/bets.model';
-import { placeBet } from './modules/services/bet.service';
+} from '../../modules/bets/bets.model';
+import { placeBet } from '../../modules/services/bet.service';
 
 vi.mock('./modules/bets/bets.model', () => ({
   createBet: vi.fn(),

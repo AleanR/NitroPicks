@@ -11,15 +11,15 @@ import {
   contactSupport,
   earnPoints,
   redeemPerk,
-} from './modules/users/users.controllers';
+} from '../../modules/users/users.controllers';
 import {
   deleteUserById,
   getUsers,
   updateUserById,
   UserModel,
   getUserById,
-} from './modules/users/users.model';
-import { sendSupportEmail } from './modules/services/email.service';
+} from '../../modules/users/users.model';
+import { sendSupportEmail } from '../../modules/services/email.service';
 
 vi.mock('./modules/users/users.model', () => ({
   deleteUserById: vi.fn(),

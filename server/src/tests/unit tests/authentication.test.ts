@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { login, register } from './modules/authentication/authentication.controllers';
-import { getUserByEmail, createUser, UserModel } from './modules/users/users.model';
-import { comparePassword, hashPassword } from './helpers';
-import { createToken } from './helpers/jwt';
-import { sendEmailVerifOTP } from './modules/services/email.service';
+import { login, register } from '../../modules/authentication/authentication.controllers';
+import { getUserByEmail, createUser, UserModel } from '../../modules/users/users.model';
+import { comparePassword, hashPassword } from '../../helpers';
+import { createToken } from '../../helpers/jwt';
+import { sendEmailVerifOTP } from '../../modules/services/email.service';
 
 // Mock dependencies used by the controller
 vi.mock('./modules/users/users.model', () => ({
