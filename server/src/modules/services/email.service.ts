@@ -59,7 +59,7 @@ export const sendSupportEmail = async (fromName: string, replyTo: string, subjec
     const { error } = await resend.emails.send({
       from,
       to: [supportEmail],
-      reply_to: replyTo,
+      replyTo: replyTo,
       subject: `[Support] ${subject}`,
       html: `
         <h2>Support Request from ${fromName}</h2>
