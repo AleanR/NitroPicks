@@ -45,6 +45,10 @@ function MarketsPage() {
   const [selectedStatus, setSelectedStatus] = useState('')
   const [showStatusFilter, setShowStatusFilter] = useState(false)
 
+  // Pagination
+  const GAMES_PER_PAGE = 5
+  const [currentPage, setCurrentPage] = useState(1)
+
   // Contact support modal
   const [supportOpen, setSupportOpen] = useState(false)
 
@@ -117,6 +121,12 @@ function MarketsPage() {
     return new Date(a.bettingClosesAt).getTime() - new Date(b.bettingClosesAt).getTime()
   })
 
+  const totalPages = Math.max(1, Math.ceil(sortedFilteredGames.length / GAMES_PER_PAGE))
+  const paginatedGames = sortedFilteredGames.slice(
+    (currentPage - 1) * GAMES_PER_PAGE,
+    currentPage * GAMES_PER_PAGE,
+  )
+
   const clearFilters = () => {
     setSearchQuery('')
     setSelectedDateRange('')
@@ -125,6 +135,7 @@ function MarketsPage() {
     setShowSportsFilter(false)
     setSelectedStatus('')
     setShowStatusFilter(false)
+    setCurrentPage(1)
   }
 
   const toggleSport = (sport: string) => {
@@ -134,6 +145,7 @@ function MarketsPage() {
       else next.add(sport)
       return next
     })
+    setCurrentPage(1)
   }
 
   const handleAddToSlip = (
@@ -320,7 +332,7 @@ function MarketsPage() {
             <div>
               <h1 className="text-5xl font-extrabold">Markets</h1>
               <p className="mt-2 text-lg text-zinc-400">
-                Showing 1-{Math.min(5, filteredGames.length)} of {filteredGames.length} games
+                Showing {sortedFilteredGames.length === 0 ? 0 : (currentPage - 1) * GAMES_PER_PAGE + 1}–{Math.min(currentPage * GAMES_PER_PAGE, sortedFilteredGames.length)} of {sortedFilteredGames.length} games
               </p>
             </div>
           </div>
@@ -345,7 +357,7 @@ function MarketsPage() {
               type="text"
               placeholder="Search teams, games, matchups..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1) }}
               className="w-full bg-transparent text-lg text-white outline-none placeholder:text-zinc-500"
             />
           </div>
@@ -362,7 +374,7 @@ function MarketsPage() {
               </div>
             ) : sortedFilteredGames.length === 0 ? (
               <p className="text-zinc-400">No games found.</p>
-            ) : sortedFilteredGames.map((game) => (
+            ) : paginatedGames.map((game) => (
               <div
                 key={game._id}
                 className="rounded-3xl border border-zinc-800 bg-[#14161d] p-6"
@@ -485,6 +497,28 @@ function MarketsPage() {
               </div>
             ))}
           </div>
+
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="rounded-xl border border-zinc-700 bg-[#14161d] px-4 py-2 text-sm font-semibold text-white transition hover:border-yellow-400 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                ← Prev
+              </button>
+              <span className="text-sm text-zinc-400">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="rounded-xl border border-zinc-700 bg-[#14161d] px-4 py-2 text-sm font-semibold text-white transition hover:border-yellow-400 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Next →
+              </button>
+            </div>
+          )}
         </section>
 
         <aside className="space-y-5">
