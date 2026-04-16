@@ -62,6 +62,12 @@ export const register = async (req: Request, res: Response) => {
             $or: [{ email }, { ucfID }, { username }]
         });
 
+        const domain = email.split('@')[1]?.toLowerCase();
+        if (domain !== "ucf.edu"){
+            return res.status(400).json({ message: "Email must have @ucf.edu domain"});
+        }
+        
+
         if (existingUser) {
             return res.status(409).json({ message: "User with provided email, username or UCF ID already exists"});
         }
