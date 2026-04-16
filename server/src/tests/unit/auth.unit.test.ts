@@ -64,7 +64,7 @@ describe('authentication.controllers', () => {
     it('returns 401 if user does not exist', async () => {
       req.body = {
         email: 'jase@ucf.edu',
-        password: 'test123',
+        password: 'test1234',
       };
 
       const selectMock = vi.fn().mockResolvedValue(null);
@@ -81,7 +81,7 @@ describe('authentication.controllers', () => {
     it('returns 403 if user is not verified', async () => {
       req.body = {
         email: 'jase@ucf.edu',
-        password: 'test123',
+        password: 'test1234',
       };
 
       const fakeUser = {
@@ -108,7 +108,7 @@ describe('authentication.controllers', () => {
     it('returns 200 on successful login', async () => {
       req.body = {
         email: 'jase@ucf.edu',
-        password: 'test123',
+        password: 'test1234',
       };
 
       const fakeUser = {
@@ -160,14 +160,33 @@ describe('authentication.controllers', () => {
       });
     });
 
+    it('returns 400 if password is less than 8 characters', async () => {
+      req.body = {
+        firstname: 'Jase',
+        lastname: 'Thomas',
+        ucfID: '1234567',
+        major: 'Computer Science',
+        email: 'jase@ucf.edu',
+        password: 'test123',
+        username: 'jaset',
+      };
+
+      await register(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Password must be at least 8 characters long',
+      });
+    });
+
     it('returns 400 if email does not use @ucf.edu domain', async () => {
       req.body = {
         firstname: 'Jase',
         lastname: 'Thomas',
         ucfID: '1234567',
-        major: 'CS',
+        major: 'Computer Science',
         email: 'jase@gmail.com',
-        password: 'test123',
+        password: 'test1234',
         username: 'jaset',
       };
 
@@ -186,9 +205,9 @@ describe('authentication.controllers', () => {
         firstname: 'Jase',
         lastname: 'Thomas',
         ucfID: '1234567',
-        major: 'CS',
+        major: 'Computer Science',
         email: 'jase@ucf.edu',
-        password: 'test123',
+        password: 'test1234',
         username: 'jaset',
       };
 
@@ -207,9 +226,9 @@ describe('authentication.controllers', () => {
         firstname: 'Jase',
         lastname: 'Thomas',
         ucfID: '1234567',
-        major: 'CS',
+        major: 'Computer Science',
         email: 'jase@ucf.edu',
-        password: 'test123',
+        password: 'test1234',
         username: 'jaset',
       };
 
