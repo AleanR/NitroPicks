@@ -261,6 +261,26 @@ function AdminPage() {
     }
   }
 
+  const sortedGames = [...games].sort((a, b) => {
+    const statusPriority = (game: Game) => {
+      if (game.status === 'live') return 0
+      if (game.status === 'upcoming') return 1
+      return 2
+    }
+
+    const priorityDiff = statusPriority(a) - statusPriority(b)
+    if (priorityDiff !== 0) return priorityDiff
+
+    const aTime = new Date(a.bettingClosesAt).getTime()
+    const bTime = new Date(b.bettingClosesAt).getTime()
+
+    if (statusPriority(a) === 2) {
+      return bTime - aTime
+    }
+
+    return aTime - bTime
+  })
+
   return (
     <div className="min-h-screen bg-black text-white">
       <Navigation />
@@ -287,7 +307,7 @@ function AdminPage() {
         {/* CREATE / EDIT FORM */}
         <section className="mb-10 rounded-3xl border border-zinc-800 bg-[#14161d] p-6">
           <h2 className="mb-6 text-2xl font-extrabold">
-            {editingId ? 'Edit game' : 'Create New game'}
+            {editingId ? 'Edit game' : 'Create New Game'}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -413,7 +433,7 @@ function AdminPage() {
             <p className="text-zinc-400">No games yet. Create one above.</p>
           ) : (
             <div className="space-y-4">
-              {games.map(game => (
+              {sortedGames.map(game => (
                 <div key={game._id} className="rounded-3xl border border-zinc-800 bg-[#14161d] px-6 py-5">
                   <div className="flex flex-wrap justify-between gap-4">
 
