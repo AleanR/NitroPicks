@@ -43,6 +43,40 @@ const EMPTY_FORM: Form = {
   awayOdds: '1.90',
 }
 
+const normalizeAdminTime = (time: string) => {
+  const trimmed = time.trim().toUpperCase()
+  const twelveHourMatch = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/)
+
+  if (twelveHourMatch) {
+    const [, hourPart, minutePart, period] = twelveHourMatch
+    let hour = Number(hourPart)
+
+    if (hour < 1 || hour > 12) return null
+    if (period === 'PM' && hour !== 12) hour += 12
+    if (period === 'AM' && hour === 12) hour = 0
+
+    return `${String(hour).padStart(2, '0')}:${minutePart}`
+  }
+
+  const twentyFourHourMatch = trimmed.match(/^([01]?\d|2[0-3]):([0-5]\d)$/)
+  if (twentyFourHourMatch) {
+    const [, hourPart, minutePart] = twentyFourHourMatch
+    return `${hourPart.padStart(2, '0')}:${minutePart}`
+  }
+
+  return null
+}
+
+const buildBettingClosesAt = (date: string, time: string) => {
+  const normalizedTime = normalizeAdminTime(time)
+  if (!normalizedTime) return null
+
+  const localDateTime = new Date(`${date}T${normalizedTime}:00`)
+  if (Number.isNaN(localDateTime.getTime())) return null
+
+  return localDateTime.toISOString()
+}
+
 function AdminPage() {
   const navigate = useNavigate()
   const [games, setGames] = useState<Game[]>([])
@@ -96,6 +130,14 @@ function AdminPage() {
     e.preventDefault()
     setSaving(true)
     setError(null)
+
+    const bettingClosesAt = buildBettingClosesAt(form.date, form.time)
+    if (!bettingClosesAt) {
+      setError('Enter a valid start time, for example 11:30 AM')
+      setSaving(false)
+      return
+    }
+
     try {
       const url = editingId
         ? `/api/games/${editingId}`
@@ -105,7 +147,7 @@ function AdminPage() {
         method,
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form }),
+        body: JSON.stringify({ ...form, bettingClosesAt }),
       })
       if (!res.ok) throw new Error('Failed to save')
       setForm(EMPTY_FORM)

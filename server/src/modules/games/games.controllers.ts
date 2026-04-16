@@ -71,7 +71,7 @@ export const searchGames = async (req: Request, res: Response) => {
 // ADD GAMES
 export const addGame = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const {homeTeam, awayTeam, date, time, emoji, homeOdds, awayOdds } = req.body;
+        const {homeTeam, awayTeam, date, time, emoji, homeOdds, awayOdds, bettingClosesAt } = req.body;
 
 
         console.log(emoji);
@@ -85,7 +85,9 @@ export const addGame = async (req: AuthenticatedRequest, res: Response) => {
 
         // Validate Date instances for betting window
         const betStart = new Date(Date.now());
-        const betClose = new Date(`${date}T${formatTime(time)}:00`);
+        const betClose = bettingClosesAt
+            ? new Date(bettingClosesAt)
+            : new Date(`${date}T${formatTime(time)}:00`);
 
         if (!(betStart instanceof Date && !isNaN(betStart.getTime()))
             || !(betClose instanceof Date && !isNaN(betClose.getTime()))) {
@@ -129,7 +131,7 @@ export const addGame = async (req: AuthenticatedRequest, res: Response) => {
 export const updateGame = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { id } = req.params;
-        const { homeTeam, awayTeam, date, time, emoji, homeOdds, awayOdds } = req.body;
+        const { homeTeam, awayTeam, date, time, emoji, homeOdds, awayOdds, bettingClosesAt } = req.body;
 
         let dateTime = '';
 
@@ -147,7 +149,9 @@ export const updateGame = async (req: AuthenticatedRequest, res: Response) => {
         const game = await getGameById(id);
         if (!game) return res.status(400).json({ message: "Game not found" });
 
-        if (date && time) {
+        if (bettingClosesAt) {
+            dateTime = bettingClosesAt;
+        } else if (date && time) {
             dateTime = `${date}T${formatTime(time)}:00`;
         }
         const newTime = new Date(dateTime);
