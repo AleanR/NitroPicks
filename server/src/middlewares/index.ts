@@ -19,7 +19,7 @@ export const isAuthenticated = async (req: AuthenticatedRequest, res: Response, 
         next();
     } catch (error) {
         console.log(error);
-        return res.sendStatus(401).json({ message: "Invalid or expired token!"});
+        return res.status(401).json({ message: "Invalid or expired token!"});
     }
 }
 
@@ -40,6 +40,6 @@ export const isAdmin = async (req: AuthenticatedRequest, res: Response, next: Ne
         next();
     } catch (error) {
         console.log(error);
-        return res.sendStatus(401).json({ message: "Invalid role" });
+        return res.status(401).json({ message: "Invalid role" });
     }
 }
