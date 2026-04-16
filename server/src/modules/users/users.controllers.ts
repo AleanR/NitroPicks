@@ -46,6 +46,39 @@ export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) =
 }
 
 
+export const getTotalRedemptions = async (_req: Request, res: Response) => {
+    try {
+        const users = await getUsers();
+        const total = users.reduce((sum: number, user: any) => sum + (user.redemptions?.length || 0), 0);
+        return res.status(200).json({ total: total.toString() });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const getTotalPoints = async (_req: Request, res: Response) => {
+    try {
+        const users = await getUsers();
+        const total = Math.round(users.reduce((sum: number, user: any) => sum + (user.knightPoints || 0), 0));
+        return res.status(200).json({ total: total.toLocaleString() });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const getPlayerCount = async (_req: Request, res: Response) => {
+    try {
+        const users = await getUsers();
+        const count = users.filter((u: any) => u.username !== 'admin').length;
+        return res.status(200).json({ count: count.toLocaleString() });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
         const users = await getUsers();
@@ -86,6 +119,7 @@ export const getLeaderboard = async (req: Request, res: Response) => {
                 const winRate = stats.total > 0 ? Math.round((stats.wins / stats.total) * 100) : 0;
                 return {
                     id: user._id,
+                    username: user.username,
                     name: `${user.firstname || user.firstName} ${user.lastname || user.lastName}`,
                     initials: `${(user.firstname || user.firstName || '').charAt(0)}${(user.lastname || user.lastName || '').charAt(0)}`,
                     rank: index + 1,

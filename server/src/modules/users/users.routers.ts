@@ -6,6 +6,9 @@ import {
     getAllUsers,
     getCurrentUser,
     getLeaderboard,
+    getPlayerCount,
+    getTotalPoints,
+    getTotalRedemptions,
     getPublicUser,
     getRedemptions,
     getTicketRedemptions,
@@ -16,6 +19,9 @@ import { isAuthenticated } from '../../middlewares';
 import { forgotPass, resetPass } from './users.password';
 
 export default (router: Router) => {
+    router.get('/users/count', getPlayerCount);                      // public: get total active players
+    router.get('/users/points/total', getTotalPoints);                // public: get total points circulating
+    router.get('/users/redemptions/total', getTotalRedemptions);      // public: get total prizes redeemed
     router.get('/users/me', isAuthenticated, getCurrentUser);       // get user's info once logged in
     router.post('/users/earn-points', isAuthenticated, earnPoints); // validate user's code to earn points
     router.get('/users', isAuthenticated, getAllUsers);
