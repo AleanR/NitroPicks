@@ -4,9 +4,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../domain/redemption.dart';
 import '../domain/reward.dart';
+import '../../../core/constants/api_constants.dart';
 
 class RewardsApiService {
-  static const _base = 'http://localhost:8080/api';
+  static const _base = ApiConstants.baseUrl;
 
   final String token;
   const RewardsApiService({required this.token});

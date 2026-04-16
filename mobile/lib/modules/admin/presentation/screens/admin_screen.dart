@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import '../../../../shared/theme/app_theme.dart';
+import '../../../../core/constants/api_constants.dart';
 
 class AdminScreen extends StatefulWidget {
   final String authToken;
@@ -17,7 +18,7 @@ class AdminScreen extends StatefulWidget {
 }
 
 class _AdminScreenState extends State<AdminScreen> {
-  static const _base = 'http://localhost:8080/api';
+  static const _base = ApiConstants.baseUrl;
 
   List<Map<String, dynamic>> _games = [];
   bool _loading = true;

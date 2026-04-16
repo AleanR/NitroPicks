@@ -3,18 +3,17 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../domain/event.dart';
+import '../../../core/constants/api_constants.dart';
 
 class EventApiService {
-  static const String _baseUrl = 'http://localhost:8080/api';
-
   final String token;
 
   const EventApiService({required this.token});
 
-  /// GET /events — all upcoming/live games, no page limit.
+  /// GET /games — all upcoming/live games, no page limit.
   /// Used for the main events list when there is no search query.
   Future<List<EventModel>> getPublicGames() async {
-    final uri = Uri.parse('$_baseUrl/events');
+    final uri = Uri.parse('${ApiConstants.baseUrl}/games');
     final response = await http.get(uri, headers: _headers);
 
     if (response.statusCode == 200) {
@@ -33,7 +32,7 @@ class EventApiService {
     required String query,
     int page = 1,
   }) async {
-    final uri = Uri.parse('$_baseUrl/games/search').replace(queryParameters: {
+    final uri = Uri.parse('${ApiConstants.baseUrl}/games/search').replace(queryParameters: {
       'query': query,
       'page': page.toString(),
     });
