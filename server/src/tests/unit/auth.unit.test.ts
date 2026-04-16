@@ -63,7 +63,7 @@ describe('authentication.controllers', () => {
 
     it('returns 401 if user does not exist', async () => {
       req.body = {
-        email: 'jase@example.com',
+        email: 'jase@ucf.edu',
         password: 'test123',
       };
 
@@ -80,13 +80,13 @@ describe('authentication.controllers', () => {
 
     it('returns 403 if user is not verified', async () => {
       req.body = {
-        email: 'jase@example.com',
+        email: 'jase@ucf.edu',
         password: 'test123',
       };
 
       const fakeUser = {
         _id: '123',
-        email: 'jase@example.com',
+        email: 'jase@ucf.edu',
         isVerified: false,
         authentication: {
           password: 'hashed-password',
@@ -107,20 +107,20 @@ describe('authentication.controllers', () => {
 
     it('returns 200 on successful login', async () => {
       req.body = {
-        email: 'jase@example.com',
+        email: 'jase@ucf.edu',
         password: 'test123',
       };
 
       const fakeUser = {
         _id: { toString: () => '123' },
-        email: 'jase@example.com',
+        email: 'jase@ucf.edu',
         isVerified: true,
         role: 'user',
         authentication: {
           password: 'hashed-password',
         },
         toObject: () => ({
-          email: 'jase@example.com',
+          email: 'jase@ucf.edu',
           isVerified: true,
           role: 'user',
         }),
@@ -136,7 +136,7 @@ describe('authentication.controllers', () => {
       expect(res.cookie).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
-        email: 'jase@example.com',
+        email: 'jase@ucf.edu',
         isVerified: true,
         role: 'user',
         isAdmin: false,
@@ -160,13 +160,34 @@ describe('authentication.controllers', () => {
       });
     });
 
+    it('returns 400 if email does not use @ucf.edu domain', async () => {
+      req.body = {
+        firstname: 'Jase',
+        lastname: 'Thomas',
+        ucfID: '1234567',
+        major: 'CS',
+        email: 'jase@gmail.com',
+        password: 'test123',
+        username: 'jaset',
+      };
+
+      (UserModel.findOne as any).mockResolvedValue(null);
+
+      await register(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Email must have @ucf.edu domain',
+      });
+    });
+
     it('returns 409 if user already exists', async () => {
       req.body = {
         firstname: 'Jase',
         lastname: 'Thomas',
         ucfID: '1234567',
         major: 'CS',
-        email: 'jase@example.com',
+        email: 'jase@ucf.edu',
         password: 'test123',
         username: 'jaset',
       };
@@ -187,7 +208,7 @@ describe('authentication.controllers', () => {
         lastname: 'Thomas',
         ucfID: '1234567',
         major: 'CS',
-        email: 'jase@example.com',
+        email: 'jase@ucf.edu',
         password: 'test123',
         username: 'jaset',
       };
@@ -196,7 +217,7 @@ describe('authentication.controllers', () => {
       (hashPassword as any).mockResolvedValue('hashed-password');
       (createUser as any).mockResolvedValue({
         _id: { toString: () => '123' },
-        email: 'jase@example.com',
+        email: 'jase@ucf.edu',
       });
       (createToken as any).mockResolvedValue('fake-jwt-token');
       (sendEmailVerifOTP as any).mockResolvedValue(undefined);

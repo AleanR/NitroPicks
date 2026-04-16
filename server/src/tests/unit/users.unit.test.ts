@@ -117,7 +117,7 @@ describe('users.controllers', () => {
       req.user = { id: 'u1' };
       (getUserById as any).mockResolvedValue({
         role: 'admin',
-        toObject: () => ({ _id: 'u1', email: 'jase@example.com', role: 'admin' }),
+        toObject: () => ({ _id: 'u1', email: 'jase@ucf.edu', role: 'admin' }),
       });
 
       await getCurrentUser(req, res);
@@ -125,7 +125,7 @@ describe('users.controllers', () => {
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         _id: 'u1',
-        email: 'jase@example.com',
+        email: 'jase@ucf.edu',
         role: 'admin',
         isAdmin: true,
       });
@@ -394,7 +394,7 @@ describe('users.controllers', () => {
       (getUserById as any).mockResolvedValue({
         firstname: 'Jase',
         lastname: 'Thomas',
-        email: 'jase@example.com',
+        email: 'jase@ucf.edu',
       });
       (sendSupportEmail as any).mockResolvedValue(undefined);
 
@@ -402,7 +402,7 @@ describe('users.controllers', () => {
 
       expect(sendSupportEmail).toHaveBeenCalledWith(
         'Jase Thomas',
-        'jase@example.com',
+        'jase@ucf.edu',
         'Help',
         'Test message'
       );

@@ -202,7 +202,7 @@ describe('rewards.controllers', () => {
 
       const fakeUser = {
         _id: 'user1',
-        email: 'jase@example.com',
+        email: 'jase@ucf.edu',
         knightPoints: 1000,
         redemptions: [],
         save: vi.fn().mockResolvedValue(undefined),
