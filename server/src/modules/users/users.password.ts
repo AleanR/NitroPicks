@@ -48,6 +48,10 @@ export const resetPass = async (req: Request, res: Response) => {
         }
         const { password } = req.body;
 
+        if (password.length < 8) {
+            return res.status(400).json({ message: "Password must be at least 8 characters long"});
+        }
+
         const hashedToken = crypto.createHash("sha256").update(token).digest('hex');
 
         // Find user with matching hashed token
