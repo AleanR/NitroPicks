@@ -1,7 +1,16 @@
 import request from 'supertest';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createApp } from '../../app';
-import { getUserById, getUsers, UserModel } from '../../modules/users/users.model';
+import { getUserById, getUsers } from '../../modules/users/users.model';
+import { BetModel } from '../../modules/bets/bets.model';
+
+vi.mock('resend', () => ({
+  Resend: vi.fn().mockImplementation(() => ({
+    emails: {
+      send: vi.fn().mockResolvedValue({ error: null }),
+    },
+  })),
+}), { virtual: true });
 
 vi.mock('../../modules/users/users.model', () => ({
   deleteUserById: vi.fn(),
@@ -15,14 +24,27 @@ vi.mock('../../modules/users/users.model', () => ({
   },
 }));
 
+vi.mock('../../modules/bets/bets.model', () => ({
+  BetModel: {
+    aggregate: vi.fn(),
+  },
+}));
+
 vi.mock('../../modules/services/email.service', () => ({
   sendSupportEmail: vi.fn(),
   sendEmailVerifOTP: vi.fn(),
+  sendPassResetToken: vi.fn(),
 }));
 
 vi.mock('../../helpers/jwt', () => ({
   verifyToken: vi.fn(),
   createToken: vi.fn(),
+}));
+
+vi.mock('../../helpers', () => ({
+  genResetToken: vi.fn(),
+  hashPassword: vi.fn(),
+  comparePassword: vi.fn(),
 }));
 
 describe('Users integration', () => {
@@ -74,9 +96,9 @@ describe('Users integration', () => {
     expect(res.status).toBe(401);
   });
 
-  it('GET /api/users/:id/ticket-redemptions currently returns 404', async () => {
+  it('GET /api/users/:id/ticket-redemptions returns 401 if not authenticated', async () => {
     const res = await request(app).get('/api/users/u1/ticket-redemptions');
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(401);
   });
 
   it('POST /api/users/support/contact returns 401 if not authenticated', async () => {
@@ -87,6 +109,44 @@ describe('Users integration', () => {
     expect(res.status).toBe(401);
   });
 
+  it('GET /api/users/count returns 200 (public route)', async () => {
+    (getUsers as any).mockResolvedValue([
+      { username: 'admin' },
+      { username: 'jaset' },
+      { username: 'amyl' },
+    ]);
+
+    const res = await request(app).get('/api/users/count');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ count: '2' });
+  });
+
+  it('GET /api/users/points/total returns 200 (public route)', async () => {
+    (getUsers as any).mockResolvedValue([
+      { knightPoints: 3000 },
+      { knightPoints: 2500 },
+    ]);
+
+    const res = await request(app).get('/api/users/points/total');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ total: '5,500' });
+  });
+
+  it('GET /api/users/redemptions/total returns 200 (public route)', async () => {
+    (getUsers as any).mockResolvedValue([
+      { redemptions: [{}, {}] },
+      { redemptions: [{}] },
+      {},
+    ]);
+
+    const res = await request(app).get('/api/users/redemptions/total');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ total: '3' });
+  });
+
   it('GET /api/users/leaderboard returns 200 (public route)', async () => {
     (getUsers as any).mockResolvedValue([
       { _id: '1', firstname: 'Jase', lastname: 'Thomas', username: 'jaset', knightPoints: 3000 },
@@ -94,11 +154,18 @@ describe('Users integration', () => {
       { _id: '3', firstname: 'Amy', lastname: 'Lee', username: 'amyl', knightPoints: 2500 },
     ]);
 
+    (BetModel.aggregate as any).mockResolvedValue([
+      { _id: '1', total: 10, wins: 7 },
+      { _id: '3', total: 4, wins: 1 },
+    ]);
+
     const res = await request(app).get('/api/users/leaderboard');
 
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBe(2);
+    expect(res.body[0].username).toBe('jaset');
+    expect(res.body[0].rank).toBe(1);
   });
 
   it('GET /api/users/:id returns 200 (public route)', async () => {

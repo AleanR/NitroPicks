@@ -4,7 +4,7 @@ import { createApp } from '../../app';
 
 import {
   GameModel,
-  getGames
+  getGames,
 } from '../../modules/games/games.model';
 
 import { getUserById } from '../../modules/users/users.model';
@@ -16,11 +16,18 @@ MOCK DEPENDENCIES
 ========================
 */
 
+vi.mock('resend', () => ({
+  Resend: vi.fn().mockImplementation(() => ({
+    emails: {
+      send: vi.fn().mockResolvedValue({ error: null }),
+    },
+  })),
+}), { virtual: true });
+
 vi.mock('../../modules/games/games.model', () => ({
   getGames: vi.fn(),
   getGameById: vi.fn(),
   createGame: vi.fn(),
-  updateGameById: vi.fn(),
   deleteGameById: vi.fn(),
   GameModel: {
     countDocuments: vi.fn(),
@@ -35,10 +42,6 @@ vi.mock('../../modules/users/users.model', () => ({
 vi.mock('../../helpers/jwt', () => ({
   verifyToken: vi.fn(),
   createToken: vi.fn(),
-}));
-
-vi.mock('../../modules/bets/bets.model', () => ({
-  refundPlayersByBets: vi.fn(),
 }));
 
 vi.mock('../../modules/services/cancel.service', () => ({
@@ -74,7 +77,19 @@ describe('Games integration', () => {
   */
 
   it('GET /api/games returns 200 (public route)', async () => {
-    const sortMock = vi.fn().mockResolvedValue([{ _id: 'g1' }]);
+    const now = new Date();
+
+    const games = [
+      {
+        toObject: () => ({
+          _id: 'g1',
+          status: 'upcoming',
+          bettingClosesAt: new Date(now.getTime() + 60_000),
+        }),
+      },
+    ];
+
+    const sortMock = vi.fn().mockResolvedValue(games);
     const selectMock = vi.fn().mockReturnValue({ sort: sortMock });
 
     (GameModel.find as any).mockReturnValue({
@@ -84,7 +99,13 @@ describe('Games integration', () => {
     const res = await request(app).get('/api/games');
 
     expect(res.status).toBe(200);
-    expect(res.body).toEqual([{ _id: 'g1' }]);
+    expect(res.body).toEqual([
+      {
+        _id: 'g1',
+        status: 'upcoming',
+        bettingClosesAt: expect.any(String),
+      },
+    ]);
   });
 
   /*
@@ -127,6 +148,20 @@ describe('Games integration', () => {
       .send({
         homeTeam: 'UCF Knights',
         awayTeam: 'Houston Cougars',
+        homeOdds: 2,
+        awayOdds: 3,
+        emoji: 'Basketball 🏀',
+      });
+
+    expect(res.status).toBe(401);
+  });
+
+  it('PATCH /api/games/:id/score returns 401 if not authenticated', async () => {
+    const res = await request(app)
+      .patch('/api/games/g1/score')
+      .send({
+        team: 'home',
+        score: 2,
       });
 
     expect(res.status).toBe(401);
@@ -145,9 +180,7 @@ describe('Games integration', () => {
   });
 
   it('PUT /api/games/:id/end returns 401 if not authenticated', async () => {
-    const res = await request(app)
-      .put('/api/games/g1/end')
-      .send({ winner: 'home' });
+    const res = await request(app).put('/api/games/g1/end');
 
     expect(res.status).toBe(401);
   });
@@ -160,16 +193,16 @@ describe('Games integration', () => {
 
   it('GET /api/games/all returns 401 for authenticated non-admin user', async () => {
     (verifyToken as any).mockResolvedValue({ id: 'user1' });
-  
+
     (getUserById as any).mockResolvedValue({
       _id: 'user1',
       role: 'user',
     });
-  
+
     const res = await request(app)
       .get('/api/games/all')
       .set('Cookie', ['token=fake-token']);
-  
+
     expect(res.status).toBe(401);
   });
 

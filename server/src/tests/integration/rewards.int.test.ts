@@ -2,6 +2,15 @@ import request from 'supertest';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createApp } from '../../app';
 
+// Mock app-startup dependency from rewards controller
+vi.mock('resend', () => ({
+  Resend: vi.fn().mockImplementation(() => ({
+    emails: {
+      send: vi.fn().mockResolvedValue({ error: null }),
+    },
+  })),
+}), { virtual: true });
+
 // Mock rewards dependencies
 vi.mock('../../modules/rewards/rewards.model', () => ({
   getActiveRewards: vi.fn(),
@@ -14,12 +23,6 @@ vi.mock('../../modules/users/users.model', () => ({
   },
   getUserById: vi.fn(),
   updateUserById: vi.fn(),
-}));
-
-vi.mock('nodemailer', () => ({
-  createTransport: vi.fn(() => ({
-    sendMail: vi.fn().mockResolvedValue(undefined),
-  })),
 }));
 
 describe('Rewards integration', () => {
