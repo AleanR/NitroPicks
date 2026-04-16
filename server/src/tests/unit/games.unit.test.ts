@@ -4,6 +4,7 @@ import {
   searchGames,
   addGame,
   updateGame,
+  updateScore,
   endGame,
   cancelGame,
   deleteGame,
@@ -24,16 +25,11 @@ vi.mock('../../modules/games/games.model', () => ({
   getGames: vi.fn(),
   getGameById: vi.fn(),
   createGame: vi.fn(),
-  updateGameById: vi.fn(),
   deleteGameById: vi.fn(),
   GameModel: {
     countDocuments: vi.fn(),
     find: vi.fn(),
   },
-}));
-
-vi.mock('../../modules/bets/bets.model', () => ({
-  refundPlayersByBets: vi.fn(),
 }));
 
 vi.mock('../../modules/services/cancel.service', () => ({
@@ -75,8 +71,18 @@ describe('games.controllers', () => {
 
       await getAllGames(req, res);
 
+      expect(getGames).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(games);
+    });
+
+    it('returns 500 if getGames throws', async () => {
+      (getGames as any).mockRejectedValue(new Error('DB fail'));
+
+      await getAllGames(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Internal server error' });
     });
   });
 
@@ -108,28 +114,35 @@ describe('games.controllers', () => {
     it('returns 200 with paginated results', async () => {
       req.query = { query: 'UCF active', page: '1' };
 
-      const selectMock = vi.fn().mockReturnThis();
-      const limitMock = vi.fn().mockReturnThis();
-      const skipMock = vi.fn().mockResolvedValue([{ _id: 'g1' }]);
+      const games = [{ _id: 'g1' }];
+      const skipMock = vi.fn().mockResolvedValue(games);
+      const limitMock = vi.fn().mockReturnValue({ skip: skipMock });
+      const selectMock = vi.fn().mockReturnValue({ limit: limitMock });
 
       (GameModel.countDocuments as any).mockResolvedValue(1);
-      (GameModel.find as any).mockReturnValue({
-        select: selectMock.mockReturnValue({
-          limit: limitMock.mockReturnValue({
-            skip: skipMock,
-          }),
-        }),
-      });
+      (GameModel.find as any).mockReturnValue({ select: selectMock });
 
       await searchGames(req, res);
 
+      expect(GameModel.countDocuments).toHaveBeenCalled();
+      expect(GameModel.find).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         page: '1',
         total: 1,
         totalPages: 1,
-        results: [{ _id: 'g1' }],
+        results: games,
       });
+    });
+
+    it('returns 500 if searchGames throws', async () => {
+      req.query = { query: 'UCF', page: '1' };
+      (GameModel.countDocuments as any).mockRejectedValue(new Error('DB fail'));
+
+      await searchGames(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Internal server error' });
     });
   });
 
@@ -148,8 +161,8 @@ describe('games.controllers', () => {
     it('returns 400 if team names are not strings', async () => {
       req.body = {
         homeTeam: 123,
-        awayTeam: 'Houston',
-        date: '2026-04-20',
+        awayTeam: 'Houston Cougars',
+        date: '2099-12-31',
         time: '5:00 PM',
         emoji: 'Basketball 🏀',
         homeOdds: 2,
@@ -201,11 +214,42 @@ describe('games.controllers', () => {
 
       await addGame(req, res);
 
-      expect(createGame).toHaveBeenCalled();
+      expect(createGame).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sport: 'Basketball',
+          homeTeam: 'UCF Knights',
+          awayTeam: 'Houston Cougars',
+          emoji: '🏀',
+          status: 'upcoming',
+          homeWin: { label: 'Knights Win', odds: 2 },
+          awayWin: { label: 'Cougars Win', odds: 3 },
+        })
+      );
+
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Game created successfully',
       });
+    });
+
+    it('returns 500 if createGame throws', async () => {
+      req.body = {
+        homeTeam: 'UCF Knights',
+        awayTeam: 'Houston Cougars',
+        date: '2099-12-31',
+        time: '5:00 PM',
+        emoji: 'Basketball 🏀',
+        homeOdds: 2,
+        awayOdds: 3,
+      };
+
+      (formatTime as any).mockReturnValue('17:00');
+      (createGame as any).mockRejectedValue(new Error('DB fail'));
+
+      await addGame(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Internal server error' });
     });
   });
 
@@ -296,18 +340,155 @@ describe('games.controllers', () => {
 
       await updateGame(req, res);
 
+      expect(fakeGame.sport).toBe('Basketball');
+      expect(fakeGame.homeTeam).toBe('UCF Knights');
+      expect(fakeGame.awayTeam).toBe('Houston Cougars');
+      expect(fakeGame.homeWin.odds).toBe(2);
+      expect(fakeGame.awayWin.odds).toBe(3);
+      expect(fakeGame.emoji).toBe('🏀');
       expect(fakeGame.save).toHaveBeenCalled();
+
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Game updated successfully',
       });
+    });
+
+    it('returns 500 if save throws', async () => {
+      req.user = { id: 'admin1' };
+      req.params = { id: 'g1' };
+      req.body = {
+        homeTeam: 'UCF Knights',
+        awayTeam: 'Houston Cougars',
+        date: '2099-12-31',
+        time: '5:00 PM',
+        emoji: 'Basketball 🏀',
+        homeOdds: 2,
+        awayOdds: 3,
+      };
+
+      const fakeGame = {
+        sport: '',
+        homeTeam: '',
+        awayTeam: '',
+        bettingClosesAt: new Date(),
+        homeWin: { odds: 0 },
+        awayWin: { odds: 0 },
+        emoji: '',
+        save: vi.fn().mockRejectedValue(new Error('Save failed')),
+      };
+
+      (formatTime as any).mockReturnValue('17:00');
+      (getGameById as any).mockResolvedValue(fakeGame);
+
+      await updateGame(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Internal server error' });
+    });
+  });
+
+  describe('updateScore', () => {
+    it('returns 400 if game ID is missing', async () => {
+      req.params = {};
+      req.body = { team: 'home', score: 3 };
+
+      await updateScore(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Game ID is required',
+      });
+    });
+
+    it('returns 400 if required fields are missing', async () => {
+      req.params = { id: 'g1' };
+      req.body = {};
+
+      await updateScore(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Missing required field(s)',
+      });
+    });
+
+    it('returns 400 if game is not found', async () => {
+      req.params = { id: 'g1' };
+      req.body = { team: 'home', score: 2 };
+
+      (getGameById as any).mockResolvedValue(null);
+
+      await updateScore(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Game not found',
+      });
+    });
+
+    it('updates home score successfully', async () => {
+      req.params = { id: 'g1' };
+      req.body = { team: 'home', score: 2 };
+
+      const fakeGame = {
+        scoreHome: 5,
+        scoreAway: 3,
+        save: vi.fn().mockResolvedValue(undefined),
+      };
+
+      (getGameById as any).mockResolvedValue(fakeGame);
+
+      await updateScore(req, res);
+
+      expect(fakeGame.scoreHome).toBe(7);
+      expect(fakeGame.scoreAway).toBe(3);
+      expect(fakeGame.save).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Score updated successfully',
+      });
+    });
+
+    it('updates away score successfully', async () => {
+      req.params = { id: 'g1' };
+      req.body = { team: 'away', score: 4 };
+
+      const fakeGame = {
+        scoreHome: 5,
+        scoreAway: 3,
+        save: vi.fn().mockResolvedValue(undefined),
+      };
+
+      (getGameById as any).mockResolvedValue(fakeGame);
+
+      await updateScore(req, res);
+
+      expect(fakeGame.scoreHome).toBe(5);
+      expect(fakeGame.scoreAway).toBe(7);
+      expect(fakeGame.save).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Score updated successfully',
+      });
+    });
+
+    it('returns 500 if updateScore throws', async () => {
+      req.params = { id: 'g1' };
+      req.body = { team: 'home', score: 2 };
+
+      (getGameById as any).mockRejectedValue(new Error('DB fail'));
+
+      await updateScore(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Internal server error' });
     });
   });
 
   describe('endGame', () => {
     it('returns 400 if unauthorized', async () => {
       req.params = { id: 'g1' };
-      req.body = { winner: 'home' };
 
       await endGame(req, res);
 
@@ -317,33 +498,43 @@ describe('games.controllers', () => {
       });
     });
 
-    it('returns 400 if winner is invalid', async () => {
+    it('returns 400 if game ID is missing', async () => {
       req.user = { id: 'admin1' };
-      req.params = { id: 'g1' };
-      req.body = { winner: 'bad-value' };
+      req.params = {};
 
       await endGame(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
-        message: "winner is required: 'home', 'away', or 'tie'",
+        message: 'Game ID is required',
       });
     });
 
     it('returns 200 on successful game end', async () => {
       req.user = { id: 'admin1' };
       req.params = { id: 'g1' };
-      req.body = { winner: 'home' };
 
       (gameOver as any).mockResolvedValue(undefined);
 
       await endGame(req, res);
 
-      expect(gameOver).toHaveBeenCalledWith('g1', 'home');
+      expect(gameOver).toHaveBeenCalledWith('g1');
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Game ended successfully',
       });
+    });
+
+    it('returns 500 if gameOver throws', async () => {
+      req.user = { id: 'admin1' };
+      req.params = { id: 'g1' };
+
+      (gameOver as any).mockRejectedValue(new Error('Service fail'));
+
+      await endGame(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Internal server error' });
     });
   });
 
@@ -356,6 +547,18 @@ describe('games.controllers', () => {
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Unauthorized',
+      });
+    });
+
+    it('returns 400 if game ID is missing', async () => {
+      req.user = { id: 'admin1' };
+      req.params = {};
+
+      await cancelGame(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Game ID is required',
       });
     });
 
@@ -373,6 +576,18 @@ describe('games.controllers', () => {
         message: 'Game cancelled and all bets refunded',
       });
     });
+
+    it('returns 500 if refund throws', async () => {
+      req.user = { id: 'admin1' };
+      req.params = { id: 'g1' };
+
+      (refund as any).mockRejectedValue(new Error('Refund fail'));
+
+      await cancelGame(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Internal server error' });
+    });
   });
 
   describe('deleteGame', () => {
@@ -384,6 +599,18 @@ describe('games.controllers', () => {
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
         message: 'Unauthorized',
+      });
+    });
+
+    it('returns 400 if game ID is missing', async () => {
+      req.user = { id: 'admin1' };
+      req.params = {};
+
+      await deleteGame(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Game ID is required',
       });
     });
 
@@ -416,11 +643,49 @@ describe('games.controllers', () => {
         message: 'Game deleted',
       });
     });
+
+    it('returns 500 if deleteGame throws', async () => {
+      req.user = { id: 'admin1' };
+      req.params = { id: 'g1' };
+
+      (getGameById as any).mockRejectedValue(new Error('DB fail'));
+
+      await deleteGame(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Internal server error' });
+    });
   });
 
   describe('getPublicGames', () => {
-    it('returns 200 with public games', async () => {
-      const sortMock = vi.fn().mockResolvedValue([{ _id: 'g1' }]);
+    it('returns 200 with transformed public games', async () => {
+      const now = new Date();
+
+      const games = [
+        {
+          toObject: () => ({
+            _id: 'g1',
+            status: 'upcoming',
+            bettingClosesAt: new Date(now.getTime() + 60_000),
+          }),
+        },
+        {
+          toObject: () => ({
+            _id: 'g2',
+            status: 'upcoming',
+            bettingClosesAt: new Date(now.getTime() - 60_000),
+          }),
+        },
+        {
+          toObject: () => ({
+            _id: 'g3',
+            status: 'finished',
+            bettingClosesAt: new Date(now.getTime() - 60_000),
+          }),
+        },
+      ];
+
+      const sortMock = vi.fn().mockResolvedValue(games);
       const selectMock = vi.fn().mockReturnValue({ sort: sortMock });
 
       (GameModel.find as any).mockReturnValue({
@@ -429,8 +694,36 @@ describe('games.controllers', () => {
 
       await getPublicGames(req, res);
 
+      expect(GameModel.find).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith([{ _id: 'g1' }]);
+      expect(res.json).toHaveBeenCalledWith([
+        {
+          _id: 'g1',
+          status: 'upcoming',
+          bettingClosesAt: expect.any(Date),
+        },
+        {
+          _id: 'g2',
+          status: 'live',
+          bettingClosesAt: expect.any(Date),
+        },
+        {
+          _id: 'g3',
+          status: 'finished',
+          bettingClosesAt: expect.any(Date),
+        },
+      ]);
+    });
+
+    it('returns 500 if getPublicGames throws', async () => {
+      (GameModel.find as any).mockImplementation(() => {
+        throw new Error('DB fail');
+      });
+
+      await getPublicGames(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Internal server error' });
     });
   });
 });
