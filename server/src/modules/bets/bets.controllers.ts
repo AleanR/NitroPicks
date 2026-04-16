@@ -1,7 +1,6 @@
 import { Response } from 'express';
-import { createBet, deleteBetById, getBetById, getBets, getBetsByUser, getBetsByUserWithGames } from '../bets/bets.model';
+import { deleteBetById, getBetById, getBets, getBetsByUser, getBetsByUserWithGames } from '../bets/bets.model';
 import { AuthenticatedRequest } from '../../helpers/auth';
-import { deductKnightPoints } from '../users/users.model';
 import { placeBet } from '../services/bet.service';
 
 
@@ -105,7 +104,7 @@ export const addBet = async (req: AuthenticatedRequest, res: Response) => {
 
 
 
-///////////////// DON'T WORRY ABOUT THIS ///////////////////////////
+///////////////// DON'T WORRY ABOUT THIS (REMOVING BETS NOT PRACTICAL) ///////////////////////////
 
 export const removeBet = async (req: AuthenticatedRequest, res: Response) => {
     try {

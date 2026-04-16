@@ -70,6 +70,7 @@ function AdminPage() {
       }
     }
     check()
+    window.scrollTo(0, 0)
   }, [navigate])
 
   
@@ -135,6 +136,17 @@ function AdminPage() {
 
   const handleCancel = async (id: string) => {
     if (!window.confirm('Cancel this game?')) return
+
+    setGames(prev => 
+      prev.map(game =>
+        game._id === id
+        ? {
+          ...game,
+          status: 'cancelled'
+        }
+        : game
+      )
+    );
     try {
       await fetch(`api/games/${id}/cancel`, {
         method: "DELETE",
@@ -291,6 +303,10 @@ function AdminPage() {
                   <option value="Basketball 🏀">🏀</option>
                   <option value="Football 🏈">🏈</option>
                   <option value="Soccer ⚽">⚽</option>
+                  <option value="Baseball ⚾">⚾</option>
+                  <option value="Softball 🥎">🥎</option>
+                  <option value="Volleyball 🏐">🏐</option>
+                  <option value="Hockey 🏒">🏒</option>
                 </select>
               </div>
             </div>

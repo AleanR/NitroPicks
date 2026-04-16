@@ -55,16 +55,6 @@ const GameSchema = new mongoose.Schema({
     },
 }, { timestamps: true });
 
-
-/////////// FOR FRONTEND - Check game status - /////////////////////////
-GameSchema.virtual('computedStatus').get(function() {
-    const now = new Date();
-    if (this.status === 'cancelled') return 'cancelled';
-    if (now < this.bettingOpensAt) return 'upcoming';
-    if (now >= this.bettingOpensAt && now <= this.bettingClosesAt) return 'live';
-    return 'finished';
-})
-
 export const GameModel = mongoose.model('Game', GameSchema);
 
 export const getGames = () => GameModel.find().sort({ bettingClosesAt: 1 });

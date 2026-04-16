@@ -39,6 +39,7 @@ function LeaderboardPage() {
     }
 
     fetchLeaderboard()
+    window.scrollTo(0, 0)
   }, [])
 
   const topThree = leaderboardData.slice(0, 3)

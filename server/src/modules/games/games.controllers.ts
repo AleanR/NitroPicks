@@ -1,11 +1,10 @@
 import { Request, Response } from 'express';
-import { getGames, getGameById, createGame, updateGameById, deleteGameById, GameModel } from './games.model';
+import { getGames, getGameById, createGame, deleteGameById, GameModel } from './games.model';
 import { AuthenticatedRequest } from '../../helpers/auth';
 import { refund } from '../services/cancel.service';
 import { gameOver } from '../services/results.service';
 import { formatTime } from '../../helpers/time';
 
-// GET ALL GAMES
 export const getAllGames = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const games = await getGames();
@@ -16,7 +15,6 @@ export const getAllGames = async (req: AuthenticatedRequest, res: Response) => {
     }
 };
 
-// SEARCH GAMES
 export const searchGames = async (req: Request, res: Response) => {
     try {
         const { query } = req.query;
@@ -211,6 +209,7 @@ export const updateScore = async (req: AuthenticatedRequest, res: Response) => {
     }
 }
 
+// End game & resolve winner or tie
 export const endGame = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { id } = req.params;
@@ -222,7 +221,7 @@ export const endGame = async (req: AuthenticatedRequest, res: Response) => {
             return res.status(400).json({ message: "Game ID is required" });
         }
 
-        await gameOver(id);
+        await gameOver(id); // Resolve all bets associated with the game
 
         return res.status(200).json({ message: "Game ended successfully" });
 
@@ -245,7 +244,7 @@ export const cancelGame = async (req: AuthenticatedRequest, res: Response) => {
             return res.status(400).json({ message: "Game ID is required" });
         }
 
-        await refund(id);
+        await refund(id);   // Refund all active bets associated with this game
 
         return res.status(200).json({ message: "Game cancelled and all bets refunded" });
     } catch (error) {
@@ -289,17 +288,10 @@ export const getPublicGames = async (req: Request, res: Response) => {
             .select('sport homeTeam awayTeam homeWin awayWin scoreHome scoreAway emoji betPool numBettorsHome numBettorsAway totalBetAmountHome totalBetAmountAway bettingOpensAt bettingClosesAt status')
             .sort({ bettingOpensAt: 1 });
 
-        const startOfToday = new Date(now);
-        startOfToday.setUTCHours(0, 0, 0, 0);
-        const endOfToday = new Date(now);
-        endOfToday.setUTCHours(23, 59, 59, 999);
-
         const computed = games.map((g: any) => {
             const obj = g.toObject();
             if (obj.status === 'cancelled' || obj.status === 'finished') return obj;
-            if (now > g.bettingClosesAt) {
-                obj.status = 'finished';
-            } else if (g.bettingClosesAt >= startOfToday && g.bettingClosesAt <= endOfToday) {
+            else if (now >= obj.bettingClosesAt) {
                 obj.status = 'live';
             } else {
                 obj.status = 'upcoming';

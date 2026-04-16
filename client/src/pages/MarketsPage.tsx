@@ -67,6 +67,7 @@ function MarketsPage() {
       }
     }
     fetchGames()
+    window.scrollTo(0, 0)
   }, [])
 
   const todayISO = (() => {

@@ -13,6 +13,8 @@ export default function EarnPointsPage() {
       .then((r) => r.json())
       .then((data) => setUserId(data._id))
       .catch(() => {})
+    
+      window.scrollTo(0, 0)
   }, [])
 
   const isValidCode = /^\d{16}$/.test(code)

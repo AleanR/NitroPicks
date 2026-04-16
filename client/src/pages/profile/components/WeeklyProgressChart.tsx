@@ -68,7 +68,7 @@ export default function WeeklyProgressChart({ bets }: Props) {
                 d.netKP > 0 ? 'text-green-400' :
                 d.netKP < 0 ? 'text-red-400' : 'text-zinc-600'
               }`}>
-                {d.netKP === 0 ? (d.betsCount > 0 ? '0' : '—') : `${d.netKP > 0 ? '+' : ''}${d.netKP}`}
+                {d.netKP === 0 ? (d.betsCount > 0 ? '0' : '—') : `${d.netKP > 0 ? '+' : ''}${Math.round(d.netKP)}`}
               </span>
 
               {/* Bar */}

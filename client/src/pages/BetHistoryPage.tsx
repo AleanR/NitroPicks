@@ -8,13 +8,15 @@ interface Game {
   awayTeam: string
   emoji: string
   sport: string
+  scoreHome: number
+  scoreAway: number
 }
 
 interface BetLeg {
   gameId: Game | string
   team: 'home' | 'away'
   odds: number
-  result: 'pending' | 'win' | 'lose' | 'cancelled'
+  result: 'pending' | 'win' | 'lose' | 'cancelled' | 'tie'
 }
 
 interface Bet {
@@ -47,6 +49,7 @@ function legResultIcon(result: BetLeg['result']) {
   switch (result) {
     case 'win':      return <span className="text-green-400">✓</span>
     case 'lose':     return <span className="text-red-400">✗</span>
+    case 'tie':     return <span className="text-zinc-500">○</span>
     case 'cancelled': return <span className="text-zinc-500">—</span>
     default:         return <span className="text-yellow-400">•</span>
   }
@@ -56,6 +59,12 @@ function getTeamLabel(leg: BetLeg): string {
   const game = leg.gameId as Game
   if (typeof game === 'string') return leg.team === 'home' ? 'Home' : 'Away'
   return leg.team === 'home' ? game.homeTeam : game.awayTeam
+}
+
+function getGameScore(leg: BetLeg): string {
+  const game = leg.gameId as Game
+  if (typeof game === 'string') return 'Game unavailable'
+  return `${game.scoreHome.toString()} - ${game.scoreAway.toString()}`
 }
 
 function getMatchup(leg: BetLeg): string {
@@ -80,6 +89,8 @@ export default function BetHistoryPage() {
       .then((data) => { if (Array.isArray(data)) setBets(data) })
       .catch(() => {})
       .finally(() => setLoading(false))
+
+      window.scrollTo(0, 0)
   }, [navigate])
 
   const filtered = filter === 'all' ? bets : bets.filter((b) => b.status === filter)
@@ -250,7 +261,7 @@ export default function BetHistoryPage() {
                             <span className="text-center text-zinc-400">
                               {getTeamLabel(leg)} · <span className="text-yellow-400">{leg.odds.toFixed(2)}x</span>
                             </span>
-                            <span className="text-right font-bold">{legResultIcon(leg.result)}</span>
+                            <span className="text-right font-bold">{leg.result !== 'pending' ? getGameScore(leg): ""} {legResultIcon(leg.result)}</span>
                           </div>
                         ))}
                       </div>

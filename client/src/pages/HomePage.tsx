@@ -33,12 +33,13 @@ function HomePage() {
     }
 
     fetchUser()
+    window.scrollTo(0, 0)
   }, [])
 
   useEffect(() => {
     fetch('/api/games')
       .then((r) => r.json())
-      .then((data) => setGames(Array.isArray(data) ? data.slice(0, 3) : []))
+      .then((data) => setGames(Array.isArray(data) ? data.slice(0, 7) : []))
       .catch(() => {})
       .finally(() => setLoadingGames(false))
   }, [])
@@ -212,8 +213,8 @@ function HomePage() {
                       {game.emoji}
                     </div>
 
-                    <div>
-                      <h3 className="text-2xl font-bold">
+                    <div className='w-sm'>
+                      <h3 className="text-2xl font-bold text-wrap">
                         {game.homeTeam} vs {game.awayTeam}
                       </h3>
                       <p className="mt-1 text-xl text-zinc-400">
@@ -223,7 +224,7 @@ function HomePage() {
                   </div>
 
                   <div className="flex flex-wrap items-center justify-end gap-3">
-                    {game.status.toLowerCase() === 'live' ? (
+                    {game.status.toLowerCase() === 'upcoming' ? (
                       <>
                         <span className="rounded-full border border-green-500/40 bg-green-500/10 px-4 py-2 text-base font-semibold text-green-400 text-center">
                           Market Open

@@ -1,8 +1,8 @@
+import mongoose from 'mongoose';
 import { AuthenticatedRequest } from '../../helpers/auth';
 import { deleteUserById, getUsers, updateUserById, UserModel, getUserById } from './users.model';
 import { Request, Response } from 'express';
 import { sendSupportEmail } from '../services/email.service';
-import mongoose from 'mongoose';
 import { BetModel } from '../bets/bets.model';
 
 
@@ -308,43 +308,5 @@ export const getTicketRedemptions = async (req: AuthenticatedRequest, res: Respo
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: 'Internal server error' });
-    }
-}
-
-const PERK_COSTS: Record<string, number> = {
-    'ucf-dining': 5000,
-    'ucf-hoodie': 8000,
-    'bookstore-voucher': 10000,
-    'knights-ticket': 20000,
-};
-
-export const redeemPerk = async (req: AuthenticatedRequest, res: Response) => {
-    try {
-        if (!req.user) return res.status(401).json({ message: "Not authenticated" });
-
-        const { perkId } = req.body;
-        const cost = PERK_COSTS[perkId];
-        if (!cost) return res.status(400).json({ message: "Unknown perk" });
-
-        const user = await getUserById(req.user.id);
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        if ((user.knightPoints || 0) < cost) {
-            return res.status(400).json({ message: "Not enough KP" });
-        }
-
-        const updated = await updateUserById(req.user.id, { $inc: { knightPoints: -cost } });
-
-        // Generate a cryptographically random 16-digit confirmation code
-        const digits = Array.from({ length: 16 }, () => Math.floor(Math.random() * 10)).join('');
-
-        return res.status(200).json({
-            message: "Purchase successful!",
-            confirmationCode: digits,
-            knightPoints: updated?.knightPoints,
-        });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal server error" });
     }
 }

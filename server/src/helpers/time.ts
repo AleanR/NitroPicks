@@ -1,3 +1,4 @@
+// Format local time to ISO standard string
 export function formatTime(time: string) : string {
   let [t, modifier] = time.split(" ");
   let [hours, minutes] = t.split(":").map(Number);
