@@ -22,14 +22,14 @@ export const forgotPass = async (req: AuthenticatedRequest, res: Response) => {
         const { resetToken, hashed } = await genResetToken();
 
         user.authentication.resetPasswordToken = hashed;
-        user.authentication.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
+        user.authentication.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);   // Set password resetting window to 15 mins
 
         await user.save();
 
         const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
         const resetURL = `${clientUrl}/reset-password/${resetToken}`;
 
-        await sendPassResetToken(user.email, resetURL);
+        await sendPassResetToken(user.email, resetURL); // Use email service to send token to user
 
         return res.json({ message: "Reset link sent to your email." });
     } catch (error) {
@@ -50,10 +50,10 @@ export const resetPass = async (req: Request, res: Response) => {
 
         const hashedToken = crypto.createHash("sha256").update(token).digest('hex');
 
-
+        // Find user with matching hashed token
         const user = await getUserbyToken({
             "authentication.resetPasswordToken": hashedToken,
-            "authentication.resetPasswordExpires": { $gt: new Date() },
+            "authentication.resetPasswordExpires": { $gt: new Date() }, // Check if password resetting window still valid
         });
 
         if (!user) {
@@ -64,6 +64,7 @@ export const resetPass = async (req: Request, res: Response) => {
 
         user.authentication.password = hashedPass;
 
+        // Remove hashed token and password resetting window
         user.authentication.resetPasswordToken = undefined;
         user.authentication.resetPasswordExpires = undefined;
 

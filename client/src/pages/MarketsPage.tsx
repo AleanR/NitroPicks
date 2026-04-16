@@ -67,6 +67,7 @@ function MarketsPage() {
       }
     }
     fetchGames()
+    window.scrollTo(0, 0)
   }, [])
 
   const todayISO = (() => {
@@ -522,7 +523,7 @@ function MarketsPage() {
         </section>
 
         <aside className="space-y-5">
-          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto">
+          <div className="ios-gray-scrollbar sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto">
           <div className="rounded-3xl border border-zinc-800 bg-[#14161d] p-6">
             <div className="mb-6 flex items-start justify-between gap-4">
               <h2 className="text-2xl font-extrabold leading-tight">Active Mini Bet Slip</h2>

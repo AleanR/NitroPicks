@@ -36,6 +36,8 @@ export default function RedeemPointsPage() {
         setUserId(data._id)
       })
       .catch(() => {})
+    
+    window.scrollTo(0, 0)
   }, [])
 
   useEffect(() => {

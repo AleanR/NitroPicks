@@ -92,6 +92,7 @@ function ProfilePage() {
     }
 
     fetchUser()
+    window.scrollTo(0, 0)
   }, [navigate])
 
   const tabClass = (tab: ProfileTab) =>

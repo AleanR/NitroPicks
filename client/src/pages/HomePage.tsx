@@ -11,6 +11,9 @@ function HomePage() {
   const [games, setGames] = useState<any[]>([])
   const [loadingGames, setLoadingGames] = useState(true)
   const [winners, setWinners] = useState<any[]>([])
+  const [playerCount, setPlayerCount] = useState('0')
+  const [totalPoints, setTotalPoints] = useState('0')
+  const [totalRedemptions, setTotalRedemptions] = useState('0')
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -33,20 +36,48 @@ function HomePage() {
     }
 
     fetchUser()
+    window.scrollTo(0, 0)
   }, [])
 
   useEffect(() => {
     fetch('/api/games')
       .then((r) => r.json())
-      .then((data) => setGames(Array.isArray(data) ? data.slice(0, 3) : []))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const now = new Date();
+          const upcomingGames = data.filter((game) => new Date(game.bettingClosesAt) > now);
+          setGames(upcomingGames.slice(0, 7));
+        }
+      })
       .catch(() => {})
       .finally(() => setLoadingGames(false))
   }, [])
 
   useEffect(() => {
-    fetch('/api/users/leaderboard')
+    fetch('/api/bets/recent-winners')
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data)) setWinners(data.slice(0, 3)) })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/users/count')
+      .then((r) => r.json())
+      .then((data) => { if (data.count) setPlayerCount(data.count) })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/users/points/total')
+      .then((r) => r.json())
+      .then((data) => { if (data.total) setTotalPoints(data.total) })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/users/redemptions/total')
+      .then((r) => r.json())
+      .then((data) => { if (data.total) setTotalRedemptions(data.total) })
       .catch(() => {})
   }, [])
 
@@ -133,7 +164,7 @@ function HomePage() {
 
             <p className="mt-6 max-w-xl text-lg leading-8 text-zinc-300">
               Play risk-free with virtual points to predict outcomes of UCF sporting games.
-              Best leagues with friends, climb leaderboards, and redeem rewards for campus perks.
+              Climb leaderboards, and redeem rewards for campus perks.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
@@ -165,7 +196,7 @@ function HomePage() {
         </section>
 
         <section className="mt-8 grid gap-5 md:grid-cols-3">
-          {statCards.map((card) => (
+          {statCards.map((card, index) => (
             <div key={card.id} className="rounded-3xl border border-zinc-800 bg-[#12141b] p-6">
               <div className="flex items-center gap-4">
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-yellow-500/10 text-yellow-400">
@@ -173,8 +204,8 @@ function HomePage() {
                 </div>
 
                 <div>
-                  <p className="text-5xl font-extrabold">{card.value}</p>
-                  <p className="text-lg text-zinc-300">{card.label}</p>
+                  <p className="text-5xl font-extrabold">{index === 0 ? playerCount : index === 1 ? totalPoints : totalRedemptions}</p>
+                  <p className="text-lg text-zinc-300">{index === 0 ? 'Active Players' : index === 1 ? 'Points Circulating' : 'Prizes Redeemed'}</p>
                 </div>
               </div>
             </div>
@@ -212,8 +243,8 @@ function HomePage() {
                       {game.emoji}
                     </div>
 
-                    <div>
-                      <h3 className="text-2xl font-bold">
+                    <div className='w-sm'>
+                      <h3 className="text-2xl font-bold text-wrap">
                         {game.homeTeam} vs {game.awayTeam}
                       </h3>
                       <p className="mt-1 text-xl text-zinc-400">
@@ -223,7 +254,7 @@ function HomePage() {
                   </div>
 
                   <div className="flex flex-wrap items-center justify-end gap-3">
-                    {game.status.toLowerCase() === 'live' ? (
+                    {game.status.toLowerCase() === 'upcoming' ? (
                       <>
                         <span className="rounded-full border border-green-500/40 bg-green-500/10 px-4 py-2 text-base font-semibold text-green-400 text-center">
                           Market Open
@@ -277,11 +308,15 @@ function HomePage() {
 
                           <div>
                             <p className="text-2xl font-bold">{winner.name}</p>
-                            <p className="text-base text-zinc-400">#{winner.rank} on leaderboard</p>
+                            <p className="text-base text-zinc-400">
+                              {winner.wonAt
+                                ? `${formatDate(winner.wonAt)} • ${formatTime(winner.wonAt)}`
+                                : 'Recent winner'}
+                            </p>
                           </div>
                         </div>
 
-                        <p className="text-2xl font-extrabold text-yellow-400">{winner.points} KP</p>
+                        <p className="text-2xl font-extrabold text-yellow-400">+{winner.wonPoints} KP</p>
                       </div>
 
                       {index !== winners.length - 1 && (
@@ -298,8 +333,7 @@ function HomePage() {
 
               <div className="mt-6 space-y-5 text-lg leading-8 text-zinc-300">
                 <p>
-                  <span className="font-bold text-yellow-400">🎁 Bonus:</span> 5,000 free points
-                  when you join! Sign In.
+                  <span className="font-bold text-yellow-400">🎁 Bonus:</span> 1,000 points when you buy a ticket to a UCF game!
                 </p>
                 <p>
                   <span className="font-bold text-yellow-400">🤝 Wager:</span> Place bets on games
@@ -310,13 +344,6 @@ function HomePage() {
                   leaderboards, redeem for campus perks!
                 </p>
               </div>
-
-              <button 
-                onClick={() => navigate('/markets')}
-                className="mt-8 w-full rounded-xl bg-yellow-400 px-6 py-4 text-lg font-bold text-black hover:bg-yellow-500 transition"
-              >
-                Learn More
-              </button>
             </div>
           </div>
         </section>

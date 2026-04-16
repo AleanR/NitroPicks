@@ -43,6 +43,40 @@ const EMPTY_FORM: Form = {
   awayOdds: '1.90',
 }
 
+const normalizeAdminTime = (time: string) => {
+  const trimmed = time.trim().toUpperCase()
+  const twelveHourMatch = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/)
+
+  if (twelveHourMatch) {
+    const [, hourPart, minutePart, period] = twelveHourMatch
+    let hour = Number(hourPart)
+
+    if (hour < 1 || hour > 12) return null
+    if (period === 'PM' && hour !== 12) hour += 12
+    if (period === 'AM' && hour === 12) hour = 0
+
+    return `${String(hour).padStart(2, '0')}:${minutePart}`
+  }
+
+  const twentyFourHourMatch = trimmed.match(/^([01]?\d|2[0-3]):([0-5]\d)$/)
+  if (twentyFourHourMatch) {
+    const [, hourPart, minutePart] = twentyFourHourMatch
+    return `${hourPart.padStart(2, '0')}:${minutePart}`
+  }
+
+  return null
+}
+
+const buildBettingClosesAt = (date: string, time: string) => {
+  const normalizedTime = normalizeAdminTime(time)
+  if (!normalizedTime) return null
+
+  const localDateTime = new Date(`${date}T${normalizedTime}:00`)
+  if (Number.isNaN(localDateTime.getTime())) return null
+
+  return localDateTime.toISOString()
+}
+
 function AdminPage() {
   const navigate = useNavigate()
   const [games, setGames] = useState<Game[]>([])
@@ -70,6 +104,7 @@ function AdminPage() {
       }
     }
     check()
+    window.scrollTo(0, 0)
   }, [navigate])
 
   
@@ -95,6 +130,14 @@ function AdminPage() {
     e.preventDefault()
     setSaving(true)
     setError(null)
+
+    const bettingClosesAt = buildBettingClosesAt(form.date, form.time)
+    if (!bettingClosesAt) {
+      setError('Enter a valid start time, for example 11:30 AM')
+      setSaving(false)
+      return
+    }
+
     try {
       const url = editingId
         ? `/api/games/${editingId}`
@@ -104,7 +147,7 @@ function AdminPage() {
         method,
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form }),
+        body: JSON.stringify({ ...form, bettingClosesAt }),
       })
       if (!res.ok) throw new Error('Failed to save')
       setForm(EMPTY_FORM)
@@ -135,6 +178,17 @@ function AdminPage() {
 
   const handleCancel = async (id: string) => {
     if (!window.confirm('Cancel this game?')) return
+
+    setGames(prev => 
+      prev.map(game =>
+        game._id === id
+        ? {
+          ...game,
+          status: 'cancelled'
+        }
+        : game
+      )
+    );
     try {
       await fetch(`api/games/${id}/cancel`, {
         method: "DELETE",
@@ -207,6 +261,26 @@ function AdminPage() {
     }
   }
 
+  const sortedGames = [...games].sort((a, b) => {
+    const statusPriority = (game: Game) => {
+      if (game.status === 'live') return 0
+      if (game.status === 'upcoming') return 1
+      return 2
+    }
+
+    const priorityDiff = statusPriority(a) - statusPriority(b)
+    if (priorityDiff !== 0) return priorityDiff
+
+    const aTime = new Date(a.bettingClosesAt).getTime()
+    const bTime = new Date(b.bettingClosesAt).getTime()
+
+    if (statusPriority(a) === 2) {
+      return bTime - aTime
+    }
+
+    return aTime - bTime
+  })
+
   return (
     <div className="min-h-screen bg-black text-white">
       <Navigation />
@@ -233,7 +307,7 @@ function AdminPage() {
         {/* CREATE / EDIT FORM */}
         <section className="mb-10 rounded-3xl border border-zinc-800 bg-[#14161d] p-6">
           <h2 className="mb-6 text-2xl font-extrabold">
-            {editingId ? 'Edit game' : 'Create New game'}
+            {editingId ? 'Edit game' : 'Create New Game'}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -291,6 +365,10 @@ function AdminPage() {
                   <option value="Basketball 🏀">🏀</option>
                   <option value="Football 🏈">🏈</option>
                   <option value="Soccer ⚽">⚽</option>
+                  <option value="Baseball ⚾">⚾</option>
+                  <option value="Softball 🥎">🥎</option>
+                  <option value="Volleyball 🏐">🏐</option>
+                  <option value="Hockey 🏒">🏒</option>
                 </select>
               </div>
             </div>
@@ -355,7 +433,7 @@ function AdminPage() {
             <p className="text-zinc-400">No games yet. Create one above.</p>
           ) : (
             <div className="space-y-4">
-              {games.map(game => (
+              {sortedGames.map(game => (
                 <div key={game._id} className="rounded-3xl border border-zinc-800 bg-[#14161d] px-6 py-5">
                   <div className="flex flex-wrap justify-between gap-4">
 

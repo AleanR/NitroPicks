@@ -1,8 +1,8 @@
+import mongoose from 'mongoose';
 import { AuthenticatedRequest } from '../../helpers/auth';
 import { deleteUserById, getUsers, updateUserById, UserModel, getUserById } from './users.model';
 import { Request, Response } from 'express';
 import { sendSupportEmail } from '../services/email.service';
-import mongoose from 'mongoose';
 import { BetModel } from '../bets/bets.model';
 
 
@@ -46,6 +46,39 @@ export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) =
 }
 
 
+export const getTotalRedemptions = async (_req: Request, res: Response) => {
+    try {
+        const users = await getUsers();
+        const total = users.reduce((sum: number, user: any) => sum + (user.redemptions?.length || 0), 0);
+        return res.status(200).json({ total: total.toString() });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const getTotalPoints = async (_req: Request, res: Response) => {
+    try {
+        const users = await getUsers();
+        const total = Math.round(users.reduce((sum: number, user: any) => sum + (user.knightPoints || 0), 0));
+        return res.status(200).json({ total: total.toLocaleString() });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const getPlayerCount = async (_req: Request, res: Response) => {
+    try {
+        const users = await getUsers();
+        const count = users.filter((u: any) => u.username !== 'admin').length;
+        return res.status(200).json({ count: count.toLocaleString() });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
         const users = await getUsers();
@@ -86,6 +119,7 @@ export const getLeaderboard = async (req: Request, res: Response) => {
                 const winRate = stats.total > 0 ? Math.round((stats.wins / stats.total) * 100) : 0;
                 return {
                     id: user._id,
+                    username: user.username,
                     name: `${user.firstname || user.firstName} ${user.lastname || user.lastName}`,
                     initials: `${(user.firstname || user.firstName || '').charAt(0)}${(user.lastname || user.lastName || '').charAt(0)}`,
                     rank: index + 1,
@@ -308,43 +342,5 @@ export const getTicketRedemptions = async (req: AuthenticatedRequest, res: Respo
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: 'Internal server error' });
-    }
-}
-
-const PERK_COSTS: Record<string, number> = {
-    'ucf-dining': 5000,
-    'ucf-hoodie': 8000,
-    'bookstore-voucher': 10000,
-    'knights-ticket': 20000,
-};
-
-export const redeemPerk = async (req: AuthenticatedRequest, res: Response) => {
-    try {
-        if (!req.user) return res.status(401).json({ message: "Not authenticated" });
-
-        const { perkId } = req.body;
-        const cost = PERK_COSTS[perkId];
-        if (!cost) return res.status(400).json({ message: "Unknown perk" });
-
-        const user = await getUserById(req.user.id);
-        if (!user) return res.status(404).json({ message: "User not found" });
-
-        if ((user.knightPoints || 0) < cost) {
-            return res.status(400).json({ message: "Not enough KP" });
-        }
-
-        const updated = await updateUserById(req.user.id, { $inc: { knightPoints: -cost } });
-
-        // Generate a cryptographically random 16-digit confirmation code
-        const digits = Array.from({ length: 16 }, () => Math.floor(Math.random() * 10)).join('');
-
-        return res.status(200).json({
-            message: "Purchase successful!",
-            confirmationCode: digits,
-            knightPoints: updated?.knightPoints,
-        });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal server error" });
     }
 }

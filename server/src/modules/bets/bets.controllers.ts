@@ -1,8 +1,8 @@
 import { Response } from 'express';
-import { createBet, deleteBetById, getBetById, getBets, getBetsByUser, getBetsByUserWithGames } from '../bets/bets.model';
+import { deleteBetById, getBetById, getBets, getBetsByUser, getBetsByUserWithGames } from '../bets/bets.model';
 import { AuthenticatedRequest } from '../../helpers/auth';
-import { deductKnightPoints } from '../users/users.model';
 import { placeBet } from '../services/bet.service';
+import { BetModel } from './bets.model';
 
 
 export const getMyBets = async (req: AuthenticatedRequest, res: Response) => {
@@ -50,6 +50,64 @@ export const getAllBets = async (req: AuthenticatedRequest, res: Response) => {
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const getRecentWinners = async (_req: AuthenticatedRequest, res: Response) => {
+    try {
+        const recentWinningBets = await BetModel.find({ status: 'win' })
+            .sort({ updatedAt: -1 })
+            .limit(50)
+            .populate('userId', 'firstname lastname username');
+
+        const seenUsers = new Set<string>();
+        const winners: Array<{
+            id: string;
+            name: string;
+            initials: string;
+            username: string;
+            wonAmount: number;
+            wonPoints: string;
+            wonAt: Date;
+        }> = [];
+
+        for (const bet of recentWinningBets) {
+            const user = bet.userId as any;
+
+            if (!user || !user._id) continue;
+
+            const userId = user._id.toString();
+            if (seenUsers.has(userId)) continue;
+
+            seenUsers.add(userId);
+
+            const firstName = (user.firstname || '').trim();
+            const lastName = (user.lastname || '').trim();
+            const fallbackName = user.username || 'User';
+            const fullName = `${firstName} ${lastName}`.trim() || fallbackName;
+            const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || fallbackName.slice(0, 2).toUpperCase();
+            const wonAmount = Math.max(0, Math.round((bet.expectedPayout || 0) - (bet.stake || 0)));
+
+            winners.push({
+                id: userId,
+                name: fullName,
+                initials,
+                username: user.username || '',
+                wonAmount,
+                wonPoints: wonAmount.toLocaleString(),
+                wonAt: bet.updatedAt,
+            });
+        }
+
+        const sortedWinners = winners
+            .sort((a, b) => b.wonAmount - a.wonAmount)
+            .slice(0, 3)
+            .map(({ wonAmount: _wonAmount, ...winner }) => winner);
+
+        return res.status(200).json(sortedWinners);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: 'Internal server error' });
     }
 }
 
@@ -105,7 +163,7 @@ export const addBet = async (req: AuthenticatedRequest, res: Response) => {
 
 
 
-///////////////// DON'T WORRY ABOUT THIS ///////////////////////////
+///////////////// DON'T WORRY ABOUT THIS (REMOVING BETS NOT PRACTICAL) ///////////////////////////
 
 export const removeBet = async (req: AuthenticatedRequest, res: Response) => {
     try {

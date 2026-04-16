@@ -4,6 +4,7 @@ import Navigation from '../components/Navigation'
 
 type TopUser = {
   id: string
+  username?: string
   name: string
   initials: string
   rank: number
@@ -22,6 +23,7 @@ function LeaderboardPage() {
   const [loading, setLoading] = useState(true)
   const [sortKey, setSortKey] = useState<SortKey>('rank')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -39,6 +41,7 @@ function LeaderboardPage() {
     }
 
     fetchLeaderboard()
+    window.scrollTo(0, 0)
   }, [])
 
   const topThree = leaderboardData.slice(0, 3)
@@ -61,6 +64,15 @@ function LeaderboardPage() {
     else if (sortKey === 'bets')    cmp = a.bets - b.bets
     return sortDir === 'asc' ? cmp : -cmp
   })
+
+  const normalizedSearch = searchTerm.trim().toLowerCase()
+  const filteredData = normalizedSearch
+    ? sortedData.filter((user) => {
+        const name = user.name.toLowerCase()
+        const username = (user.username ?? '').toLowerCase()
+        return name.includes(normalizedSearch) || username.includes(normalizedSearch)
+      })
+    : sortedData
 
   const SortIcon = ({ col }: { col: SortKey }) => {
     if (sortKey !== col) return <span className="ml-1 text-zinc-600">↕</span>
@@ -169,11 +181,25 @@ function LeaderboardPage() {
           ))}
         </section>
 
-        <section className="mt-8">
+        <section className="mt-8 flex flex-col gap-4 md:flex-row md:items-center">
           <div className="inline-flex rounded-2xl border border-zinc-800 bg-[#14161d] p-1">
             <button className="rounded-xl bg-[#1c2029] px-4 py-2 font-semibold text-white">
               Top Users
             </button>
+          </div>
+
+          <div className="w-full md:flex-1">
+            <label htmlFor="leaderboard-search" className="sr-only">
+              Search users by username or name
+            </label>
+            <input
+              id="leaderboard-search"
+              type="text"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search by username or name"
+              className="w-full rounded-xl border border-zinc-700 bg-[#0f1219] px-5 py-3.5 text-lg text-white placeholder:text-zinc-500 outline-none transition focus:border-yellow-400"
+            />
           </div>
         </section>
 
@@ -192,7 +218,7 @@ function LeaderboardPage() {
             <div>Action</div>
           </div>
 
-          {sortedData.map((user) => (
+          {filteredData.map((user) => (
             <div
               key={user.id}
               className="grid grid-cols-[125px_1.6fr_1fr_1fr_1fr_1fr] items-center border-b border-zinc-800 px-6 py-5 last:border-b-0"
@@ -230,6 +256,12 @@ function LeaderboardPage() {
               </div>
             </div>
           ))}
+
+          {filteredData.length === 0 && (
+            <div className="px-6 py-10 text-center text-zinc-400">
+              No users found for "{searchTerm}".
+            </div>
+          )}
         </section>
       </main>
     </div>

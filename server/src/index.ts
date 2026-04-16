@@ -58,6 +58,7 @@ mongoose.connect(mongoUri);
 
 mongoose.connection.on('error', (error: Error) => console.log(error));
 
+// API call base URL
 app.use('/api', router());
 
 // Serve the built React client in production only

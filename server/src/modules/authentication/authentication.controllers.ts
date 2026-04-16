@@ -7,7 +7,7 @@ import { AuthenticatedRequest } from '../../helpers/auth';
 
 export const login = async (req: Request, res: Response) => {
     try {
-        const {email, password} = req.body;
+        const { email, password } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ message: "Email and password required!"});
@@ -32,6 +32,7 @@ export const login = async (req: Request, res: Response) => {
         
         const token = await createToken(user._id.toString(), user.email);
 
+        // Create cookie to hold the logged-in token
         res.cookie("token", token, {
             httpOnly: true,
             secure: false,
@@ -39,8 +40,10 @@ export const login = async (req: Request, res: Response) => {
             maxAge: 3600000,
         });
 
+        const safeUser = await getUserByEmail(email);   // Don't select and return the password after valid authentication
+
         return res.status(200).json({
-            ...user.toObject(),
+            ...safeUser!.toObject(),
             isAdmin: user.role === 'admin',
             token,
         });
@@ -61,9 +64,15 @@ export const register = async (req: Request, res: Response) => {
         const existingUser = await UserModel.findOne({
             $or: [{ email }, { ucfID }, { username }]
         });
-
+        
         if (existingUser) {
-            return res.status(409).json({ message: "User with provided email, username or UCF ID already exists"});
+            return res.status(409).json({ message: "User with provided email, username or UCF ID already exists" });
+        }
+
+        // Validate emails to only be @ucf.edu
+        const domain = email.split('@')[1]?.toLowerCase();
+        if (domain !== "ucf.edu"){
+            return res.status(400).json({ message: "Email must have @ucf.edu domain" });
         }
 
         const hashedPass = await hashPassword(password);
@@ -91,7 +100,6 @@ export const register = async (req: Request, res: Response) => {
             await sendEmailVerifOTP(user.email, otpUrl);
             return res.status(201).json({
                 message: "Email Verification OTP Sent!",
-                otpUrl,
                 token,
             });
         }
@@ -108,13 +116,14 @@ export const register = async (req: Request, res: Response) => {
 }
 
 export const logout = async (req: Request, res: Response) => {
+    // Clear token cookies once logged-out
     res.clearCookie('token', {
         httpOnly: true,
         secure: false,
         sameSite: 'lax',
     });
 
-    res.status(200).json({ message: "User logged out successfully" });
+    return res.status(200).json({ message: "User logged out successfully" });
 }
 
 export const verifyEmail = async (req: Request, res: Response) => {
