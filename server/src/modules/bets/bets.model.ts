@@ -1,15 +1,14 @@
 import mongoose from "mongoose";
-import { refund } from "../users/users.model";
 
-////// Single ///////////
+// SINGLE BET LEG
 const BetLegSchema = new mongoose.Schema({
     gameId: { type: mongoose.Schema.Types.ObjectId, ref: 'Game', required: true },
     team: { type: String, enum: ["home", "away"], required: true },
     odds: { type: Number, required: true },
-    result: { type: String, enum: ["pending", "win", "lose", "cancelled"], default: 'pending' }
+    result: { type: String, enum: ["pending", "win", "lose", "tie", "cancelled"], default: 'pending' }
 })
 
-/////// Parlay ////////////
+// PARLAY BET
 const BetSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     stake: { type: Number, required: true, min: 1 },           // points wagered
@@ -37,29 +36,6 @@ export const createBet = (values: Record<string, any>) => BetModel.create(values
 
 
 export const deleteBetById = (id: string) => BetModel.deleteOne({ _id: id });
-
-
-export const refundPlayersByBets = async (gameId: string) => {
-    const bets = await getBetsByGame(gameId);
-
-    if (!bets) {
-        return null;
-    }
-
-    for (const bet of bets) {
-        await refund(bet.userId.toString(), bet.stake);
-        await BetModel.findByIdAndUpdate(
-            bet._id.toString(),
-            {
-                $set: {
-                    status: "refunded"
-                }
-            }
-        )
-    }
-
-    return bets;
-}
 
 
 
