@@ -103,7 +103,8 @@ const demoGames = [
         betPool: 300, totalBetAmountHome: 150, totalBetAmountAway: 150,
     },
 
-    // ── 3 LIVE — open for betting, closes later today ─────────────────────────
+    // ── 3 LIVE — bettingClosesAt is in the past so getPublicGames computes status='live'
+    //            (the controller sets live when now >= bettingClosesAt)
     {
         sport: 'Basketball',
         emoji: SPORT_EMOJI['Basketball'],
@@ -113,8 +114,8 @@ const demoGames = [
         scoreAway: 0,
         winner: '',
         status: 'live',
-        bettingOpensAt:  new Date(now.getTime() - hours(2)),
-        bettingClosesAt: new Date(now.getTime() + hours(4)),
+        bettingOpensAt:  new Date(now.getTime() - hours(6)),
+        bettingClosesAt: new Date(now.getTime() - hours(1)),
         homeWin: { label: 'UCF Knights Win', odds: 1.8 },
         awayWin: { label: 'Miami Hurricanes Win', odds: 1.8 },
         betPool: 200, totalBetAmountHome: 100, totalBetAmountAway: 100,
@@ -128,8 +129,8 @@ const demoGames = [
         scoreAway: 0,
         winner: '',
         status: 'live',
-        bettingOpensAt:  new Date(now.getTime() - hours(1)),
-        bettingClosesAt: new Date(now.getTime() + hours(5)),
+        bettingOpensAt:  new Date(now.getTime() - hours(5)),
+        bettingClosesAt: new Date(now.getTime() - hours(2)),
         homeWin: { label: 'UCF Knights Win', odds: 1.8 },
         awayWin: { label: 'South Florida Bulls Win', odds: 1.8 },
         betPool: 200, totalBetAmountHome: 100, totalBetAmountAway: 100,
@@ -143,8 +144,8 @@ const demoGames = [
         scoreAway: 0,
         winner: '',
         status: 'live',
-        bettingOpensAt:  new Date(now.getTime() - hours(1)),
-        bettingClosesAt: new Date(now.getTime() + hours(6)),
+        bettingOpensAt:  new Date(now.getTime() - hours(4)),
+        bettingClosesAt: new Date(now.getTime() - hours(1)),
         homeWin: { label: 'UCF Knights Win', odds: 1.8 },
         awayWin: { label: 'Bethune-Cookman Win', odds: 1.8 },
         betPool: 200, totalBetAmountHome: 100, totalBetAmountAway: 100,
