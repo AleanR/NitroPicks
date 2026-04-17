@@ -6,6 +6,7 @@
   "scripts": {
     "start": "nodemon",
     "seed:games": "node seeds/seedGames.js",
+    "seed:demo": "node seeds/seedDemoGames.js",
     "seed:rewards": "node seeds/seedRewards.js",
     "test": "vitest run",
     "test:watch": "vitest"
