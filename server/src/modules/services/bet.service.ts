@@ -49,7 +49,7 @@ export async function placeBet (userId: string, stake: number, legs: any) {
             const status = getGameStatus(game);
 
             if (status === 'cancelled') throw new Error('Game is cancelled');
-            if (status !== 'upcoming') throw new Error('Betting window closed');
+            if (status === 'finished') throw new Error('Betting window closed');
             
             if (leg.team === 'home') {
                 game.numBettorsHome += 1;

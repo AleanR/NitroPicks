@@ -384,7 +384,7 @@ function MarketsPage() {
                   <div className="space-y-5">
                     <div className="flex items-center gap-10">
                         <h3 className="text-2xl font-bold">{game.emoji}  {game.homeTeam}</h3>
-                        {game.status === 'finished'
+                        {game.status === 'finished' || game.status === 'live'
                         ? <span className='text-3xl font-bold'>{game.scoreHome}</span>
                         : ""}
                     </div>
@@ -393,7 +393,7 @@ function MarketsPage() {
                     </p>
                     <div className="flex items-center gap-10">
                       <h3 className="text-2xl font-bold">{game.emoji}   {game.awayTeam}</h3>
-                      {game.status === 'finished'
+                      {game.status === 'finished' || game.status === 'live'
                         ? <span className='text-3xl font-bold'>{game.scoreAway}</span>
                         : ""}
                     </div>
@@ -417,6 +417,7 @@ function MarketsPage() {
                   <div className="grid gap-4 md:grid-cols-2">
                     <button
                       type="button"
+                      disabled={(game.status === "finished" || game.status === "cancelled")}
                       onClick={() =>
                         handleAddToSlip(
                           game,
@@ -455,6 +456,7 @@ function MarketsPage() {
 
                     <button
                       type="button"
+                      disabled={(game.status === "finished" || game.status === 'cancelled')}
                       onClick={() =>
                         handleAddToSlip(
                           game,
