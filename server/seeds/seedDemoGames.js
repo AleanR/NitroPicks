@@ -74,8 +74,6 @@ const ago = (dayOffset, hour, min = 0) => {
     return d;
 };
 
-// hoursAgo(h) — exactly h hours before now (timezone-safe)
-const hoursAgo = h => new Date(now.getTime() - h * 60 * 60 * 1000);
 
 const demoGames = [
 
@@ -89,8 +87,8 @@ const demoGames = [
         scoreAway: 74,
         winner: 'home',
         status: 'finished',
-        bettingOpensAt:  hoursAgo(20),     // 20 hrs ago
-        bettingClosesAt: hoursAgo(3),      // 3 hrs ago
+        bettingOpensAt:  ago(-2, 9),       // 2 days ago 9:00 AM
+        bettingClosesAt: ago(-1, 21),      // yesterday 9:00 PM
         homeWin: { label: 'UCF Knights Win', odds: 1.9 },
         awayWin: { label: 'Florida Gators Win', odds: 1.7 },
         betPool: 500, totalBetAmountHome: 300, totalBetAmountAway: 200,
@@ -104,8 +102,8 @@ const demoGames = [
         scoreAway: 3,
         winner: 'away',
         status: 'finished',
-        bettingOpensAt:  hoursAgo(20),     // 20 hrs ago
-        bettingClosesAt: hoursAgo(5),      // 5 hrs ago
+        bettingOpensAt:  ago(-2, 9),       // 2 days ago 9:00 AM
+        bettingClosesAt: ago(-1, 19),      // yesterday 7:00 PM
         homeWin: { label: 'UCF Knights Win', odds: 2.1 },
         awayWin: { label: 'FSU Seminoles Win', odds: 1.6 },
         betPool: 400, totalBetAmountHome: 150, totalBetAmountAway: 250,
@@ -119,8 +117,8 @@ const demoGames = [
         scoreAway: 4,
         winner: 'home',
         status: 'finished',
-        bettingOpensAt:  hoursAgo(20),     // 20 hrs ago
-        bettingClosesAt: hoursAgo(7),      // 7 hrs ago
+        bettingOpensAt:  ago(-2, 9),       // 2 days ago 9:00 AM
+        bettingClosesAt: ago(-1, 17),      // yesterday 5:00 PM
         homeWin: { label: 'UCF Knights Win', odds: 1.8 },
         awayWin: { label: 'FIU Panthers Win', odds: 1.8 },
         betPool: 300, totalBetAmountHome: 150, totalBetAmountAway: 150,

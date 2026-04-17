@@ -285,9 +285,9 @@ export const deleteGame = async (req: AuthenticatedRequest, res: Response) => {
 export const getPublicGames = async (req: Request, res: Response) => {
     try {
         const now = new Date();
-        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const twoDaysAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
         const games = await GameModel.find({
-            bettingClosesAt: { $gt: oneDayAgo },
+            bettingClosesAt: { $gt: twoDaysAgo },
         })
             .select('sport homeTeam awayTeam homeWin awayWin scoreHome scoreAway emoji betPool numBettorsHome numBettorsAway totalBetAmountHome totalBetAmountAway bettingOpensAt bettingClosesAt status')
             .sort({ bettingOpensAt: 1 });
