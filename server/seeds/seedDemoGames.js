@@ -105,8 +105,8 @@ const demoGames = [
         scoreAway: 4,
         winner: 'home',
         status: 'finished',
-        bettingOpensAt:  ago(-3, 10),      // 3 days ago 10:00 AM
-        bettingClosesAt: ago(-2, 14),      // 2 days ago 2:00 PM
+        bettingOpensAt:  ago(-2, 10),      // 2 days ago 10:00 AM
+        bettingClosesAt: ago(-1, 14),      // yesterday 2:00 PM
         homeWin: { label: 'UCF Knights Win', odds: 1.8 },
         awayWin: { label: 'FIU Panthers Win', odds: 1.8 },
         betPool: 300, totalBetAmountHome: 150, totalBetAmountAway: 150,
