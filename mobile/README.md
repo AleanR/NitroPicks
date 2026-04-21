@@ -143,7 +143,7 @@ flutter run -d ios
 Set in [`lib/core/constants/api_constants.dart`](lib/core/constants/api_constants.dart):
 
 ```dart
-static const String baseUrl = 'http://localhost:8080/api';
+static const String baseUrl = 'http://134.209.173.117:8080/api';
 ```
 
 Change this to your deployed server URL for production builds.
