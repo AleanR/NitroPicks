@@ -138,6 +138,19 @@ cd server && npm install && pm2 restart nitropicks
 
 ---
 
+## Docs
+
+| Document | Description |
+|----------|-------------|
+| [Entity Relationship Diagram](docs/erd.md) | Data model — users, games, bets, rewards |
+| [Mobile UI Design](docs/NitroPicks-mobile-ui.pdf) | Mobile screen designs and layout |
+| [Mobile Screens](docs/screens-dart.png) | Flutter screen overview |
+| [Mobile Models](docs/models-dart.png) | Flutter data models |
+| [Mobile Services](docs/services-dart.png) | Flutter service layer |
+| [Mobile Controllers](docs/controllers-dart.png) | Flutter controller layer |
+
+---
+
 ## Rules Summary
 
 - UCF email (`@ucf.edu`) required to register
