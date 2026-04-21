@@ -254,7 +254,7 @@ function HomePage() {
                   </div>
 
                   <div className="flex flex-wrap items-center justify-end gap-3">
-                    {game.status.toLowerCase() === 'upcoming' ? (
+                    {game.status.toLowerCase() === 'upcoming' || game.status.toLowerCase() === 'live' ? (
                       <>
                         <span className="rounded-full border border-green-500/40 bg-green-500/10 px-4 py-2 text-base font-semibold text-green-400 text-center">
                           Market Open
